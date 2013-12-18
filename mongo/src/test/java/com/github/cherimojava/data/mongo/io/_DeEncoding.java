@@ -30,15 +30,15 @@ import org.mongodb.json.JSONReader;
 import org.mongodb.json.JSONWriter;
 
 import com.github.cherimojava.data.mongo.MongoBase;
-import com.github.cherimojava.data.mongo.entities.Entity;
-import com.github.cherimojava.data.mongo.entities.EntityFactory;
-import com.github.cherimojava.data.mongo.entities.annotations.Id;
-import com.github.cherimojava.data.mongo.entities.annotations.Transient;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.collect.Lists;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
-import static com.github.cherimojava.data.mongo.entities.Entity.ID;
-import static com.github.cherimojava.data.mongo.entities.EntityFactory.instantiate;
+import static com.github.cherimojava.data.mongo.entity.Entity.ID;
+import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static org.junit.Assert.*;
 import static org.mongodb.MongoHelper.getMongoDatabase;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;

@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -119,7 +119,7 @@ class EntityInvocationHandler implements InvocationHandler {
 			return _hashCode();
 		case "load":
 			checkState(collection != null,
-					"Entity was created without MongoDB reference. You have to load entities through an EntityFactory");
+					"Entity was created without MongoDB reference. You have to load entity through an EntityFactory");
 			return find(collection, args[0]);
 		}
 

@@ -14,26 +14,33 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities.annotations;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import com.github.cherimojava.data.mongo.Computer;
+package com.github.cherimojava.data.mongo.entity.annotation;
 
 /**
- * Declares that the given property is computed from other properties of the entity. Properties annotated with this must
- * not have a set-method declared.
+ * Holds information about one single Field of an Index
  *
  * @author philnate
+ *
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Computed {
+public @interface IndexField {
 	/**
-	 * function used to compute this properties value
+	 * name of the field for this Index, must match the actual name used for the field in mongodb (not in java)
 	 */
-	public Class<? extends Computer> value();
+	public String field();
+
+	/**
+	 * Ordering of the Field (ascending=true, descending=false)
+	 */
+	public Ordering order() default Ordering.ASC;
+
+	/**
+	 * Ordering information for Indexed field
+	 *
+	 * @author philnate
+	 *
+	 */
+	public static enum Ordering {
+		ASC,
+		DESC
+	}
 }

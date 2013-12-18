@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -25,15 +25,13 @@ import javax.validation.metadata.BeanDescriptor;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.github.cherimojava.data.mongo.Computer;
-import com.github.cherimojava.data.mongo.entities.annotations.Computed;
-import com.github.cherimojava.data.mongo.entities.annotations.Reference;
-import com.github.cherimojava.data.mongo.entities.annotations.Transient;
+import com.github.cherimojava.data.mongo.entity.annotation.Computed;
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
+import com.github.cherimojava.data.mongo.entity.annotation.Transient;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
-import static com.github.cherimojava.data.mongo.entities.EntityUtils.getMongoNameFromMethod;
-import static com.github.cherimojava.data.mongo.entities.EntityUtils.getPojoNameFromMethod;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
@@ -255,9 +253,9 @@ public final class ParameterProperty {
 				// only if this is not an computed property we have a setter for it
 				builder.setFluent(isAssignableFromClass(getSetterFromGetter(m)));
 			}
-			builder.setType(m.getReturnType()).setPojoName(getPojoNameFromMethod(m)).setMongoName(
-					getMongoNameFromMethod(m)).hasConstraints(
-					bdesc.getConstraintsForProperty(getPojoNameFromMethod(m)) != null).setValidator(validator).setDeclaringClass(
+			builder.setType(m.getReturnType()).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
+					EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
+					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(validator).setDeclaringClass(
 					declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(computer);
 			if (m.isAnnotationPresent(Reference.class)) {
 				if (m.getAnnotation(Reference.class).lazy()) {
@@ -294,8 +292,8 @@ public final class ParameterProperty {
 					throw e;
 				}
 			}
-			checkArgument(!(comp && (setter != null)), "computed property %s cannot have a setter method declared",
-					getPojoNameFromMethod(m));
+			Preconditions.checkArgument(!(comp && (setter != null)), "computed property %s cannot have a setter method declared",
+                    EntityUtils.getPojoNameFromMethod(m));
 
 			Class<?> declClass = m.getDeclaringClass();
 			if (setter != null && setter.getReturnType() != Void.TYPE) {

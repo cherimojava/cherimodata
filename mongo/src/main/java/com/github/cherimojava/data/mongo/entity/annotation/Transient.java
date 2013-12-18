@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities.annotations;
+package com.github.cherimojava.data.mongo.entity.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,17 +22,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Information about the Collection
+ * Tells that this property isn't supposed to be saved to mongodb. Property can be set manually or can be computed.
  *
  * @author philnate
  *
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Collection {
-
-	/**
-	 * Index definitions for this Collection
-	 */
-	public Index[] indexes() default {};
+public @interface Transient {
 }

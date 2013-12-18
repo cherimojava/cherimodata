@@ -26,10 +26,10 @@ import org.mongodb.MongoDatabase;
 import org.mongodb.codecs.Codecs;
 import org.mongodb.codecs.PrimitiveCodecs;
 
-import com.github.cherimojava.data.mongo.entities.Entity;
-import com.github.cherimojava.data.mongo.entities.EntityFactory;
-import com.github.cherimojava.data.mongo.entities.EntityProperties;
-import com.github.cherimojava.data.mongo.entities.ParameterProperty;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.EntityProperties;
+import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 
 public class EntityEncoder<T extends Entity> implements Encoder<T> {
 

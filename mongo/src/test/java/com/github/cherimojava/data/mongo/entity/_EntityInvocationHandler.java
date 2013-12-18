@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import javax.validation.ConstraintViolationException;
 
@@ -31,7 +31,7 @@ import com.github.cherimojava.data.mongo.TestBase;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
-import static com.github.cherimojava.data.mongo.entities.EntityFactory.instantiate;
+import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;

@@ -25,13 +25,13 @@ import org.mongodb.MongoDatabase;
 import org.mongodb.codecs.Codecs;
 import org.mongodb.codecs.PrimitiveCodecs;
 
-import com.github.cherimojava.data.mongo.entities.Entity;
-import com.github.cherimojava.data.mongo.entities.EntityFactory;
-import com.github.cherimojava.data.mongo.entities.EntityProperties;
-import com.github.cherimojava.data.mongo.entities.EntityUtils;
-import com.github.cherimojava.data.mongo.entities.ParameterProperty;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.EntityProperties;
+import com.github.cherimojava.data.mongo.entity.EntityUtils;
+import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 
-import static com.github.cherimojava.data.mongo.entities.Entity.ID;
+import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 
 public class EntityDecoder<T extends Entity> implements Decoder<T> {
 

@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 /**
  * Basic Interface for documents containing common functionality for all records. If the Document needs to be versioned
@@ -69,7 +69,7 @@ public interface Entity<T extends Entity> {
 	public T set(String property, Object value);
 
 	/**
-	 * Removes the entity from the database, but doesn't remove the entities data or state.
+	 * Removes the entity from the database, but doesn't remove the entity data or state.
 	 *
 	 * @throws IllegalStateException
 	 *             if no MongoDB instance is linked to this Entity
@@ -93,7 +93,7 @@ public interface Entity<T extends Entity> {
 	public T load(Object id);
 
 	/**
-	 * Two entities are considered equal if they're from the same type and all underlying properties are equal as well.
+	 * Two entity are considered equal if they're from the same type and all underlying properties are equal as well.
 	 *
 	 * @param o
 	 * @return

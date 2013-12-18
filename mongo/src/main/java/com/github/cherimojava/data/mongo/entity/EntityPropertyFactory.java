@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -34,8 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
-import static com.github.cherimojava.data.mongo.entities.EntityProperties.Builder;
-import static com.github.cherimojava.data.mongo.entities.EntityUtils.getCollectionName;
 import static com.google.common.base.Preconditions.checkArgument;
 
 class EntityPropertyFactory implements Factory<Class<? extends Entity>, EntityProperties> {
@@ -78,9 +76,9 @@ class EntityPropertyFactory implements Factory<Class<? extends Entity>, EntityPr
 	}
 
 	private EntityProperties build(Class<? extends Entity> clazz) {
-		Builder builder = new Builder().setEntityClass(clazz).setValidator(validator);
+		EntityProperties.Builder builder = new EntityProperties.Builder().setEntityClass(clazz).setValidator(validator);
 
-		builder.setCollectionName(getCollectionName(clazz));
+		builder.setCollectionName(EntityUtils.getCollectionName(clazz));
 
 		Set<String> setter = Sets.newHashSet();
 		List<String> getter = Lists.newArrayList();

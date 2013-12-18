@@ -14,18 +14,18 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import javax.inject.Named;
 
 import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.TestBase;
-import com.github.cherimojava.data.mongo.entities.annotations.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
-import static com.github.cherimojava.data.mongo.entities.EntityUtils.*;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
 import static org.junit.Assert.*;
 
 public class _EntityUtils extends TestBase {

@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import static com.github.cherimojava.data.mongo.entities.Entity.ID;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -63,7 +62,7 @@ public final class EntityProperties {
 	private final Map<String, ParameterProperty> mongoNames;
 
 	/**
-	 * list of properties containing validation annotations
+	 * list of properties containing validation annotation
 	 */
 	private final List<ParameterProperty> validationProperties;
 
@@ -94,10 +93,10 @@ public final class EntityProperties {
 		// check if we have an explicit id, if we don't, create a property for it
 		// TODO add to the validator or so, the capability to validate implicit id too
 		if (!explicitId) {
-			ParameterProperty id = new ParameterProperty.Builder().setMongoName(ID).setPojoName(ID).setType(
+			ParameterProperty id = new ParameterProperty.Builder().setMongoName(Entity.ID).setPojoName(Entity.ID).setType(
 					ObjectId.class).setTransient(false).hasConstraints(false).setValidator(builder.validator).build();
-			pojo.put(ID, id);
-			mongo.put(ID, id);
+			pojo.put(Entity.ID, id);
+			mongo.put(Entity.ID, id);
 		}
 
 		this.pojoNames = pojo.build();

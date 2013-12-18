@@ -23,9 +23,9 @@ import org.mongodb.CollectibleCodec;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 
-import com.github.cherimojava.data.mongo.entities.Entity;
-import com.github.cherimojava.data.mongo.entities.EntityFactory;
-import com.github.cherimojava.data.mongo.entities.EntityProperties;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.EntityProperties;
 
 public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	private final Class<T> clazz;
@@ -55,7 +55,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	public static Object _getId(Entity document) {
 		Object id = document.get(Entity.ID);
 		// if the returned id is null, we know that this must be an implicit id, otherwise we don't get this far before
-		// TODO with nested entities this might be not true
+		// TODO with nested entity this might be not true
 		if (id == null) {
 			id = new ObjectId();
 			document.set(Entity.ID, id);

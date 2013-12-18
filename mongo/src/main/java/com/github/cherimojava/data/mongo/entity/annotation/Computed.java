@@ -14,23 +14,26 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities.annotations;
+package com.github.cherimojava.data.mongo.entity.annotation;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.github.cherimojava.data.mongo.entity.Computer;
+
 /**
- * Simple Marker Annotation denoting the id field if it's not named Id. Cannot be combined with a property which is
- * annotated <b>@Named("_id")</b>.
+ * Declares that the given property is computed from other properties of the entity. Properties annotated with this must
+ * not have a set-method declared.
  *
  * @author philnate
- *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
-public @interface Id {
+public @interface Computed {
+	/**
+	 * function used to compute this properties value
+	 */
+	public Class<? extends Computer> value();
 }

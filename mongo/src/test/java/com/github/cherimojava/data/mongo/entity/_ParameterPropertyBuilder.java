@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -22,15 +22,14 @@ import javax.validation.Validator;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.cherimojava.data.mongo.Computer;
 import com.github.cherimojava.data.mongo.TestBase;
-import com.github.cherimojava.data.mongo.entities.annotations.Computed;
-import com.github.cherimojava.data.mongo.entities.annotations.Id;
-import com.github.cherimojava.data.mongo.entities.annotations.Reference;
-import com.github.cherimojava.data.mongo.entities.annotations.Transient;
+import com.github.cherimojava.data.mongo.entity.annotation.Computed;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
+import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
-import static com.github.cherimojava.data.mongo.entities.ParameterProperty.Builder;
+import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder;
 import static org.junit.Assert.*;
 
 public class _ParameterPropertyBuilder extends TestBase {

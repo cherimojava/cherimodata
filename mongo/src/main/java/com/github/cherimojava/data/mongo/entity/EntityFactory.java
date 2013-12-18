@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -23,9 +23,9 @@ import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 import org.mongodb.OrderBy;
 
-import com.github.cherimojava.data.mongo.entities.annotations.Collection;
-import com.github.cherimojava.data.mongo.entities.annotations.Index;
-import com.github.cherimojava.data.mongo.entities.annotations.IndexField;
+import com.github.cherimojava.data.mongo.entity.annotation.Collection;
+import com.github.cherimojava.data.mongo.entity.annotation.Index;
+import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
 import com.google.common.collect.Maps;
 
@@ -42,7 +42,7 @@ import static org.mongodb.Index.builder;
 public class EntityFactory {
 
 	/**
-	 * Where all entities for this factory will be stored. Each entity goes into it's own collection, but within the
+	 * Where all entity for this factory will be stored. Each entity goes into it's own collection, but within the
 	 * same DB
 	 */
 	private final MongoDatabase db;

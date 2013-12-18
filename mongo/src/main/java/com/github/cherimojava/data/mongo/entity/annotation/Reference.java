@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities.annotations;
+package com.github.cherimojava.data.mongo.entity.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

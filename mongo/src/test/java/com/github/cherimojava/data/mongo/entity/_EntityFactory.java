@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import javax.inject.Named;
 
@@ -28,9 +28,9 @@ import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 
 import com.github.cherimojava.data.mongo.TestBase;
-import com.github.cherimojava.data.mongo.entities.annotations.Collection;
-import com.github.cherimojava.data.mongo.entities.annotations.Index;
-import com.github.cherimojava.data.mongo.entities.annotations.IndexField;
+import com.github.cherimojava.data.mongo.entity.annotation.Collection;
+import com.github.cherimojava.data.mongo.entity.annotation.Index;
+import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;

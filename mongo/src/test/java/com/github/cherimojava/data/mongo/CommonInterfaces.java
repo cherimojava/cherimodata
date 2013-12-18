@@ -22,10 +22,11 @@ import java.util.Map;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
 
-import com.github.cherimojava.data.mongo.entities.Entity;
-import com.github.cherimojava.data.mongo.entities.annotations.Computed;
-import com.github.cherimojava.data.mongo.entities.annotations.Id;
-import com.github.cherimojava.data.mongo.entities.annotations.Reference;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.annotation.Computed;
+import com.github.cherimojava.data.mongo.entity.Computer;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 
 /**
  * Class holding Entity based interfaces shared across test classes

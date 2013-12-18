@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 /**
  * Basic Interface for documents containing common functionality for all records, this type of entity keeps a history of
@@ -35,7 +35,7 @@ interface VersionedEntity extends Entity {
 	static final String _H = "_h";
 
 	/**
-	 * allows to programatically read a given value from an entities history. Will fail if the given property isn't
+	 * allows to programatically read a given value from an entity history. Will fail if the given property isn't
 	 * declared through a method name / {@link javax.inject.Named} or the version isn't valid.
 	 *
 	 * @param property
@@ -49,7 +49,7 @@ interface VersionedEntity extends Entity {
 	public Object get(String property, int version);
 
 	/**
-	 * Two entities are considered equal if they're from the same type and all underlying properties are equal as well.
+	 * Two entity are considered equal if they're from the same type and all underlying properties are equal as well.
 	 * This includes the history of the {@link VersionedEntity} as well.
 	 *
 	 * @param o

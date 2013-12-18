@@ -14,7 +14,7 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities;
+package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
 import java.util.Locale;
@@ -23,7 +23,7 @@ import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.github.cherimojava.data.mongo.entities.annotations.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.commons.lang3.StringUtils.*;

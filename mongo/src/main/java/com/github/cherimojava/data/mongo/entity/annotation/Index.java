@@ -14,18 +14,27 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo;
-
-import com.github.cherimojava.data.mongo.entities.Entity;
+package com.github.cherimojava.data.mongo.entity.annotation;
 
 /**
- * Function which is used to compute a value on request from the given entity F.
+ * Represents a Index, constructed out of multiple IndexFields
  *
- * @param <F>
- *            Entity this computer is getting as input
- * @param <T>
- *            Type of the value this computer computes
+ * @author philnate
+ *
  */
-public interface Computer<F extends Entity, T> {
-	public T compute(F f);
+public @interface Index {
+	/**
+	 * contains a list of all Fields making this Index
+	 */
+	public IndexField[] value();
+
+	/**
+	 * Is this index unique or not? Default false
+	 */
+	public boolean unique() default false;
+
+	/**
+	 * Optional name of the index, if not system one is wanted
+	 */
+	public String name() default "";
 }

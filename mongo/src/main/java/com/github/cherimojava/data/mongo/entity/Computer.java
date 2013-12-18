@@ -14,33 +14,16 @@
  *    limitations under the License.
  *
  */
-package com.github.cherimojava.data.mongo.entities.annotations;
+package com.github.cherimojava.data.mongo.entity;
 
 /**
- * Holds information about one single Field of an Index
+ * Function which is used to compute a value on request from the given entity F.
  *
- * @author philnate
- *
+ * @param <F>
+ *            Entity this computer is getting as input
+ * @param <T>
+ *            Type of the value this computer computes
  */
-public @interface IndexField {
-	/**
-	 * name of the field for this Index, must match the actual name used for the field in mongodb (not in java)
-	 */
-	public String field();
-
-	/**
-	 * Ordering of the Field (ascending=true, descending=false)
-	 */
-	public Ordering order() default Ordering.ASC;
-
-	/**
-	 * Ordering information for Indexed field
-	 *
-	 * @author philnate
-	 *
-	 */
-	public static enum Ordering {
-		ASC,
-		DESC
-	}
+public interface Computer<F extends Entity, T> {
+	public T compute(F f);
 }
