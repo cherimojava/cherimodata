@@ -1,0 +1,40 @@
+/**
+ *    Copyright [cherimojava (http://github.com/philnate/cherimojava.git)]
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *
+ */
+package com.github.cherimojava.data.mongo.entities.annotations;
+
+/**
+ * Represents a Index, constructed out of multiple IndexFields
+ *
+ * @author philnate
+ *
+ */
+public @interface Index {
+	/**
+	 * contains a list of all Fields making this Index
+	 */
+	public IndexField[] value();
+
+	/**
+	 * Is this index unique or not? Default false
+	 */
+	public boolean unique() default false;
+
+	/**
+	 * Optional name of the index, if not system one is wanted
+	 */
+	public String name() default "";
+}
