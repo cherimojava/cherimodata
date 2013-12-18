@@ -1,0 +1,60 @@
+Cherimongo is an work in Progress Object Document Mapper for MongoDB and Java. It allows you easily to define POJOs which can be easily stored within mongodb. At the moment there's no maven artefact, but this will be added at a later time, until then you need to checkout, import and build the artifact yourself.
+
+## POJO declaration
+To get started you need to define your POJO as an Interface extending *me.philnate.cherimodata.mongo.Entity* (I'll explain the difference later)
+
+    static interface SimpleEntity extends Entity {
+
+        public SimpleEntity setMyId(String myId);
+
+        @Id
+        public String getMyId();
+    }
+
+The above will give you some Entity with a property called MyId, which can be accessed through Java just like a normal POJO property.
+
+## MongoDB representation
+In MongoDB the previously shown POJO will be persisted within a collection called _simpleEntity_ like this:
+
+    {_id:"value"}
+
+to instantiate a new Entity you need to create an Instance of Entities, supplying a DB where all the entities will be stored to. Once this is done you can create new Entities, calling entities.create(MyEntity.class). You can as well create Entities statically through EntityFactory, but these entities lack the capability to be self sufficient, meaning that load, delete, save, etc. won't work for them.
+After this you can access all the common Entity properties as well as the MyEntity specific properties.
+
+## Method/Property Naming convention
+Per property you need a setter and getter method, fulfilling:
+
+* Set method named set&lt;PROPERTY&gt;, with exactly one param
+* Get method named get&lt;PROPERTY&gt;, with exactly no param, return value type must match Setter param
+* You can't have methods named _h or _v, as these are reserved names
+
+## Possible Annotations
+Annotations need to be placed on Getter methods, and not on setter to keep it consistent with JSR-301 validation
+
+Class Level
+* @Named, allows to use a different collection name than the one the framework would choose
+* @Collection currently only serves as container for the Index declaration
+* @Index, used within @Collection defines an index name (optional), if it shall be unique and the order and
+fields to be included in the index
+* @IndexField, fieldname and ordering of the field within the index
+
+Property Level
+* @Id, tells that this property shall be treated as the Id field (will map to mongodb _\_id_). If not declared
+implicit id will be used. Can't be used more than once per Entity
+* @Named, set the MongoDB name to be different than the java name, might use \_id, converting the field into \_id
+(can't be done more than once, not combined with @Id).
+* All Java Validation annotations like @Size, @NotNull, @DecimalMin, @DecimalMax, @Future, etc.
+* Transient, tells that this field isn't persisted
+* Computed tells that this property is being computed. Once must not declare a setter for those fields
+
+Java to MongoDB name resolution works as following:
+
+* CamelCase is preserved except the first letter (if capital) will be turned to lowerCase
+* If all Letter are capital, nothing will be transformed
+* If there's only one letter it will be converted to lower case (no matter if it's upper case or not)
+
+h3. TODO
+
+* DBRef for subdocuments, loaded on the fly.
+* Transactional Support as described in MongoDBs 2PC document
+* Search functionality based on method names
