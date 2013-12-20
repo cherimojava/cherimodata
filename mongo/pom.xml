@@ -4,11 +4,12 @@
         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.cherimojava</groupId>
-        <artifactId>cherimodata</artifactId>
+        <groupId>com.github.cherimojava.data</groupId>
+        <artifactId>parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.github.cherimojava.data</groupId>
     <artifactId>mongo</artifactId>
     <name>cherimodata -- MongoMapper</name>
     <packaging>jar</packaging>
@@ -54,13 +55,6 @@
         </developer>
     </developers>
 
-    <repositories>
-        <repository>
-            <id>sonatype-snapshot</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <!-- Utility Classes -->
         <dependency>
@@ -105,12 +99,10 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>1.39</version>
         </dependency>
         <!-- Dynamic TestSuite creation -->
         <dependency>

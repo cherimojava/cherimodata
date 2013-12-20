@@ -22,11 +22,13 @@ import java.util.Map;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 import org.mongodb.OrderBy;
+import org.mongodb.json.JSONReader;
 
 import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
+import com.github.cherimojava.data.mongo.io.EntityDecoder;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -42,8 +44,8 @@ import static org.mongodb.Index.builder;
 public class EntityFactory {
 
 	/**
-	 * Where all entity for this factory will be stored. Each entity goes into it's own collection, but within the
-	 * same DB
+	 * Where all entity for this factory will be stored. Each entity goes into it's own collection, but within the same
+	 * DB
 	 */
 	private final MongoDatabase db;
 
@@ -162,5 +164,9 @@ public class EntityFactory {
 
 	public MongoDatabase getDb() {
 		return db;
+	}
+
+	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
+		return new EntityDecoder<T>(this, getProperties(clazz)).decode(new JSONReader(json));
 	}
 }

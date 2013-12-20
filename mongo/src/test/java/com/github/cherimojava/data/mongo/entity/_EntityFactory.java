@@ -27,13 +27,15 @@ import org.mongodb.Document;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
+import com.github.cherimojava.data.mongo.io.EntityCodec;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,7 +52,7 @@ public class _EntityFactory extends TestBase {
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.initMocks(this);
-		when(db.getCollection(anyString())).thenReturn(coll);
+		when(db.getCollection(anyString(), any(EntityCodec.class))).thenReturn(coll);
 		factory = new EntityFactory(db);
 	}
 
@@ -75,6 +77,14 @@ public class _EntityFactory extends TestBase {
 		} catch (NullPointerException e) {
 			assertTrue(e.getMessage().contains("Index field"));
 		}
+	}
+
+	@Test
+	public void fromJSON() {
+		CommonInterfaces.PrimitiveEntity pe = factory.fromJson(CommonInterfaces.PrimitiveEntity.class,
+				"{\"string\": \"something\",\"Integer\":3}");
+		assertEquals(pe.getString(), "something");
+		assertEquals((int) pe.getInteger(), 3);
 	}
 
 	@Collection(indexes = {
