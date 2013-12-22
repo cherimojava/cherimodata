@@ -18,6 +18,7 @@ package com.github.cherimojava.data.mongo.io;
 
 import java.io.StringWriter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -103,6 +104,26 @@ public class _DeEncoding extends MongoBase {
 		PrimitiveEntity read = factory.load(PrimitiveEntity.class, doc.get("_id"));
 		assertEquals(pe, read);
 		assertEquals(read, pe.load(doc.get("_id")));
+	}
+
+	@Test
+	public void noDuplicateIdWritten() {
+		ExplicitIdEntity eid = factory.fromJson(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
+		assertEquals("explicit", eid.getName());
+		EntityEncoder<ExplicitIdEntity> enc = new EntityEncoder<>(factory,
+				factory.getProperties(ExplicitIdEntity.class));
+
+		StringWriter swriter = new StringWriter();
+		JSONWriter writer = new JSONWriter(swriter);
+		enc.encode(writer, eid);
+		assertEquals(1, StringUtils.countMatches(swriter.toString(), "explicit"));
+
+		ExplicitIdEntity eid2 = factory.create(ExplicitIdEntity.class);
+		eid2.setName("once");
+		swriter = new StringWriter();
+		writer = new JSONWriter(swriter);
+		enc.encode(writer, eid2);
+		assertEquals(1, StringUtils.countMatches(swriter.toString(), "once"));
 	}
 
 	@Test

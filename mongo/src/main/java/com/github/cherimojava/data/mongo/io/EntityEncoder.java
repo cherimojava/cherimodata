@@ -56,9 +56,9 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 	private void encodeEntity(BSONWriter writer, T value) {
 		EntityProperties properties = EntityFactory.getProperties(value.entityClass());
 		Object id = value.get(Entity.ID);
-		if (id != null) {
-			// this is needed to write the object id, which at this time should be set in case it wasn't before, might
-			// lead to duplicate declaration if we have an explicitly declared one
+		if (id != null && !properties.hasExplicitId()) {
+			// this is needed to write the object id, which at this time should be set in case it wasn't before
+			// only write out the id if it's not explicitly declared
 			// TODO shouldn't this be always true?
 			writer.writeName(Entity.ID);
 			codecs.encode(writer, id);
