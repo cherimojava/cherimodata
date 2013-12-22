@@ -24,6 +24,8 @@ import org.mongodb.Document;
 import org.mongodb.MongoDatabase;
 import org.mongodb.codecs.Codecs;
 import org.mongodb.codecs.PrimitiveCodecs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
@@ -39,6 +41,7 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 	private final Codecs codecs;
 	private final MongoDatabase db;
 	private final EntityFactory factory;
+	private static final Logger LOG = LoggerFactory.getLogger(EntityDecoder.class);
 
 	public EntityDecoder(EntityFactory factory, EntityProperties properties) {
 		clazz = (Class<T>) properties.getEntityClass();
@@ -56,14 +59,20 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 		while ((type = reader.readBSONType()) != BSONType.END_OF_DOCUMENT) {
 			if (type == BSONType.DOCUMENT) {
 				String name = reader.readName();
-				Class<? extends Entity> cls = null;
-				try {
-					cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
-				} catch (NoSuchMethodException e1) {
-					e1.printStackTrace();
-				}
-				EntityProperties seProperties = EntityFactory.getProperties(cls);
-				ParameterProperty pp = properties.getProperty(name);
+                ParameterProperty pp = properties.getProperty(name);
+                if (pp == null) {
+                    LOG.debug("Found subdocument named {}, but this subdocument isn't known for Entity {}", name,
+                            clazz.getSimpleName());
+                    reader.skipValue();
+                    continue;
+                }
+                Class<? extends Entity> cls = null;
+                try {
+                    cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
+                } catch (NoSuchMethodException e1) {
+                    e1.printStackTrace();
+                }
+                EntityProperties seProperties = EntityFactory.getProperties(cls);
 				if (pp.isReference()) {
 					// Entity is only stored as reference, so we can only read the id from it
 					reader.readStartDocument();
@@ -79,8 +88,15 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 				}
 			} else {
 				String propertyName = reader.readName();
-				if (properties.getProperty(propertyName).isTransient()
-						|| properties.getProperty(propertyName).isComputed()) {
+                ParameterProperty pp =         properties.getProperty(propertyName) ;
+                if (pp == null) {
+                    LOG.debug("Found property named {}, but this property isn't known for Entity {}", propertyName,
+                            clazz.getSimpleName());
+                    reader.skipValue();
+                    continue;
+                }
+				if (pp.isTransient()
+						|| pp.isComputed()) {
 					// transient values aren't read, even tough they're written (by earlier version of Entity, etc.)
 					// same is true for computed, even tough they're written it's value won't be used, so skip it
 					reader.skipValue();// sent value to /dev/null

@@ -218,6 +218,22 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	@Test
+	public void ignoreUnknownProps() {
+		PrimitiveEntity pe = factory.fromJson(PrimitiveEntity.class,
+				"{\"string\":\"some\",\"Integer\":1,\"unknown\":\"dontfail\"}");
+		assertEquals(1, (int) pe.getInteger());
+		assertEquals("some", pe.getString());
+	}
+
+	@Test
+	public void ignoreUnknownSubtype() {
+		PrimitiveEntity pe = factory.fromJson(PrimitiveEntity.class,
+				"{\"unknown\": {\"string\":\"dontfail\"},\"string\":\"some\",\"Integer\":1}");
+		assertEquals(1, (int) pe.getInteger());
+		assertEquals("some", pe.getString());
+	}
+
+	@Test
 	public void loadedEntityCanBeSaved() {
 		ReferencingEntity re = factory.create(ReferencingEntity.class);
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
