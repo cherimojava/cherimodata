@@ -16,6 +16,8 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 
 import org.bson.BSONWriter;
@@ -25,6 +27,7 @@ import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 import org.mongodb.codecs.Codecs;
 import org.mongodb.codecs.PrimitiveCodecs;
+import org.mongodb.json.JSONWriter;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
@@ -35,31 +38,26 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 
 	private final Codecs codecs;
 	private final Class<T> clazz;
-	private final EntityFactory factory;
 	private MongoDatabase db;
 
-	// TODO could probably change to simply Entity class and then retrieve it from the factory
-	public EntityEncoder(EntityFactory factory, EntityProperties properties) {
+	public EntityEncoder(MongoDatabase db, EntityProperties properties) {
 		codecs = Codecs.builder().primitiveCodecs(PrimitiveCodecs.createDefault()).build();
 		clazz = (Class<T>) properties.getEntityClass();
-		this.factory = factory;
-		db = factory.getDb();
+		this.db = db;
 	}
 
 	@Override
 	public void encode(BSONWriter bsonWriter, T value) {
-		bsonWriter.writeStartDocument();
-		encodeEntity(bsonWriter, value);
-		bsonWriter.writeEndDocument();
+		encode(bsonWriter, value, true);
 	}
 
-	private void encodeEntity(BSONWriter writer, T value) {
+	private void encodeEntity(BSONWriter writer, T value, boolean toDB) {
 		EntityProperties properties = EntityFactory.getProperties(value.entityClass());
 		Object id = value.get(Entity.ID);
 		if (id != null && !properties.hasExplicitId()) {
 			// this is needed to write the object id, which at this time should be set in case it wasn't before
-			// only write out the id if it's not explicitly declared
 			// TODO shouldn't this be always true?
+			// only write out the id if it's not explicitly declared
 			writer.writeName(Entity.ID);
 			codecs.encode(writer, id);
 		}
@@ -85,8 +83,10 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 					} else {
 						writer.writeString(eid.toString());
 					}
-					((MongoCollection<Entity>) EntityCodec.getCollectionFor(db, seProperties)).save(subEntity);
-					writer.writeEndDocument();
+					if (toDB) {
+						((MongoCollection<Entity>) EntityCodec.getCollectionFor(db, seProperties)).save(subEntity);
+						writer.writeEndDocument();
+					}
 					continue;
 				}
 				if (codecs.canDecode(method.getReturnType())) {
@@ -95,9 +95,24 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 				} else if (Entity.class.isAssignableFrom(method.getReturnType())) {
 					// we got some entity, so we need to recurse
 					writer.writeName(propertyName);
-					encode(writer, (T) value.get(propertyName));
+					encode(writer, (T) value.get(propertyName),toDB);
 				}
 			}
+	}
+
+	private void encode(BSONWriter writer, T value, boolean toDB) {
+		writer.writeStartDocument();
+		encodeEntity(writer, value, toDB);
+		writer.writeEndDocument();
+	}
+
+	public String asString(T value) {
+		try (StringWriter swriter = new StringWriter(); JSONWriter writer = new JSONWriter(swriter)) {
+			encode(writer, value, false);
+			return swriter.toString();
+		} catch (IOException e) {
+			return e.getMessage();
+		}
 	}
 
 	@Override

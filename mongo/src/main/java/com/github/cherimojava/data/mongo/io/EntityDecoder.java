@@ -59,20 +59,20 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 		while ((type = reader.readBSONType()) != BSONType.END_OF_DOCUMENT) {
 			if (type == BSONType.DOCUMENT) {
 				String name = reader.readName();
-                ParameterProperty pp = properties.getProperty(name);
-                if (pp == null) {
-                    LOG.debug("Found subdocument named {}, but this subdocument isn't known for Entity {}", name,
-                            clazz.getSimpleName());
-                    reader.skipValue();
-                    continue;
-                }
-                Class<? extends Entity> cls = null;
-                try {
-                    cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
-                } catch (NoSuchMethodException e1) {
-                    e1.printStackTrace();
-                }
-                EntityProperties seProperties = EntityFactory.getProperties(cls);
+				ParameterProperty pp = properties.getProperty(name);
+				if (pp == null) {
+					LOG.debug("Found subdocument named {}, but this subdocument isn't known for Entity {}", name,
+							clazz.getSimpleName());
+					reader.skipValue();
+					continue;
+				}
+				Class<? extends Entity> cls = null;
+				try {
+					cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
+				} catch (NoSuchMethodException e1) {
+					e1.printStackTrace();
+				}
+				EntityProperties seProperties = EntityFactory.getProperties(cls);
 				if (pp.isReference()) {
 					// Entity is only stored as reference, so we can only read the id from it
 					reader.readStartDocument();
@@ -88,15 +88,14 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 				}
 			} else {
 				String propertyName = reader.readName();
-                ParameterProperty pp =         properties.getProperty(propertyName) ;
-                if (pp == null) {
-                    LOG.debug("Found property named {}, but this property isn't known for Entity {}", propertyName,
-                            clazz.getSimpleName());
-                    reader.skipValue();
-                    continue;
-                }
-				if (pp.isTransient()
-						|| pp.isComputed()) {
+				ParameterProperty pp = properties.getProperty(propertyName);
+				if (pp == null) {
+					LOG.debug("Found property named {}, but this property isn't known for Entity {}", propertyName,
+							clazz.getSimpleName());
+					reader.skipValue();
+					continue;
+				}
+				if (pp.isTransient() || pp.isComputed()) {
 					// transient values aren't read, even tough they're written (by earlier version of Entity, etc.)
 					// same is true for computed, even tough they're written it's value won't be used, so skip it
 					reader.skipValue();// sent value to /dev/null

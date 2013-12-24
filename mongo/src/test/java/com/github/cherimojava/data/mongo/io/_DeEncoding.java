@@ -68,7 +68,7 @@ public class _DeEncoding extends MongoBase {
 	 */
 	@Test
 	public void basicDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(factory, EntityFactory.getProperties(PrimitiveEntity.class));
+		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(PrimitiveEntity.class));
 		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(PrimitiveEntity.class));
 
 		PrimitiveEntity pe = instantiate(PrimitiveEntity.class);
@@ -110,7 +110,7 @@ public class _DeEncoding extends MongoBase {
 	public void noDuplicateIdWritten() {
 		ExplicitIdEntity eid = factory.fromJson(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
 		assertEquals("explicit", eid.getName());
-		EntityEncoder<ExplicitIdEntity> enc = new EntityEncoder<>(factory,
+		EntityEncoder<ExplicitIdEntity> enc = new EntityEncoder<>(db,
 				factory.getProperties(ExplicitIdEntity.class));
 
 		StringWriter swriter = new StringWriter();
@@ -185,7 +185,7 @@ public class _DeEncoding extends MongoBase {
 	 */
 	@Test
 	public void nestedDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(factory, EntityFactory.getProperties(NestedEntity.class));
+		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(NestedEntity.class));
 		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(NestedEntity.class));
 
 		PrimitiveEntity pe = instantiate(PrimitiveEntity.class);
@@ -289,7 +289,7 @@ public class _DeEncoding extends MongoBase {
 	@Test
 	@Ignore
 	public void collectionDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(factory, EntityFactory.getProperties(CollectionEntity.class));
+		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(CollectionEntity.class));
 		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(CollectionEntity.class));
 
 		CollectionEntity ce = instantiate(CollectionEntity.class);

@@ -26,6 +26,7 @@ import org.mongodb.Document;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoCursor;
 
+import com.github.cherimojava.data.mongo.io.EntityEncoder;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
@@ -112,9 +113,7 @@ class EntityInvocationHandler implements InvocationHandler {
 		case "entityClass":
 			return properties.getEntityClass();
 		case "toString":
-			// TODO for now simply return the internal map String, might want to return something more sophisticated
-			// later
-			return data.toString();
+			return _toString();
 		case "hashCode":
 			return _hashCode();
 		case "load":
@@ -196,6 +195,15 @@ class EntityInvocationHandler implements InvocationHandler {
 			hcb.append(key);
 		}
 		return hcb.build();
+	}
+
+	/**
+	 * toString method of the entity represented by this EntityInvocationHandler instance
+	 *
+	 * @return
+	 */
+	private String _toString() {
+		return new EntityEncoder<>(null, properties).asString(proxy);
 	}
 
 	/**

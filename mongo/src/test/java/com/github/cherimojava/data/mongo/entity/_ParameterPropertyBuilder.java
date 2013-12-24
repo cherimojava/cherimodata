@@ -276,6 +276,6 @@ public class _ParameterPropertyBuilder extends TestBase {
 		@Reference
 		public String getInvalidProp();
 
-		public ReferencedEntity setInvallidProp(String s);
+		public ReferencedEntity setInvalidProp(String s);
 	}
 }

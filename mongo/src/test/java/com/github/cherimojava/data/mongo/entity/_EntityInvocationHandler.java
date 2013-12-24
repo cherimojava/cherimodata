@@ -18,6 +18,7 @@ package com.github.cherimojava.data.mongo.entity;
 
 import javax.validation.ConstraintViolationException;
 
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,14 +30,14 @@ import org.mongodb.MongoDatabase;
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 
-import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
-import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 public class _EntityInvocationHandler extends TestBase {
 
@@ -280,8 +281,41 @@ public class _EntityInvocationHandler extends TestBase {
 
 	@Test
 	public void computedProperty() {
-		CommonInterfaces.ComputedPropertyEntity cpe = factory.create(CommonInterfaces.ComputedPropertyEntity.class);
+		ComputedPropertyEntity cpe = factory.create(ComputedPropertyEntity.class);
 		cpe.setString("one").setInteger(1);
 		assertEquals("one1", cpe.getComputed());
+	}
+
+	@Test
+	public void toStringNoParamValidation() {
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		pe.setInteger(1);
+		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe.toString());
+	}
+
+	@Test
+	public void toStringExternalReferences() {
+        ReferencingEntity re = factory.create(ReferencingEntity.class);
+        re.setPE(pe.setString("some"));
+        re.setInteger(5);
+        assertJson(sameJSONAs("{ \"PE\" : { \"$id\" : { \"$oid\" : \"52b8e081672b541bae788553\" }, \"Integer\" : 5 }"),re.toString());
+	}
+
+	@Test
+	public void toStringWriteIdIfSet() {
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		pe.setInteger(1);
+		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe.toString());
+		ObjectId id = new ObjectId();
+		pe.set("_id", id);
+		assertJson(sameJSONAs("{\"_id\":{\"$oid\":\"" + id.toString() + "\"},\"Integer\":1}"), pe.toString());
+	}
+
+	@Test
+	public void toStringNestedEntity() {
+		NestedEntity ne = factory.create(NestedEntity.class);
+		ne.setString("value");
+		ne.setPE((PrimitiveEntity) pe.setInteger(4));
+		assertJson(sameJSONAs("{\"string\": \"value\", \"PE\":{\"Integer\":4}}"), ne.toString());
 	}
 }

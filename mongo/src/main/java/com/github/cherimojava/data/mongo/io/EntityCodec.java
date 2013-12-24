@@ -36,7 +36,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	public EntityCodec(MongoDatabase db, EntityProperties properties) {
 		clazz = (Class<T>) properties.getEntityClass();
 		factory = new EntityFactory(db);
-		enc = new EntityEncoder<>(factory, properties);
+		enc = new EntityEncoder<>(db, properties);
 		dec = new EntityDecoder<>(factory, properties);
 	}
 
