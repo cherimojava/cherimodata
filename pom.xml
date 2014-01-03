@@ -58,7 +58,7 @@
 
     <modules>
         <module>mongo</module>
-        <module>cherimodata-spring</module>
+        <module>spring</module>
     </modules>
 
     <repositories>
