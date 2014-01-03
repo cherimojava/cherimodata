@@ -25,6 +25,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cherimodata.version>1.0.0-SNAPSHOT</cherimodata.version>
+        <parentDir>${basedir}</parentDir>
     </properties>
 
     <prerequisites>
@@ -56,6 +58,7 @@
 
     <modules>
         <module>mongo</module>
+        <module>cherimodata-spring</module>
     </modules>
 
     <repositories>
@@ -76,6 +79,16 @@
                 <groupId>de.flapdoodle.embed</groupId>
                 <artifactId>de.flapdoodle.embed.mongo</artifactId>
                 <version>1.39</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.cherimojava.data</groupId>
+                <artifactId>mongo</artifactId>
+                <version>${cherimodata.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.cherimojava.data</groupId>
+                <artifactId>cherimodata-spring</artifactId>
+                <version>${cherimodata.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
