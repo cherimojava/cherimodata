@@ -15,9 +15,6 @@
  */
 package org.mongodb;
 
-import me.philnate.cherimodata.mongo.MongoBase;
-import me.philnate.cherimodata.mongo.entities.Entity;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -29,6 +26,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mongodb.connection.ServerAddress;
 
+import com.github.cherimojava.data.mongo.MongoBase;
+import com.github.cherimojava.data.mongo.entity.Entity;
+
 /**
  * Created with IntelliJ IDEA. User: user Date: 9/9/13 Time: 3:50 PM To change this template use File | Settings | File
  * Templates.
@@ -36,7 +36,7 @@ import org.mongodb.connection.ServerAddress;
 public class _DriverTest extends MongoBase {
 
 	@Test
-    @Ignore
+	@Ignore
 	public void simpleTest() throws UnknownHostException {
 		MongoClient client = MongoClients.create(new ServerAddress("localhost", 27017));
 		MongoCollection<Entity> collection = client.getDatabase("test").getCollection("entity",

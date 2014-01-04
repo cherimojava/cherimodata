@@ -40,7 +40,7 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 	private MongoDatabase db;
 
 	public EntityEncoder(MongoDatabase db, EntityProperties properties) {
-		codecs = Codecs.builder().primitiveCodecs(PrimitiveCodecs.createDefault()).build();
+		codecs = new Codecs(PrimitiveCodecs.createDefault(), new EntityEncoderRegistry(db, properties));
 		clazz = (Class<T>) properties.getEntityClass();
 		this.db = db;
 	}
@@ -94,7 +94,7 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 				} else if (Entity.class.isAssignableFrom(method.getReturnType())) {
 					// we got some entity, so we need to recurse
 					writer.writeName(propertyName);
-					encode(writer, (T) value.get(propertyName),toDB);
+					encode(writer, (T) value.get(propertyName), toDB);
 				}
 			}
 	}

@@ -15,13 +15,14 @@
  */
 package org.mongodb.codecs;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.bson.BSONReader;
 import org.bson.BSONWriter;
 import org.junit.Test;
 import org.mongodb.Codec;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -44,26 +45,26 @@ public class TestCase {
 
 	@Test
 	public void arrayEncodingTest() {
-        Codecs codec = Codecs.createDefault();
+		Codecs codec = Codecs.createDefault();
 		Class string = new String[] {}.getClass();
 		assertTrue(string.isArray());
 		assertFalse(codec.canDecode(string.getClass())); // should be true
 
-        assertTrue(codec.canDecode(Lists.newArrayList().getClass()));
+		assertTrue(codec.canDecode(Lists.newArrayList().getClass()));
 	}
 
-    @Test
-    public void testIterable() {
-        List<String> list = Lists.newArrayList();
-        assertTrue(Iterable.class.isInstance(list));
-        Codecs codec = Codecs.createDefault();
+	@Test
+	public void testIterable() {
+		List<String> list = Lists.newArrayList();
+		assertTrue(Iterable.class.isInstance(list));
+		Codecs codec = Codecs.createDefault();
 
-        assertTrue(Iterable.class.isAssignableFrom(list.getClass()));
-        assertFalse(Iterable.class.isInstance(list.getClass()));
+		assertTrue(Iterable.class.isAssignableFrom(list.getClass()));
+		assertFalse(Iterable.class.isInstance(list.getClass()));
 
-        assertFalse(Iterable.class.isAssignableFrom(String.class));
-        assertTrue(codec.canDecode(list.getClass()));   //should be true
-    }
+		assertFalse(Iterable.class.isAssignableFrom(String.class));
+		assertTrue(codec.canDecode(list.getClass())); // should be true
+	}
 
 	public class IntCodec implements Codec<Integer> {
 		@Override
@@ -76,7 +77,7 @@ public class TestCase {
 			return reader.readInt32();
 		}
 
-        @Override
+		@Override
 		public Class<Integer> getEncoderClass() {
 			return int.class;
 		}

@@ -109,8 +109,7 @@ public class _DeEncoding extends MongoBase {
 	public void noDuplicateIdWritten() {
 		ExplicitIdEntity eid = factory.fromJson(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
 		assertEquals("explicit", eid.getName());
-		EntityEncoder<ExplicitIdEntity> enc = new EntityEncoder<>(db,
-				factory.getProperties(ExplicitIdEntity.class));
+		EntityEncoder<ExplicitIdEntity> enc = new EntityEncoder<>(db, factory.getProperties(ExplicitIdEntity.class));
 
 		StringWriter swriter = new StringWriter();
 		JSONWriter writer = new JSONWriter(swriter);
@@ -286,7 +285,6 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	@Test
-	@Ignore
 	public void collectionDeEncoding() {
 		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(CollectionEntity.class));
 		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(CollectionEntity.class));
@@ -299,11 +297,13 @@ public class _DeEncoding extends MongoBase {
 		JSONWriter jwriter = new JSONWriter(swriter);
 
 		enc.encode(jwriter, ce);
-		assertJson(sameJSONAs("{ \"string\" : \"outer\", \"PE\" : { \"Integer\" : 123, \"string\" : \"value\" } }"),
+		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"),
 				swriter.toString());
 
 		JSONReader jreader = new JSONReader(swriter.toString());
 		CollectionEntity ceRead = (CollectionEntity) dec.decode(jreader);
+		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"),
+				ceRead.toString());
 	}
 
 	private static interface TransientEntity extends Entity {
