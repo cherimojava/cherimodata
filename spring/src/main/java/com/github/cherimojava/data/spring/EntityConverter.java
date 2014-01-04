@@ -31,11 +31,19 @@ import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.google.common.base.Charsets;
 
 /**
- * Converts an JSON HTTPMessage to and from Entity
+ * Converts an JSON HTTPMessage to and from Entity. To enable this converter simply declare a instance within your
+ * context you want it to be used. Annotation based: <br />
+ *
+ * <pre>
+ * &#064;Bean
+ * &#064;Autowired
+ * public EntityConverter entityConverter(EntityFactory factory) {
+ * 	return new EntityConverter(factory);
+ * }
+ * </pre>
  *
  * @author philnate
  */
-// TODO add documentation on howto use it
 public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 
 	private final EntityFactory factory;

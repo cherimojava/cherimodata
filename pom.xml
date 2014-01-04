@@ -87,7 +87,7 @@
             </dependency>
             <dependency>
                 <groupId>com.github.cherimojava.data</groupId>
-                <artifactId>cherimodata-spring</artifactId>
+                <artifactId>spring</artifactId>
                 <version>${cherimodata.version}</version>
             </dependency>
         </dependencies>
