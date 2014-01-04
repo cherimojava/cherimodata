@@ -132,7 +132,6 @@ class EntityInvocationHandler implements InvocationHandler {
 			if (pp.isFluent()) {
 				return proxy;
 			}
-			return null;
 		}
 
 		return null;

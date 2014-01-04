@@ -84,8 +84,8 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 					}
 					if (toDB) {
 						((MongoCollection<Entity>) EntityCodec.getCollectionFor(db, seProperties)).save(subEntity);
-						writer.writeEndDocument();
 					}
+					writer.writeEndDocument();
 					continue;
 				}
 				if (codecs.canDecode(method.getReturnType())) {

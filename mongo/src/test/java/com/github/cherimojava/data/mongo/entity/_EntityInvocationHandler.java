@@ -294,10 +294,15 @@ public class _EntityInvocationHandler extends TestBase {
 
 	@Test
 	public void toStringExternalReferences() {
-        ReferencingEntity re = factory.create(ReferencingEntity.class);
-        re.setPE(pe.setString("some"));
+		ReferencingEntity re = factory.create(ReferencingEntity.class);
+        PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		pe.setInteger(1);
+        ObjectId id = new ObjectId();
+        pe.set("_id", id);
+		re.setPE(pe.setString("some"));
         re.setInteger(5);
-        assertJson(sameJSONAs("{ \"PE\" : { \"$id\" : { \"$oid\" : \"52b8e081672b541bae788553\" }, \"Integer\" : 5 }"),re.toString());
+		assertJson(sameJSONAs("{ \"PE\" : { \"$id\" : { \"$oid\" : \"" + id.toHexString()
+				+ "\" } }, \"Integer\" : 5 }"), re.toString());
 	}
 
 	@Test
