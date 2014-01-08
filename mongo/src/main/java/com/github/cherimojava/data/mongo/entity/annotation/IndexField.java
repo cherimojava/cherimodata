@@ -19,7 +19,7 @@ package com.github.cherimojava.data.mongo.entity.annotation;
  * Holds information about one single Field of an Index
  *
  * @author philnate
- *
+ * @since 1.0.0
  */
 public @interface IndexField {
 	/**
@@ -39,7 +39,13 @@ public @interface IndexField {
 	 *
 	 */
 	public static enum Ordering {
+		/**
+		 * Ascending Ordering
+		 */
 		ASC,
+		/**
+		 * Descending Ordering
+		 */
 		DESC
 	}
 }

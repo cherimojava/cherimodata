@@ -26,6 +26,7 @@ import java.lang.annotation.Target;
  * annotated <b>@Named("_id")</b>.
  *
  * @author philnate
+ * @since 1.0.0
  *
  */
 @Target(ElementType.METHOD)

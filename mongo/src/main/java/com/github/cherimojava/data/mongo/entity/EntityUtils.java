@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.*;
  * Utility Class holding commonly used functionality to work with Entities
  *
  * @author philnate
+ * @since 1.0.0
  */
 public class EntityUtils {
 	/**

@@ -24,9 +24,11 @@ import com.github.cherimojava.data.mongo.entity.Computer;
 
 /**
  * Declares that the given property is computed from other properties of the entity. Properties annotated with this must
- * not have a set-method declared.
+ * not have a set-method declared. Property is by default persisted and can be made transient like other properties by
+ * using @Transient annotation.
  *
  * @author philnate
+ * @since 1.0.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

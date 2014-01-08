@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * Tells that this property isn't supposed to be saved to mongodb. Property can be set manually or can be computed.
  *
  * @author philnate
- *
+ * @since 1.0.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

@@ -21,9 +21,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Information about the Collection
+ * Information about MongoCollection
  *
  * @author philnate
+ * @since 1.0.0
  *
  */
 @Target(ElementType.TYPE)

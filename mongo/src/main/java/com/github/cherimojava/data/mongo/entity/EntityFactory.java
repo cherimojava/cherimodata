@@ -39,6 +39,7 @@ import static org.mongodb.Index.builder;
  * Utility class for working with Entity based Proxies.
  *
  * @author philnate
+ * @since 1.0.0
  */
 public class EntityFactory {
 
@@ -49,10 +50,20 @@ public class EntityFactory {
 	private final MongoDatabase db;
 
 	// TODO switch to a loading cache here
+	/**
+	 * holds to a given Entity class the corresponding MongoCollection backing it
+	 */
 	private Map<Class<? extends Entity>, MongoCollection<? extends Entity>> preparedEntites;
 
 	private static EntityPropertyFactory defFactory = new EntityPropertyFactory();
 
+	/**
+	 * creates a new EntityFactory, with the given Database for storage. Instances created through create will be linked
+	 * to a collection within the given Database.
+	 *
+	 * @param db
+	 *            MongoDatabase into which Entities will be saved if created throught create method
+	 */
 	public EntityFactory(MongoDatabase db) {
 		preparedEntites = Maps.newConcurrentMap();
 		this.db = db;
@@ -60,11 +71,15 @@ public class EntityFactory {
 
 	/**
 	 * Creates a new Instance of a given Entity class, which holds a reference to the collection where it will be stored
-	 * to. This means an invocation of Entity.save() will store the entity in the given Collection
+	 * to. This means an invocation of Entity.save() will store the entity in the given Collection of the MongoDatabase
+	 * supplied on creation time of EntityFactory
 	 *
 	 * @param clazz
+	 *            Entity class to create a new Instance from
 	 * @param <T>
-	 * @return
+	 *            Entity type
+	 * @return new Entity instance of the given class, capable of using methods accessing MongoDB (like Entity.save(),
+	 *         Entity.drop())
 	 */
 	public <T extends Entity> T create(Class<T> clazz) {
 		EntityProperties properties = defFactory.create(clazz);
@@ -75,7 +90,7 @@ public class EntityFactory {
 	}
 
 	/**
-	 * allows to load an Entity which is identified by this id, or null if no such entity was found.
+	 * allows to load an Entity which is identified by the given id, or null if no such entity was found.
 	 *
 	 * @param id
 	 *            of the document to load
@@ -91,7 +106,8 @@ public class EntityFactory {
 	}
 
 	/**
-	 * Prepares the datastructure for this Entity class in the given database, this means creating declared indexes etc.
+	 * Prepares the data structure for this Entity class in the given database, this means creating declared indexes
+	 * etc.
 	 */
 	private synchronized void prepareEntity(final EntityProperties properties) {
 		// TODO need to add verification that index field matches existing property
@@ -122,8 +138,8 @@ public class EntityFactory {
 
 	/**
 	 * Creates a new Instance of the given Entity based class, this Entity itself has no knowledge of MongoDB, so it
-	 * can't be stored/dropped through it's own method. As the Entity is created static there's no DB information, thus
-	 * Indexes, etc. can't be created if needed
+	 * can't be stored/dropped through it's own methods (e.g. Entity.save()). As the Entity is created static there's no
+	 * DB information, thus Indexes, etc. can't be created if needed
 	 *
 	 * @param clazz
 	 *            entity class to instantiate from
@@ -138,7 +154,8 @@ public class EntityFactory {
 	 * statically generated and shared across all EntityFactory instances
 	 *
 	 * @param clazz
-	 * @return
+	 *            entity class of which the EntityProperties shall be looked up
+	 * @return EntityProperties belonging to the given class
 	 */
 	public static EntityProperties getProperties(Class<? extends Entity> clazz) {
 		return defFactory.create(clazz);
@@ -161,10 +178,28 @@ public class EntityFactory {
 		return proxy;
 	}
 
+	/**
+	 * gets the MongoDatabase which is used by this EntityFactory, meaning entities created through create will be
+	 * stored into
+	 *
+	 * @return MongoDatabase of this instance
+	 */
 	public MongoDatabase getDb() {
 		return db;
 	}
 
+	/**
+	 * creates an Entity from the given JSON String which is of the given Entity class
+	 *
+	 * @param clazz
+	 *            entity class the string reflects an instance from
+	 * @param json
+	 *            String representation of an instance of the given Entity class
+	 * @param <T>
+	 *            Entity class
+	 * @return Entity instance representing the given String, with MongoDB reference. Thus being able to perform e.g.
+	 *         Entity.save()
+	 */
 	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
 		return new EntityDecoder<T>(this, getProperties(clazz)).decode(new JSONReader(json));
 	}

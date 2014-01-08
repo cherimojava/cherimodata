@@ -30,29 +30,39 @@ import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.google.common.base.Charsets;
 
+//TODO copy listed entity over here
 /**
- * Converts an JSON HTTPMessage to and from Entity. To enable this converter simply declare a instance within your
- * context you want it to be used. Annotation based: <br />
- *
- * <pre>
- * &#064;Bean
- * &#064;Autowired
- * public EntityConverter entityConverter(EntityFactory factory) {
- * 	return new EntityConverter(factory);
- * }
- * </pre>
+ * Converts a JSON HTTPMessage to and from Entity. If you want to return/read a list of Entities you must wrap them due
+ * to Java limitations into a custom Entity which holds a list of entities. To enable this converter you need to add it
+ * to your RequestMappingHandlerAdapter. This can happen through overriding the appropriate WebMvcConfigurationSupport
+ * methods like configureMessageConverters or addDefaultHttpMessageConverters
  *
  * @author philnate
+ * @since 1.0.0
  */
 public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 
 	private final EntityFactory factory;
 
+	/**
+	 * creates a new EntityConverter which utilizes the given EntityFactory
+	 *
+	 * @param factory
+	 *            to be used to convert from/to HTTPMessage/Entity
+	 */
 	public EntityConverter(EntityFactory factory) {
 		super(MediaType.APPLICATION_JSON);
 		this.factory = factory;
 	}
 
+	/**
+	 * Checks if the given class can be handled by this Converter or not. Returns true for all Entity based classes,
+	 * false otherwise
+	 *
+	 * @param clazz
+	 *            to check if it's supported
+	 * @return true if the given class can be assigned to Entity, false otherwise
+	 */
 	@Override
 	protected boolean supports(Class<?> clazz) {
 		return Entity.class.isAssignableFrom(clazz);

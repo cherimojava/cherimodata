@@ -19,6 +19,7 @@ package com.github.cherimojava.data.mongo.entity.annotation;
  * Represents a Index, constructed out of multiple IndexFields
  *
  * @author philnate
+ * @since 1.0.0
  *
  */
 public @interface Index {
@@ -33,7 +34,7 @@ public @interface Index {
 	public boolean unique() default false;
 
 	/**
-	 * Optional name of the index, if not system one is wanted
+	 * Optional name of the index, if not set system generated name will be used
 	 */
 	public String name() default "";
 }

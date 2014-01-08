@@ -16,11 +16,13 @@
 package com.github.cherimojava.data.mongo.entity;
 
 /**
- * Basic Interface for documents containing common functionality for all records. If the Document needs to be versioned
- * one must use {@link VersionedEntity}. If there's a a setter/Getter method called setId/getId will be used as Id for
- * this document. If no explicit id is declared one will be set on first save(only if something else was changed)
+ * Basic Interface for documents containing common functionality for all records. If there's a setter/Getter method
+ * called setId/getId it will be used as Id for this document. If there's a @Named("_id") annotated property this
+ * property will be used as id as well. If no explicit id is declared one will be set on first save(only if something
+ * else was changed)
  *
  * @author philnate
+ * @since 1.0.0
  */
 // TODO add transactional support
 public interface Entity<T extends Entity> {
@@ -93,9 +95,12 @@ public interface Entity<T extends Entity> {
 
 	/**
 	 * Two entity are considered equal if they're from the same type and all underlying properties are equal as well.
+	 * General Java equal rules apply, additionally two entities are only equal if they're of the same type and their
+	 * content is equal
 	 *
 	 * @param o
-	 * @return
+	 *            object to compare this entity with
+	 * @return true if the given Object o is equal to this instance. Otherwise false
 	 */
 	@Override
 	public boolean equals(Object o);
@@ -111,7 +116,7 @@ public interface Entity<T extends Entity> {
 	/**
 	 * Returns the class of this entity as getClass will return the Proxy class rather than the entity class
 	 *
-	 * @return
+	 * @return Class of this Entity
 	 */
 	public Class<T> entityClass();
 }

@@ -32,6 +32,12 @@ import static com.google.common.base.Preconditions.*;
 //TODO javadoc
 //TODO add support for add
 
+/**
+ * Proxy class doing the magic for Entity based Interfaces
+ *
+ * @author philnate
+ * @since 1.0.0
+ */
 class EntityInvocationHandler implements InvocationHandler {
 
 	/**
@@ -39,12 +45,26 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	private final EntityProperties properties;
 
+	/**
+	 * Mongo Collection to which this Entity is being save. Might be null, in which case it's not possible to perform
+	 * any MongoDB using operations like .save() on this entity
+	 */
 	private final MongoCollection collection;
 
+	/**
+	 * tells if this entity was changed after the last time it was saved/created. Thus needing to be saved or not
+	 */
 	private boolean changed = false;
 
+	/**
+	 * reference to the Proxy, which we're baking
+	 */
 	private Entity proxy;
 
+	/**
+	 * can this entity be modified or not. Obviously we can only block changes coming through setter of the entity, not
+	 * for Objects already set here
+	 */
 	private boolean sealed = false;
 
 	/**
@@ -52,16 +72,36 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	Map<String, Object> data;
 
+	/**
+	 * creates a new Handler for the given EntityProperties (Entity class). No Mongo reference will be created meaning
+	 * Mongo based operations like (.save()) are not supported
+	 *
+	 * @param properties
+	 *            EntityProperties for which a new Instance shall be created
+	 */
 	public EntityInvocationHandler(EntityProperties properties) {
 		this(properties, null);
 	}
 
+	/**
+	 * creates a new Handler for the givne EntityProperties (Entity class), Entity will be saved to the given
+	 * MongoCollection.
+	 *
+	 * @param properties
+	 *            EntityProperties for which a new Instance shall be created
+	 * @param collection
+	 *            MongoCollection to which the entity will be persisted to
+	 */
 	public EntityInvocationHandler(EntityProperties properties, MongoCollection collection) {
 		this.properties = properties;
 		data = Maps.newHashMap();
 		this.collection = collection;
 	}
 
+	/**
+	 * Method which is actually invoked if a proxy method is being called. Used as dispatcher to actual methods doing
+	 * the work
+	 */
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		String methodName = method.getName();
@@ -133,10 +173,21 @@ class EntityInvocationHandler implements InvocationHandler {
 				return proxy;
 			}
 		}
-
 		return null;
 	}
 
+	/**
+	 * Does put operation, Verifies that Entity isn't sealed and that given value matches property constraints. Sets
+	 * changed to true if the given value is different from the one currently set for the property. Comparision is
+	 * limited to identity
+	 *
+	 * @param pp
+	 *            property to set
+	 * @param value
+	 *            new value of the property
+	 * @throws java.lang.IllegalArgumentException
+	 *             if the entity is sealed and doesn't allow further modifications
+	 */
 	private void _put(ParameterProperty pp, Object value) {
 		checkArgument(!sealed, "Entity is sealed and does not allow further modifications");
 		pp.validate(value);
@@ -145,6 +196,14 @@ class EntityInvocationHandler implements InvocationHandler {
 		}
 	}
 
+	/**
+	 * Returns the currently assigned value for the given Property or null if the property currently isn't set
+	 *
+	 * @param property
+	 *            to get value from
+	 * @return value of the property or null if the property isn't set. Might return null if the property is computed
+	 *         and the computer returns null
+	 */
 	@SuppressWarnings("unchecked")
 	private Object _get(ParameterProperty property) {
 		if (property.isComputed()) {
@@ -156,10 +215,20 @@ class EntityInvocationHandler implements InvocationHandler {
 	}
 
 	/**
-	 * equals method of the entity represented by this EntityInvocationHandler instance
+	 * equals method of the entity represented by this EntityInvocationHandler instance. Objects are considered unequal
+	 * (false) if o is:
+	 * <ul>
+	 * <li>null
+	 * <li>no Proxy
+	 * <li>different Proxy class
+	 * <li>Different Entity class
+	 * <li>Data doesn't match
+	 * </ul>
+	 * If all the above is false both entities are considered equal and true will be returned
 	 *
 	 * @param o
-	 * @return
+	 *            object to compare this instance with
+	 * @return true if both objects match the before mentioned criteria otherwise false
 	 */
 	private boolean _equals(Object o) {
 		if (o == null) {
@@ -185,7 +254,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	/**
 	 * hashCode method of the entity represented by this EntityInvocationHandler instance
 	 *
-	 * @return
+	 * @return hashCode of this Entity
 	 */
 	private int _hashCode() {
 		HashCodeBuilder hcb = new HashCodeBuilder();
@@ -196,9 +265,10 @@ class EntityInvocationHandler implements InvocationHandler {
 	}
 
 	/**
-	 * toString method of the entity represented by this EntityInvocationHandler instance
+	 * toString method of the entity represented by this EntityInvocationHandler instance. String is JSON representation
+	 * of the current state of the Entity
 	 *
-	 * @return
+	 * @return JSON representation of the Entity
 	 */
 	private String _toString() {
 		return new EntityEncoder<>(null, properties).asString(proxy);
@@ -208,8 +278,11 @@ class EntityInvocationHandler implements InvocationHandler {
 	 * stores the given EntityInvocationHandler represented Entity in the given Collection
 	 *
 	 * @param handler
+	 *            EntityInvocationHandler (Entity) to save
 	 * @param coll
+	 *            MongoCollection to save entity into
 	 */
+	@SuppressWarnings("unchecked")
 	static <T extends Entity> void save(EntityInvocationHandler handler, MongoCollection<T> coll) {
 		coll.save((T) handler.proxy);
 	}
@@ -218,14 +291,17 @@ class EntityInvocationHandler implements InvocationHandler {
 	 * removes the given EntityInvocationHandler represented Entity from the given Collection
 	 *
 	 * @param handler
+	 *            EntityInvocationHandler (Entity) to drop
 	 * @param coll
+	 *            MongoCollection in which this entity is saved
 	 */
 	static <T extends Entity> void drop(EntityInvocationHandler handler, MongoCollection<T> coll) {
 		// coll.drop((T)handler.proxy);
 	}
 
 	/**
-	 * searches for the given Id within the MongoCollection and returns, if the id was found the corresponding entity
+	 * searches for the given Id within the MongoCollection and returns, if the id was found the corresponding entity.
+	 * If the entity wasn't found null will be returned
 	 *
 	 * @param collection
 	 *            where the entity class is stored in
@@ -236,12 +312,18 @@ class EntityInvocationHandler implements InvocationHandler {
 	 * @return returns the entity belonging to the given Id within the collection or null if no such entity exists in
 	 *         the given collection
 	 */
+	@SuppressWarnings("unchecked")
 	static <T extends Entity> T find(MongoCollection<T> collection, Object id) {
 		try (MongoCursor<? extends Entity> curs = collection.find(new Document(Entity.ID, id)).limit(1).iterator()) {
 			return (T) ((curs.hasNext()) ? curs.next() : null);
 		}
 	}
 
+	/**
+	 * sets the proxy this handler backs, needed for internal work
+	 *
+	 * @param proxy
+	 */
 	void setProxy(Entity proxy) {
 		checkArgument(this.proxy == null, "Proxy for Handler can be only set once");
 		this.proxy = proxy;

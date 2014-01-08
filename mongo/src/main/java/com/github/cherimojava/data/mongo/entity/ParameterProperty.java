@@ -40,6 +40,7 @@ import static java.lang.String.format;
  * ParameterProperty.Builder to create a new Instance of ParameterProperty
  *
  * @author pknobel
+ * @since 1.0.0
  */
 public final class ParameterProperty {
 	private final String mongoName;
@@ -249,13 +250,14 @@ public final class ParameterProperty {
 					throw Throwables.propagate(e);
 				}
 			} else {
-				// only if this is not an computed property we have a setter for it
+				// only if this is not a computed property we have a setter for it
 				builder.setFluent(isAssignableFromClass(getSetterFromGetter(m)));
 			}
 			builder.setType(m.getReturnType()).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
 					EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
-					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(validator).setDeclaringClass(
-					declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(computer);
+					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
+					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
+					computer);
 			if (m.isAnnotationPresent(Reference.class)) {
 				if (m.getAnnotation(Reference.class).lazy()) {
 					builder.setReferenceType(ReferenceType.LAZY);
@@ -291,8 +293,8 @@ public final class ParameterProperty {
 					throw e;
 				}
 			}
-			Preconditions.checkArgument(!(comp && (setter != null)), "computed property %s cannot have a setter method declared",
-                    EntityUtils.getPojoNameFromMethod(m));
+			Preconditions.checkArgument(!(comp && (setter != null)),
+					"computed property %s cannot have a setter method declared", EntityUtils.getPojoNameFromMethod(m));
 
 			Class<?> declClass = m.getDeclaringClass();
 			if (setter != null && setter.getReturnType() != Void.TYPE) {

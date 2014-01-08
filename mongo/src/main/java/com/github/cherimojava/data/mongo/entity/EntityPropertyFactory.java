@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutionException;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
-import com.github.cherimojava.data.mongo.Factory;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -35,7 +34,13 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-class EntityPropertyFactory implements Factory<Class<? extends Entity>, EntityProperties> {
+/**
+ * Factory for creating EntityProperties out of a given Interface extending Entity
+ *
+ * @author philnate
+ * @since 1.0.0
+ */
+class EntityPropertyFactory {
 	/**
 	 * list of methods allowed although not conforming to Entity convention
 	 */
@@ -62,9 +67,9 @@ class EntityPropertyFactory implements Factory<Class<? extends Entity>, EntityPr
 	 * EntityProperty instance
 	 *
 	 * @param clazz
-	 * @return
+	 *            Entity class from which the Entity properties shall be created
+	 * @return EntityProperties belonging to the given Entity class
 	 */
-	@Override
 	public EntityProperties create(Class<? extends Entity> clazz) {
 		try {
 			return classes.get(clazz);
@@ -74,6 +79,13 @@ class EntityPropertyFactory implements Factory<Class<? extends Entity>, EntityPr
 		}
 	}
 
+	/**
+	 * builds entityProperties instance for the given Entity class and verifies that the entity class is valid
+	 *
+	 * @param clazz
+	 *            Entity class to build EntityProperties for
+	 * @return entityProperties belonging to the given Entity class
+	 */
 	private EntityProperties build(Class<? extends Entity> clazz) {
 		EntityProperties.Builder builder = new EntityProperties.Builder().setEntityClass(clazz).setValidator(validator);
 

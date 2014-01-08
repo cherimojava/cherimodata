@@ -25,17 +25,16 @@ import java.lang.annotation.Target;
  * entity will be stored within the same database as the parent entity.
  *
  * @author philnate
+ * @since 1.0.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Reference {
-    //TODO implement lazy loading
+	// TODO implement lazy loading
 	/**
 	 * Toggles if this property will be resolved to the actual entity on load time of the parent entity or on the first
 	 * access to this property. Default is false, which means that this property is loaded together with it's parent
 	 * entity
-	 *
-	 * @return
 	 */
 	public boolean lazy() default false;
 }

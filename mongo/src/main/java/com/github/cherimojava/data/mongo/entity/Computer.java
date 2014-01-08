@@ -22,6 +22,8 @@ package com.github.cherimojava.data.mongo.entity;
  *            Entity this computer is getting as input
  * @param <T>
  *            Type of the value this computer computes
+ * @author philnate
+ * @since 1.0.0
  */
 public interface Computer<F extends Entity, T> {
 	public T compute(F f);

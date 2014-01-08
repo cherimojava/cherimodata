@@ -35,12 +35,9 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Contains information about a Entity class, like it's collection name, properties etc
  *
  * @author philnate
+ * @since 1.0.0
  */
 public final class EntityProperties {
-	/**
-	 * contains the validator used for validating properties
-	 */
-	private final Validator validator;
 	/**
 	 * the class this EntityProperties reflect
 	 */
@@ -101,7 +98,6 @@ public final class EntityProperties {
 		this.pojoNames = pojo.build();
 		this.mongoNames = mongo.build();
 		this.validationProperties = valProps.build();
-		this.validator = builder.validator;
 		this.explicitId = explicitId;
 	}
 
