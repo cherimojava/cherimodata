@@ -33,6 +33,7 @@ import com.github.cherimojava.data.mongo.entity.EntityUtils;
 import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
+import static java.lang.String.format;
 
 public class EntityDecoder<T extends Entity> implements Decoder<T> {
 
@@ -100,7 +101,17 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 					reader.skipValue();// sent value to /dev/null
 					continue;
 				}
-				e.set(propertyName, codecs.decode(reader));
+				if (pp.getType().isEnum()) {
+					String enumString = reader.readString();
+					try {
+						e.set(propertyName, Enum.valueOf((Class<? extends Enum>) pp.getType(), enumString));
+					} catch (IllegalArgumentException iae) {
+						throw new IllegalArgumentException(format(
+								"String %s doesn't match any declared enum value of enum %s", enumString, pp.getType()));
+					}
+				} else {
+					e.set(propertyName, codecs.decode(reader));
+				}
 			}
 		}
 		reader.readEndDocument();

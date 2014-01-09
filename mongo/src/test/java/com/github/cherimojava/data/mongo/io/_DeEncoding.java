@@ -306,6 +306,35 @@ public class _DeEncoding extends MongoBase {
 				ceRead.toString());
 	}
 
+	@Test
+	public void enumDeEncoding() {
+		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(EnumEntity.class));
+		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(EnumEntity.class));
+		EnumEntity ee = instantiate(EnumEntity.class);
+		ee.setCategory(EnumEntity.Category.Misc);
+
+		StringWriter swriter = new StringWriter();
+		JSONWriter jwriter = new JSONWriter(swriter);
+
+		enc.encode(jwriter, ee);
+		assertJson(sameJSONAs("{ \"category\": \"Misc\" }"), swriter.toString());
+		JSONReader jreader = new JSONReader(swriter.toString());
+		EnumEntity eeRead = (EnumEntity) dec.decode(jreader);
+		assertEquals(ee, eeRead);
+	}
+
+	@Test
+	public void enumDeEncodingUnknownEnum() {
+		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(EnumEntity.class));
+		JSONReader jreader = new JSONReader("{ \"category\": \"miscellaneous\" }");
+		try {
+			EnumEntity eeRead = (EnumEntity) dec.decode(jreader);
+			fail("Should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("doesn't match any declared enum value of"));
+		}
+	}
+
 	private static interface TransientEntity extends Entity {
 		@Transient
 		public String getTransient();
@@ -316,5 +345,16 @@ public class _DeEncoding extends MongoBase {
 		public String getIdentity();
 
 		public TransientEntity setIdentity(String id);
+	}
+
+	private static interface EnumEntity extends Entity {
+		public EnumEntity setCategory(Category cat);
+
+		public Category getCategory();
+
+		public static enum Category {
+			Misc,
+			Other
+		}
 	}
 }

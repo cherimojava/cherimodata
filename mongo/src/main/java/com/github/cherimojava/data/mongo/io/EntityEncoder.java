@@ -95,6 +95,9 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 					// we got some entity, so we need to recurse
 					writer.writeName(propertyName);
 					encode(writer, (T) value.get(propertyName), toDB);
+				} else if (method.getReturnType().isEnum()) {
+					// enum handling
+					writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
 				}
 			}
 	}
