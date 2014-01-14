@@ -11,11 +11,19 @@
 
     <groupId>com.github.cherimojava.data</groupId>
     <artifactId>spring</artifactId>
+    <version>${cherimodata.version}</version>
+    <packaging>jar</packaging>
+
+    <scm>
+        <connection>scm:git:git@github.com:cherimojava/cherimodata.git</connection>
+        <developerConnection>scm:git:git@github.com:cherimojava/cherimodata.git</developerConnection>
+        <url>git@github.com:cherimojava/cherimodata.git</url>
+    </scm>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <parentDir>${basedir}/..</parentDir>
     </properties>
-
 
     <dependencies>
         <dependency>
