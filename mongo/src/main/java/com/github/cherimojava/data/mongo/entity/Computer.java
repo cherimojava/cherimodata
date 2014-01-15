@@ -26,5 +26,12 @@ package com.github.cherimojava.data.mongo.entity;
  * @since 1.0.0
  */
 public interface Computer<F extends Entity, T> {
+	/**
+	 * Computes the attribute value based on the entity handed over
+	 *
+	 * @param f
+	 *            Entity instance for which the property of type T is computed
+	 * @return value for the Property based on given Entity
+	 */
 	public T compute(F f);
 }

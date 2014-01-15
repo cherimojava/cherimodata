@@ -20,7 +20,6 @@ package com.github.cherimojava.data.mongo.entity.annotation;
  *
  * @author philnate
  * @since 1.0.0
- *
  */
 public @interface Index {
 	/**

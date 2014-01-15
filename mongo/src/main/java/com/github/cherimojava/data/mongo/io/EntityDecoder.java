@@ -35,6 +35,14 @@ import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static java.lang.String.format;
 
+/**
+ * Decoder which decodes Entity instances from their JSON representation
+ *
+ * @param <T>
+ *            Entity class this decoder decodes
+ * @author philnate
+ * @since 1.0.0
+ */
 public class EntityDecoder<T extends Entity> implements Decoder<T> {
 
 	private final Class<T> clazz;

@@ -24,11 +24,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.mongodb.Document;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.io.EntityEncoder;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
+import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 //TODO javadoc
 //TODO add support for add
 
@@ -39,6 +42,8 @@ import static com.google.common.base.Preconditions.*;
  * @since 1.0.0
  */
 class EntityInvocationHandler implements InvocationHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EntityInvocationHandler.class);
 
 	/**
 	 * holds the properties backing this entity class
@@ -127,7 +132,7 @@ class EntityInvocationHandler implements InvocationHandler {
 				// TODO create for accessable Id some way to get it validated through validator
 				if (properties.hasExplicitId()) {
 					// TODO we can release this if it's of type ObjectId
-					checkNotNull(data.get("_id"), "An explicit defined Id must be set before saving");
+					checkNotNull(data.get(ID), "An explicit defined Id must be set before saving");
 				}
 				for (ParameterProperty cpp : properties.getValidationProperties()) {
 					cpp.validate(data.get(cpp.getMongoName()));
@@ -137,6 +142,7 @@ class EntityInvocationHandler implements InvocationHandler {
 				changed = false;
 				return true;
 			} else {
+                LOG.info("Did not save Entity with id %s of class %s as no changes where made.", data.get(ID), properties.getEntityClass());
 				return false;
 			}
 		case "drop":

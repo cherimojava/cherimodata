@@ -22,7 +22,10 @@ import org.mongodb.codecs.EncoderRegistry;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
 
 /**
- * EncoderRegistry which returns a EntityEncoder as defaultEncoder
+ * EncoderRegistry which returns an EntityEncoder as defaultEncoder
+ *
+ * @author philnate
+ * @since 1.0.0
  */
 class EntityEncoderRegistry extends EncoderRegistry {
 	private final MongoDatabase db;

@@ -26,6 +26,14 @@ import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
 
+/**
+ * Codec which transforms Entity instances from/to JSON
+ *
+ * @param <T>
+ *            Entity class this Codec takes care of
+ * @author philnate
+ * @since 1.0.0
+ */
 public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	private final Class<T> clazz;
 	private final EntityEncoder<T> enc;

@@ -33,6 +33,14 @@ import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
 import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 
+/**
+ * Encoder which encodes Entity instances to their JSON representation
+ *
+ * @param <T>
+ *            Entity class this encoder encodes
+ * @author philnate
+ * @since 1.0.0
+ */
 public class EntityEncoder<T extends Entity> implements Encoder<T> {
 
 	private final Codecs codecs;

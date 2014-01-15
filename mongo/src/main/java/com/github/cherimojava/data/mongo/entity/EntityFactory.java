@@ -22,6 +22,8 @@ import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 import org.mongodb.OrderBy;
 import org.mongodb.json.JSONReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
@@ -42,6 +44,7 @@ import static org.mongodb.Index.builder;
  * @since 1.0.0
  */
 public class EntityFactory {
+	private static final Logger LOG = LoggerFactory.getLogger(EntityFactory.class);
 
 	/**
 	 * Where all entity for this factory will be stored. Each entity goes into it's own collection, but within the same
@@ -82,11 +85,7 @@ public class EntityFactory {
 	 *         Entity.drop())
 	 */
 	public <T extends Entity> T create(Class<T> clazz) {
-		EntityProperties properties = defFactory.create(clazz);
-		if (!preparedEntites.containsKey(clazz)) {
-			prepareEntity(properties);
-		}
-		return instantiate(clazz, new EntityInvocationHandler(properties, preparedEntites.get(clazz)));
+		return instantiate(clazz, new EntityInvocationHandler(checkAndPrepare(clazz), preparedEntites.get(clazz)));
 	}
 
 	/**
@@ -98,11 +97,25 @@ public class EntityFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Entity> T load(Class<T> clazz, Object id) {
+		checkAndPrepare(clazz);
+		return EntityInvocationHandler.find((MongoCollection<T>) preparedEntites.get(clazz), id);
+	}
+
+	/**
+	 * Checks if the given Entity is already setup within MongoDB, if not it's setup
+	 *
+	 * @param clazz
+	 *            Entity class to check if it's already prepared within the given DB
+	 * @param <T>
+	 *            Entity type
+	 */
+	private <T extends Entity> EntityProperties checkAndPrepare(Class<T> clazz) {
 		EntityProperties properties = defFactory.create(clazz);
 		if (!preparedEntites.containsKey(clazz)) {
+			LOG.debug("First usage of Entity class %s, checking MongoDB setup", clazz);
 			prepareEntity(properties);
 		}
-		return EntityInvocationHandler.find((MongoCollection<T>) preparedEntites.get(clazz), id);
+		return properties;
 	}
 
 	/**
@@ -115,6 +128,7 @@ public class EntityFactory {
 		Collection c = clazz.getAnnotation(Collection.class);
 		MongoCollection<? extends Entity> coll = EntityCodec.getCollectionFor(db, properties);
 		if (c != null && c.indexes() != null) {
+			LOG.debug("Entity class %s has indexes, ensuring that MongoDB is setup", properties.getEntityClass());
 			for (Index index : c.indexes()) {
 				Builder indxBuilder = builder();
 				if (index.unique()) {
@@ -130,6 +144,8 @@ public class EntityFactory {
 					indxBuilder.addKey(field.field(), (field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC
 							: OrderBy.DESC);
 				}
+				org.mongodb.Index indx = indxBuilder.build();
+				LOG.debug("Creating index %s for Entity class %", indx.toDocument(), properties.getEntityClass());
 				coll.tools().ensureIndex(indxBuilder.build());
 			}
 		}
