@@ -109,8 +109,6 @@
         <dependency>
             <groupId>com.github.cschoell</groupId>
             <artifactId>junit-dynamicsuite</artifactId>
-            <version>0.2.2</version>
-            <scope>test</scope>
         </dependency>
         <!-- Logging -->
         <dependency>

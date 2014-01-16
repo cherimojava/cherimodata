@@ -111,7 +111,6 @@ public class _EntityInvocationHandler extends TestBase {
 		}
 	}
 
-	// TODO we might want to extract/do additional tests in an external class once the need arises
 	@Test
 	public void verifyPropertyConstraintOnSet() {
 		try {
@@ -174,7 +173,7 @@ public class _EntityInvocationHandler extends TestBase {
 	@Test
 	public void saveOnlyIfNeeded() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-		assertFalse(pe.save());// TODO maybe we want to save it?
+		assertFalse(pe.save());
 		assertTrue(pe.setString("some").save());
 		assertFalse(pe.save()); // no further changes
 		assertFalse(pe.setString("some").save()); // nothing changed
@@ -295,14 +294,15 @@ public class _EntityInvocationHandler extends TestBase {
 	@Test
 	public void toStringExternalReferences() {
 		ReferencingEntity re = factory.create(ReferencingEntity.class);
-        PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
 		pe.setInteger(1);
-        ObjectId id = new ObjectId();
-        pe.set("_id", id);
+		ObjectId id = new ObjectId();
+		pe.set("_id", id);
 		re.setPE(pe.setString("some"));
-        re.setInteger(5);
-		assertJson(sameJSONAs("{ \"PE\" : { \"$id\" : { \"$oid\" : \"" + id.toHexString()
-				+ "\" } }, \"Integer\" : 5 }"), re.toString());
+		re.setInteger(5);
+		assertJson(
+				sameJSONAs("{ \"PE\" : { \"$id\" : { \"$oid\" : \"" + id.toHexString() + "\" } }, \"Integer\" : 5 }"),
+				re.toString());
 	}
 
 	@Test

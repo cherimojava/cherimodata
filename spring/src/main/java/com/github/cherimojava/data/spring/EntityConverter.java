@@ -30,7 +30,6 @@ import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.google.common.base.Charsets;
 
-//TODO copy listed entity over here
 /**
  * Converts a JSON HTTPMessage to and from Entity. If you want to return/read a list of Entities you must wrap them due
  * to Java limitations into a custom Entity which holds a list of entities. To enable this converter you need to add it

@@ -32,7 +32,6 @@ import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
-//TODO javadoc
 //TODO add support for add
 
 /**
