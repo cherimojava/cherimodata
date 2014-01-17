@@ -23,6 +23,7 @@ import org.junit.Test;
 import com.github.cherimojava.data.mongo.TestBase;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
 public class _EntityPropertyFactory extends TestBase {
@@ -46,6 +47,63 @@ public class _EntityPropertyFactory extends TestBase {
 	}
 
 	@Test
+	public void returnTypeOnGet() throws NoSuchMethodException {
+		try {
+			factory.validateGetter(InvalidEntity.class.getDeclaredMethod("getNoReturnParam"));
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("did not declare a return type"));
+		}
+	}
+
+	@Test
+	public void noParameterOnGet() throws NoSuchMethodException {
+		try {
+			factory.validateGetter(InvalidEntity.class.getDeclaredMethod("getString", String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("Get methods can't have parameters"));
+		}
+	}
+
+	// TODO move to _EntityPropertyFactory
+	@Test
+	public void noMultiParameterSet() throws NoSuchMethodException {
+		try {
+			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setMultiParamSet", String.class, String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("Set methods must have one parameter"));
+		}
+	}
+
+	@Test
+	public void referenceMustBeOfTypeEntity() throws NoSuchMethodException {
+		try {
+			factory.validateGetter(InvalidEntity.class.getDeclaredMethod("getInvalidProp"));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("Cant declare"));
+		}
+	}
+
+	@Test
+	public void setterReturnOnlyEntity() throws NoSuchMethodException {
+		try {
+			factory.validateSetter(FluentEntity.class.getMethod("getOtherEntity"));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("Only Superclasses of"));
+		}
+
+		try {
+			factory.validateSetter(FluentEntity.class.getMethod("getUnrelatedClass"));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("Only Superclasses of"));
+		}
+	}
+
+	@Test
 	public void noMultipleGetterForProperty() {
 		try {
 			factory.create(MultipleGetterForProperty.class);
@@ -61,7 +119,8 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.create(AdditionalSetter.class);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Found setter methods which have no matching getter"));
+			assertThat(e.getMessage(),
+					containsString("You can only declare setter methods if there's a matching getter."));
 		}
 	}
 
@@ -71,7 +130,8 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.create(AdditionalSetterForProperty.class);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Multiple setter found"));
+			assertThat(e.getMessage(),
+					containsString("You can only declare setter methods if there's a matching getter."));
 		}
 	}
 
@@ -99,6 +159,26 @@ public class _EntityPropertyFactory extends TestBase {
 		assertFalse(factory.create(PrimitiveEntity.class).hasExplicitId());
 		assertTrue(factory.create(ExplicitIdEntity.class).hasExplicitId());
 		assertTrue(factory.create(ImplicitIdEntity.class).hasExplicitId());
+	}
+
+	@Test
+	public void noSetForComputedProperty() throws NoSuchMethodException {
+		try {
+			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setComputed", String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("computed"));
+		}
+	}
+
+	@Test
+	public void noGetterForSetter() throws NoSuchMethodException {
+		try {
+			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setNoGetter", String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().contains("You can only declare setter methods if there's a matching getter"));
+		}
 	}
 
 	private static interface InheritedEntity extends PrimitiveEntity {
@@ -131,11 +211,10 @@ public class _EntityPropertyFactory extends TestBase {
 
 		public void setString(String s);
 
-		public void setString(String n, String a);
+		public void setString(int n);
 	}
 
 	private static interface NotAllowedMethodName extends Entity {
 		public String equals(String some);
 	}
-
 }

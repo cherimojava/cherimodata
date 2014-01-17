@@ -17,21 +17,22 @@ package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
 
+import com.github.cherimojava.data.mongo.entity.annotation.Computed;
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.String.format;
 
@@ -90,10 +91,8 @@ class EntityPropertyFactory {
 	private EntityProperties build(Class<? extends Entity> clazz) {
 		EntityProperties.Builder builder = new EntityProperties.Builder().setEntityClass(clazz).setValidator(validator);
 
-		builder.setCollectionName(EntityUtils.getCollectionName(clazz));
+		builder.setCollectionName(getCollectionName(clazz));
 
-		Set<String> setter = Sets.newHashSet();
-		List<String> getter = Lists.newArrayList();
 		// iterate through all methods and create parameter properties for them
 		for (Method m : clazz.getMethods()) {
 			if (allowedMethods.contains(m.getName())) {
@@ -102,12 +101,9 @@ class EntityPropertyFactory {
 				checkArgument(m.getDeclaringClass().equals(Entity.class),
 						"Don't write custom equals, toString etc. methods. Found custom %s", m.getName());
 			} else if (m.getName().startsWith("set")) {
-				// remember the setter we check it later
-				// avoid that we have multiple setter (at least one invalid) for a property won't catch this otherwise
-				checkArgument(setter.add(m.getName().replaceFirst("s", "g")), "Multiple setter found for %s",
-						m.getName());
+				validateSetter(m);
 			} else if (m.getName().startsWith("get")) {
-				getter.add(m.getName());// remember getter so we can compare it later
+				validateGetter(m);
 				ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, validator);
 				builder.addParameter(pp);
 			} else {
@@ -115,9 +111,62 @@ class EntityPropertyFactory {
 						"Found method %s, which isn't conform with Entity method convention", m.getName()));
 			}
 		}
-		setter.removeAll(getter); // remove all setter which have matching getter methods
-		checkArgument(setter.isEmpty(), "Found setter methods which have no matching getter %s", setter);
-
 		return builder.build();
+	}
+
+	/*
+	 * it's the validate* method responsibility to verify all it's constraints. E.g. it's the validateSetter methods
+	 * duty to verify that a Set method is legit, meaning if a property is computed it's forbidden to have a setter for
+	 * it
+	 */
+	/**
+	 * validates that a method matches the setter constraints. The constraints are:
+	 * <ul>
+	 * <li>return type must be void or Supertype of declaring class
+	 * <li>Exactly one parameter
+	 * <li>Must have a matching getter (setter parameter matches getter return type)
+	 * <li>There must be no setter method if the property is computed
+	 * </ul>
+	 *
+	 * @param setter
+	 */
+	void validateSetter(Method setter) {
+		if (setter.getReturnType() != Void.TYPE) {
+			checkArgument(isAssignableFromClass(setter),
+					"Return type %s of setter %s isn't supported. Only Superclasses of %s are valid",
+					setter.getReturnType(), setter.getName(), setter.getDeclaringClass());
+		}
+		checkArgument(setter.getParameterTypes().length == 1, "Set methods must have one parameter, but had %s",
+				Lists.newArrayList(setter.getParameterTypes()));
+		Method getter;
+		try {
+			getter = getGetterFromSetter(setter);
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException(format(
+					"You can only declare setter methods if there's a matching getter. Found %s without getter",
+					setter.getName()));
+		}
+		checkArgument(!getter.isAnnotationPresent(Computed.class),
+				"computed property %s cannot have a setter method declared", getPojoNameFromMethod(getter));
+	}
+
+	/**
+	 * validates that a method matches the getter constraints. These constraints are:
+	 * <ul>
+	 * <li>Must have return type != Void
+	 * <li>@Reference can only be placed on properties being type entity
+	 * <li>Can't have parameters
+	 * </ul>
+	 *
+	 * @param getter
+	 */
+	void validateGetter(Method getter) {
+		checkArgument(getter.getReturnType() != Void.TYPE, "Method %s did not declare a return type", getter.getName());
+		checkArgument(getter.getParameterTypes().length == 0, "Get methods can't have parameters, but had %s",
+				Lists.newArrayList(getter.getParameterTypes()));
+		if (getter.isAnnotationPresent(Reference.class)) {
+			checkArgument(Entity.class.isAssignableFrom(getter.getReturnType()),
+					"Cant declare reference on non entity type");
+		}
 	}
 }

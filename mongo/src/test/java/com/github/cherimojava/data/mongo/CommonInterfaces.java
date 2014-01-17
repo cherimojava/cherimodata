@@ -21,11 +21,12 @@ import java.util.Map;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
 
+import com.github.cherimojava.data.mongo.entity.Computer;
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
-import com.github.cherimojava.data.mongo.entity.Computer;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
+import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 
 /**
  * Class holding Entity based interfaces shared across test classes
@@ -116,5 +117,60 @@ public class CommonInterfaces {
 		public String compute(PrimitiveEntity pe) {
 			return pe.getString() + pe.getInteger();
 		}
+	}
+
+	public static interface FluentEntity extends Entity {
+		@Transient
+		public String getNotFluent();
+
+		public void setNotFluent(String s);
+
+		public String getOwnClass();
+
+		public FluentEntity setOwnClass(String s);
+
+		public String getSuperClass(); // this should cover the Object case as well
+
+		public Entity setSuperClass(String s);
+
+		public String getOtherEntity();
+
+		public InvalidEntity setOtherEntity(String s);
+
+		public String getUnrelatedClass();
+
+		public String setUnrelatedClass(String s);
+	}
+
+	public static interface InvalidEntity extends Entity {
+		public void setString();
+
+		public String getString(String s);
+
+		public void getNoReturnParam();
+
+		public Integer getTypeMismatch();
+
+		public void setTypeMismatch(String s);
+
+		public String getNoParamSet();
+
+		public void setNoParamSet();
+
+        public void setNoGetter(String s);
+
+		public String getMultiParamSet();
+
+		public void setMultiParamSet(String one, String two);
+
+		@Computed(StringComputer.class)
+		public String getComputed();
+
+		public void setComputed(String s);
+
+		@Reference
+		public String getInvalidProp();
+
+		public InvalidEntity setInvalidProp(String s);
 	}
 }

@@ -25,7 +25,6 @@ import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
-import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder;
@@ -38,36 +37,6 @@ public class _ParameterPropertyBuilder extends TestBase {
 	@Before
 	public void init() {
 		validator = Validation.buildDefaultValidatorFactory().getValidator();
-	}
-
-	@Test
-	public void validateParameterOnlyOnGet() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("setString"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Validation is done on get methods only"));
-		}
-	}
-
-	@Test
-	public void validateNoParameterForGet() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("getString", String.class), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Get methods can't have parameters"));
-		}
-	}
-
-	@Test
-	public void validateReturnParameterForGet() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("getNoReturnParam"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("did not declare a return type"));
-		}
 	}
 
 	@Test
@@ -91,34 +60,10 @@ public class _ParameterPropertyBuilder extends TestBase {
 	}
 
 	@Test
-	public void errorMultiParameterSet() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("getMultiParamSet"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("no corresponding setter method"));
-		}
-	}
-
-	@Test
 	public void detectFluent() throws NoSuchMethodException {
 		assertFalse(Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).isFluent());
 		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getOwnClass"), validator).isFluent());
 		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getSuperClass"), validator).isFluent());
-
-		try {
-			Builder.buildFrom(FluentEntity.class.getMethod("getOtherEntity"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Only Superclasses of"));
-		}
-
-		try {
-			Builder.buildFrom(FluentEntity.class.getMethod("getUnrelatedClass"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Only Superclasses of"));
-		}
 	}
 
 	@Test
@@ -159,30 +104,8 @@ public class _ParameterPropertyBuilder extends TestBase {
 	}
 
 	@Test
-	public void noSetForComputedProperty() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("getComputed"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("computed"));
-		}
-
-		assertTrue(Builder.buildFrom(ComputedEntity.class.getDeclaredMethod("getComputed"), validator).isComputed());
-	}
-
-	@Test
 	public void validReference() throws NoSuchMethodException {
 		Builder.buildFrom(ReferencedEntity.class.getDeclaredMethod("getValidProp"), validator);
-	}
-
-	@Test
-	public void invalidReference() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(ReferencedEntity.class.getDeclaredMethod("getInvalidProp"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Cant declare"));
-		}
 	}
 
 	@Test
@@ -194,30 +117,6 @@ public class _ParameterPropertyBuilder extends TestBase {
 		assertFalse(Builder.buildFrom(NestedEntity.class.getDeclaredMethod("getPE"), validator).isLazyLoaded());
 	}
 
-	@SuppressWarnings("unused")
-	private static interface FluentEntity extends Entity {
-		@Transient
-		public String getNotFluent();
-
-		public void setNotFluent(String s);
-
-		public String getOwnClass();
-
-		public FluentEntity setOwnClass(String s);
-
-		public String getSuperClass(); // this should cover the Object case as well
-
-		public Entity setSuperClass(String s);
-
-		public String getOtherEntity();
-
-		public InvalidEntity setOtherEntity(String s);
-
-		public String getUnrelatedClass();
-
-		public String setUnrelatedClass(String s);
-	}
-
 	private static interface Ids extends Entity {
 		@Id
 		public String getEIDE();
@@ -227,31 +126,6 @@ public class _ParameterPropertyBuilder extends TestBase {
 		public String getId();
 
 		public Ids setId(String id);
-	}
-
-	private static interface InvalidEntity extends Entity {
-		public void setString();
-
-		public void getString(String s);
-
-		public void getNoReturnParam();
-
-		public Integer getTypeMismatch();
-
-		public void setTypeMismatch(String s);
-
-		public String getNoParamSet();
-
-		public void setNoParamSet();
-
-		public String getMultiParamSet();
-
-		public void setMultiParamSet(String one, String two);
-
-		@Computed(StringComputer.class)
-		public String getComputed();
-
-		public void setComputed(String s);
 	}
 
 	private static interface ComputedEntity extends Entity {
@@ -271,10 +145,5 @@ public class _ParameterPropertyBuilder extends TestBase {
 		public PrimitiveEntity getValidProp();
 
 		public ReferencedEntity setValidProp(PrimitiveEntity pe);
-
-		@Reference
-		public String getInvalidProp();
-
-		public ReferencedEntity setInvalidProp(String s);
 	}
 }

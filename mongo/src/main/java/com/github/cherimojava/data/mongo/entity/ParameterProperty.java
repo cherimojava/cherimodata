@@ -27,13 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getSetterFromGetter;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.isAssignableFromClass;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
 
 /**
  * Contains information for a parameter like it's mongodb name, if it's transient, etc. This class is immutable, use
@@ -109,12 +108,17 @@ public final class ParameterProperty {
 	/**
 	 * returns if this property isn't intended to be stored to MongoDB
 	 *
-	 * @return
+	 * @return if this property is transient or not
 	 */
 	public boolean isTransient() {
 		return tranzient;
 	}
 
+	/**
+	 * returns if this property is computed by a computer
+	 *
+	 * @return if this property is computed
+	 */
 	public boolean isComputed() {
 		return computer != null;
 	}
@@ -123,7 +127,7 @@ public final class ParameterProperty {
 	 * Returns if this property is only referenced and the actual property is stored in a separate collection. Only
 	 * valid if the property is a entity subtype
 	 *
-	 * @return
+	 * @return if this property is a reference to a different entity
 	 */
 	public boolean isReference() {
 		return ReferenceType.NONE != reference;
@@ -132,12 +136,17 @@ public final class ParameterProperty {
 	/**
 	 * Returns if the given property is representing an Entity reference, which is lazily loaded
 	 *
-	 * @return
+	 * @return if this property is loaded on first access to it
 	 */
 	public boolean isLazyLoaded() {
 		return ReferenceType.LAZY == reference;
 	}
 
+	/**
+	 * gets the computer for this property
+	 *
+	 * @return computer of this property if the property is computer, null otherwise
+	 */
 	public Computer getComputer() {
 		return computer;
 	}
@@ -147,6 +156,7 @@ public final class ParameterProperty {
 	 * ConstraintViolationException if the value doesn't comply with the declared Constraints
 	 *
 	 * @param value
+	 *            property value to check for validity
 	 */
 	public void validate(Object value) {
 		if (hasConstraints()) {
@@ -229,7 +239,7 @@ public final class ParameterProperty {
 		}
 
 		/**
-		 * creates a new ParameterProperty based on the attributes from the given Method
+		 * creates a new ParameterProperty based on the attributes from the given get Method
 		 *
 		 * @param m
 		 *            to create ParameterProperty from
@@ -237,7 +247,6 @@ public final class ParameterProperty {
 		 */
 		@SuppressWarnings("unchecked")
 		static ParameterProperty buildFrom(Method m, Validator validator) {
-			validateParameter(m);
 			Class<? extends Entity> declaringClass = (Class<? extends Entity>) m.getDeclaringClass();
 			BeanDescriptor bdesc = validator.getConstraintsForClass(declaringClass);
 			Computer computer = null;
@@ -268,58 +277,6 @@ public final class ParameterProperty {
 				builder.setReferenceType(ReferenceType.NONE);
 			}
 			return builder.build();
-		}
-
-		/**
-		 * validates if a method fulfills the requirements for our framework. This method must be invoked with get
-		 * methods only
-		 */
-		static void validateParameter(Method m) {
-			final boolean comp = m.isAnnotationPresent(Computed.class);
-			checkArgument(m.getName().startsWith("get"),
-					"Validation is done on get methods only. Set methods are discovered automatically");
-			checkArgument(m.getParameterTypes().length == 0, "Get methods can't have parameters, but had %s",
-					Lists.newArrayList(m.getParameterTypes()));
-			checkArgument(m.getReturnType() != Void.TYPE, "Method %s did not declare a return type", m.getName());
-			if (m.isAnnotationPresent(Reference.class)) {
-				checkArgument(Entity.class.isAssignableFrom(m.getReturnType()),
-						"Cant declare reference on non entity type");
-			}
-			Method setter = null;
-			try {
-				setter = getSetterFromGetter(m);
-			} catch (IllegalArgumentException e) {
-				if (!comp) {
-					throw e;
-				}
-			}
-			Preconditions.checkArgument(!(comp && (setter != null)),
-					"computed property %s cannot have a setter method declared", EntityUtils.getPojoNameFromMethod(m));
-
-			Class<?> declClass = m.getDeclaringClass();
-			if (setter != null && setter.getReturnType() != Void.TYPE) {
-				checkArgument(isAssignableFromClass(setter),
-						"Return type %s of setter %s isn't supported. Only Superclasses of %s are valid",
-						m.getReturnType(), setter.getName(), declClass);
-			}
-		}
-
-		/**
-		 * returns the setter method of the given getter method or throws an exception if no such method exists
-		 */
-		private static Method getSetterFromGetter(Method m) {
-			try {
-				return m.getDeclaringClass().getMethod(m.getName().replaceFirst("g", "s"), m.getReturnType());
-			} catch (NoSuchMethodException e) {
-				throw new IllegalArgumentException(format("Method %s has no corresponding setter method", m.getName()));
-			}
-		}
-
-		/**
-		 * checks if the given method has a return type which is assignable from the declaring class
-		 */
-		private static boolean isAssignableFromClass(Method m) {
-			return m.getReturnType().isAssignableFrom(m.getDeclaringClass());
 		}
 	}
 

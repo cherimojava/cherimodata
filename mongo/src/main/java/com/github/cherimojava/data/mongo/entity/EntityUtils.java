@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.*;
 
 /**
@@ -117,5 +118,38 @@ public class EntityUtils {
 			return name.value();
 		}
 		return uncapitalize(clazz.getSimpleName());
+	}
+
+	/**
+	 * returns the setter method of the given getter method or throws an exception if no such method exists
+	 */
+	public static Method getSetterFromGetter(Method m) {
+		try {
+			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("g", "s"), m.getReturnType());
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException(format("Method %s has no corresponding setter method", m.getName()));
+		}
+	}
+
+	/**
+	 * returns the getter method belonging to the given setter method
+	 *
+	 * @param m
+	 * @return
+	 * @throws NoSuchMethodException
+	 */
+	public static Method getGetterFromSetter(Method m) throws NoSuchMethodException {
+		Method getter = m.getDeclaringClass().getMethod(m.getName().replaceFirst("s", "g"));
+		checkArgument(getter.getReturnType().equals(m.getParameterTypes()[0]),
+				"You can only declare setter methods if there's a matching getter. Found %s without getter",
+				m.getName());
+		return getter;
+	}
+
+	/**
+	 * checks if the given method has a return type which is assignable from the declaring class
+	 */
+	public static boolean isAssignableFromClass(Method m) {
+		return m.getReturnType().isAssignableFrom(m.getDeclaringClass());
 	}
 }
