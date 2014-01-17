@@ -239,7 +239,7 @@ public final class ParameterProperty {
 		static ParameterProperty buildFrom(Method m, Validator validator) {
 			validateParameter(m);
 			Class<? extends Entity> declaringClass = (Class<? extends Entity>) m.getDeclaringClass();
-			BeanDescriptor bdesc = validator.getConstraintsForClass(m.getDeclaringClass());
+			BeanDescriptor bdesc = validator.getConstraintsForClass(declaringClass);
 			Computer computer = null;
 			Computed c = m.getAnnotation(Computed.class);
 			Builder builder = new Builder();

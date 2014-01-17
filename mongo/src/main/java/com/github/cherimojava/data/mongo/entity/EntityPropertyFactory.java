@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
 
 /**
  * Factory for creating EntityProperties out of a given Interface extending Entity
@@ -93,28 +94,26 @@ class EntityPropertyFactory {
 
 		Set<String> setter = Sets.newHashSet();
 		List<String> getter = Lists.newArrayList();
-		Set<String> foundAllowedMethods = Sets.newHashSet();
 		// iterate through all methods and create parameter properties for them
 		for (Method m : clazz.getMethods()) {
 			if (allowedMethods.contains(m.getName())) {
-				// method not conforming to Entity convention, but coming from Object and Entity
-				// if we catch a second one we have to fail as custom allowedMethods aren't allowed
-				checkArgument(foundAllowedMethods.add(m.getName()),
-						"Don't write custom equals, toString, etc. methods, found custom %s", m.getName());
-				continue;
-			}
-			if (m.getName().startsWith("set")) {
+				// method is one of the allowed ones, check that no custom implementation is declared (with different
+				// params, e.g.)
+				checkArgument(m.getDeclaringClass().equals(Entity.class),
+						"Don't write custom equals, toString etc. methods. Found custom %s", m.getName());
+			} else if (m.getName().startsWith("set")) {
 				// remember the setter we check it later
 				// avoid that we have multiple setter (at least one invalid) for a property won't catch this otherwise
 				checkArgument(setter.add(m.getName().replaceFirst("s", "g")), "Multiple setter found for %s",
 						m.getName());
-				continue;
+			} else if (m.getName().startsWith("get")) {
+				getter.add(m.getName());// remember getter so we can compare it later
+				ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, validator);
+				builder.addParameter(pp);
+			} else {
+				throw new IllegalArgumentException(format(
+						"Found method %s, which isn't conform with Entity method convention", m.getName()));
 			}
-			checkArgument(m.getName().startsWith("get"),
-					"Found method %s, which isn't conform with Entity method convention", m.getName());
-			getter.add(m.getName());// remember getter so we can compare it later
-			ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, validator);
-			builder.addParameter(pp);
 		}
 		setter.removeAll(getter); // remove all setter which have matching getter methods
 		checkArgument(setter.isEmpty(), "Found setter methods which have no matching getter %s", setter);

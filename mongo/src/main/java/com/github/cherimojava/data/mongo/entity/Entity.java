@@ -114,6 +114,12 @@ public interface Entity<T extends Entity> {
 	public int hashCode();
 
 	/**
+	 * Returns a JSON representation of the Entity instance, representing the currently set values
+	 */
+	@Override
+	public String toString();
+
+	/**
 	 * Returns the class of this entity as getClass will return the Proxy class rather than the entity class
 	 *
 	 * @return Class of this Entity
