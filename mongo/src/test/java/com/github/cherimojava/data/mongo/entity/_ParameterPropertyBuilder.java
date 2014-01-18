@@ -40,26 +40,6 @@ public class _ParameterPropertyBuilder extends TestBase {
 	}
 
 	@Test
-	public void validateSetGetTypesMatch() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("getTypeMismatch"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("no corresponding setter method"));
-		}
-	}
-
-	@Test
-	public void errorSetNoParam() throws NoSuchMethodException {
-		try {
-			Builder.buildFrom(InvalidEntity.class.getDeclaredMethod("getNoParamSet"), validator);
-			fail("should throw an exception");
-		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("no corresponding setter method"));
-		}
-	}
-
-	@Test
 	public void detectFluent() throws NoSuchMethodException {
 		assertFalse(Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).isFluent());
 		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getOwnClass"), validator).isFluent());

@@ -25,6 +25,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
 import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
 public class _EntityUtils extends TestBase {
@@ -69,14 +70,14 @@ public class _EntityUtils extends TestBase {
 			getPojoNameFromMethod(Entity.class.getDeclaredMethod("equals", Object.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("retrieve name from this method"));
+			assertThat(e.getMessage(), containsString("retrieve name from this method"));
 		}
 
 		try {
 			getPojoNameFromMethod(Entity.class.getDeclaredMethod("get", String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("retrieve name from this method"));
+			assertThat(e.getMessage(), containsString("retrieve name from this method"));
 		}
 	}
 
@@ -86,7 +87,7 @@ public class _EntityUtils extends TestBase {
 			getMongoNameFromMethod(NameForId.class.getDeclaredMethod("getSomething"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("not allowed to use @Name annotation to declare id field"));
+			assertThat(e.getMessage(), containsString("not allowed to use @Name annotation to declare id field"));
 		}
 	}
 
@@ -96,7 +97,7 @@ public class _EntityUtils extends TestBase {
 			getMongoNameFromMethod(NameForId.class.getDeclaredMethod("getBoth"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("You can not annotate a property with @Name and @Id"));
+			assertThat(e.getMessage(), containsString("You can not annotate a property with @Name and @Id"));
 		}
 	}
 

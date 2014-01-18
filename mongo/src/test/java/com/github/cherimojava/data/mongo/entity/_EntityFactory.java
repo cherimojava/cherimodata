@@ -33,6 +33,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -74,7 +75,7 @@ public class _EntityFactory extends TestBase {
 			factory.create(InvalidIndexedEntity.class);
 			fail("should throw an exception");
 		} catch (NullPointerException e) {
-			assertTrue(e.getMessage().contains("Index field"));
+			assertThat(e.getMessage(), containsString("Index field"));
 		}
 	}
 

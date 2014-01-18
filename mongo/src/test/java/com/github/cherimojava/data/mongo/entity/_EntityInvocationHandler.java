@@ -31,6 +31,7 @@ import com.github.cherimojava.data.mongo.TestBase;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -100,14 +101,14 @@ public class _EntityInvocationHandler extends TestBase {
 			pe.set("undeclared", null);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Unknown property"));
+			assertThat(e.getMessage(), containsString("Unknown property"));
 		}
 
 		try {
 			pe.get("undeclared");
 			fail("Should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Unknown property"));
+			assertThat(e.getMessage(), containsString("Unknown property"));
 		}
 	}
 
@@ -117,13 +118,13 @@ public class _EntityInvocationHandler extends TestBase {
 			pe.setString(null);
 			fail("should throw an exception");
 		} catch (ConstraintViolationException e) {
-			assertTrue(e.getConstraintViolations().iterator().next().getMessage().contains("null"));
+			assertThat(e.getConstraintViolations().iterator().next().getMessage(), containsString("null"));
 		}
 		try {
 			pe.set("string", null);
 			fail("should throw an exception");
 		} catch (ConstraintViolationException e) {
-			assertTrue(e.getConstraintViolations().iterator().next().getMessage().contains("null"));
+			assertThat(e.getConstraintViolations().iterator().next().getMessage(), containsString("null"));
 		}
 	}
 
@@ -133,19 +134,19 @@ public class _EntityInvocationHandler extends TestBase {
 			pe.save();
 			fail("should throw an exception");
 		} catch (IllegalStateException e) {
-			assertTrue(e.getMessage().contains("Entity was created without MongoDB reference."));
+			assertThat(e.getMessage(), containsString("Entity was created without MongoDB reference."));
 		}
 		try {
 			pe.drop();
 			fail("should throw an exception");
 		} catch (IllegalStateException e) {
-			assertTrue(e.getMessage().contains("Entity was created without MongoDB reference."));
+			assertThat(e.getMessage(), containsString("Entity was created without MongoDB reference."));
 		}
 		try {
 			pe.load("doesn't matter");
 			fail("should throw an exception");
 		} catch (IllegalStateException e) {
-			assertTrue(e.getMessage().contains("Entity was created without MongoDB reference."));
+			assertThat(e.getMessage(), containsString("Entity was created without MongoDB reference."));
 		}
 	}
 
@@ -164,7 +165,7 @@ public class _EntityInvocationHandler extends TestBase {
 			pe.save();
 			fail("should throw an exception");
 		} catch (NullPointerException e) {
-			assertTrue(e.getMessage().contains("An explicit defined Id "));
+			assertThat(e.getMessage(), containsString("An explicit defined Id "));
 		}
 		pe.setName("some");
 		pe.save();
@@ -190,7 +191,7 @@ public class _EntityInvocationHandler extends TestBase {
 			pe.save();
 			fail("should throw an exception");
 		} catch (ConstraintViolationException e) {
-			assertTrue(e.getConstraintViolations().iterator().next().getMessage().contains("null"));
+			assertThat(e.getConstraintViolations().iterator().next().getMessage(), containsString("null"));
 		}
 	}
 
@@ -202,7 +203,7 @@ public class _EntityInvocationHandler extends TestBase {
 			pe.setInteger(3);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("sealed"));
+			assertThat(e.getMessage(), containsString("sealed"));
 		}
 	}
 

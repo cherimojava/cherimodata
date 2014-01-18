@@ -51,7 +51,7 @@ public class _EntityPropertyFactory extends TestBase {
 		try {
 			factory.validateGetter(InvalidEntity.class.getDeclaredMethod("getNoReturnParam"));
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("did not declare a return type"));
+			assertThat(e.getMessage(), containsString("did not declare a return type"));
 		}
 	}
 
@@ -61,7 +61,7 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.validateGetter(InvalidEntity.class.getDeclaredMethod("getString", String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Get methods can't have parameters"));
+			assertThat(e.getMessage(), containsString("Get methods can't have parameters"));
 		}
 	}
 
@@ -72,7 +72,7 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setMultiParamSet", String.class, String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Set methods must have one parameter"));
+			assertThat(e.getMessage(), containsString("Set methods must have one parameter"));
 		}
 	}
 
@@ -82,7 +82,7 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.validateGetter(InvalidEntity.class.getDeclaredMethod("getInvalidProp"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Cant declare"));
+			assertThat(e.getMessage(), containsString("Cant declare"));
 		}
 	}
 
@@ -92,14 +92,14 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.validateSetter(FluentEntity.class.getMethod("getOtherEntity"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Only Superclasses of"));
+			assertThat(e.getMessage(), containsString("Only Superclasses of"));
 		}
 
 		try {
 			factory.validateSetter(FluentEntity.class.getMethod("getUnrelatedClass"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Only Superclasses of"));
+			assertThat(e.getMessage(), containsString("Only Superclasses of"));
 		}
 	}
 
@@ -109,7 +109,7 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.create(MultipleGetterForProperty.class);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Entity contains already a property"));
+			assertThat(e.getMessage(), containsString("Entity contains already a property"));
 		}
 	}
 
@@ -141,7 +141,7 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.create(NotAllowedMethodName.class);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("Don't write custom"));
+			assertThat(e.getMessage(), containsString("Don't write custom"));
 		}
 	}
 
@@ -167,7 +167,7 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setComputed", String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("computed"));
+			assertThat(e.getMessage(), containsString("computed"));
 		}
 	}
 
@@ -177,7 +177,8 @@ public class _EntityPropertyFactory extends TestBase {
 			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setNoGetter", String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("You can only declare setter methods if there's a matching getter"));
+			assertThat(e.getMessage(),
+					containsString("You can only declare setter methods if there's a matching getter"));
 		}
 	}
 

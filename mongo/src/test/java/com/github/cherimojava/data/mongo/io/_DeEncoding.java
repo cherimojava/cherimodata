@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 import static org.mongodb.MongoHelper.getMongoDatabase;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
@@ -331,7 +332,7 @@ public class _DeEncoding extends MongoBase {
 			EnumEntity eeRead = (EnumEntity) dec.decode(jreader);
 			fail("Should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().contains("doesn't match any declared enum value of"));
+			assertThat(e.getMessage(), containsString("doesn't match any declared enum value of"));
 		}
 	}
 
