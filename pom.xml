@@ -6,6 +6,7 @@
         <groupId>com.github.cherimojava</groupId>
         <artifactId>parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>tmplib</relativePath>
     </parent>
 
     <groupId>com.github.cherimojava.data</groupId>
@@ -89,6 +90,13 @@
                 <groupId>com.github.cherimojava.data</groupId>
                 <artifactId>spring</artifactId>
                 <version>${cherimodata.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.cherimojava</groupId>
+                <artifactId>parent</artifactId>
+                <version>${cherimodata.version}</version>
+                <scope>system</scope>
+                <systemPath>${project.basedir}/tmplib/parent-1.0.0-SNAPSHOT.pom</systemPath>
             </dependency>
         </dependencies>
     </dependencyManagement>
