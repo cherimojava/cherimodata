@@ -66,7 +66,7 @@ public class EntityUtils {
 	}
 
 	/**
-	 * Retrieves the pojo name from the given method if this is a valid set/Get method
+	 * Retrieves the pojo name from the given method if this is a valid set/get/add method
 	 *
 	 * @param m
 	 *            method to retrieve name from
@@ -74,8 +74,9 @@ public class EntityUtils {
 	 */
 	// TODO this might be better placed within ParameterProperty
 	public static String getPojoNameFromMethod(Method m) {
-		checkArgument((m.getName().startsWith("set") || m.getName().startsWith("get")) && m.getName().length() > 3,
-				"Don't know how to retrieve name from this method, got [%s]", m.getName());
+		String methodName = m.getName();
+		checkArgument((methodName.startsWith("set") || methodName.startsWith("get") || methodName.startsWith("add"))
+				&& m.getName().length() > 3, "Don't know how to retrieve name from this method, got [%s]", m.getName());
 		return decapitalize(m.getName().substring(3));
 	}
 
@@ -128,6 +129,14 @@ public class EntityUtils {
 			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("g", "s"), m.getReturnType());
 		} catch (NoSuchMethodException e) {
 			throw new IllegalArgumentException(format("Method %s has no corresponding setter method", m.getName()));
+		}
+	}
+
+	public static Method getGetterFromAdder(Method m) {
+		try {
+			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("add", "get"));
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException(format("Method %s has no corresponding getter method", m.getName()));
 		}
 	}
 

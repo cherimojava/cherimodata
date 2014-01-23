@@ -33,5 +33,5 @@ public interface Computer<F extends Entity, T> {
 	 *            Entity instance for which the property of type T is computed
 	 * @return value for the Property based on given Entity
 	 */
-	public T compute(F f);
+	T compute(F f);
 }

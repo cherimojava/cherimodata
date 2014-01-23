@@ -15,6 +15,10 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.validation.ConstraintViolationException;
 
 import org.bson.types.ObjectId;
@@ -28,6 +32,7 @@ import org.mongodb.MongoDatabase;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
+import com.google.common.collect.Lists;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
@@ -196,7 +201,7 @@ public class _EntityInvocationHandler extends TestBase {
 	}
 
 	@Test
-	public void sealEntity() {
+	public void sealEntityPut() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
 		pe.setInteger(1).seal();
 		try {
@@ -205,6 +210,67 @@ public class _EntityInvocationHandler extends TestBase {
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("sealed"));
 		}
+	}
+
+	@Test
+	public void sealEntityAdd() {
+		AddEntity ae = factory.create(AddEntity.class);
+		ae.addString("one");
+		ae.seal();
+		try {
+			ae.addString("two");
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("sealed"));
+		}
+	}
+
+	@Test
+	public void addCreatesCollectionIfEmpty() {
+		EntityFactory.setDefaultClass(List.class, LinkedList.class);
+		AddEntity ae = factory.create(AddEntity.class);
+		ae.addString("one");
+		List<String> strings = ae.getString();
+
+		assertNotNull(strings);
+		assertEquals(1, strings.size());
+		assertEquals(LinkedList.class, strings.getClass());
+	}
+
+	@Test
+	public void eihGetsView() {
+		AddEntity ae = factory.create(AddEntity.class);
+		factory.setDefaultClass(List.class, LinkedList.class);
+		ae.addString("one");
+		List<String> strings = ae.getString();
+
+		assertNotNull(strings);
+		assertEquals(1, strings.size());
+		assertEquals(LinkedList.class, strings.getClass());
+	}
+
+	@Test
+	public void testDefaultsImplementations() {
+		AddEntity ae = factory.create(AddEntity.class);
+		ae.addString("one");
+		List<String> strings = ae.getString();
+
+		assertNotNull(strings);
+		assertEquals(1, strings.size());
+		assertEquals(ArrayList.class, strings.getClass());
+	}
+
+	@Test
+	public void addOnExistingList() {
+		AddEntity ae = factory.create(AddEntity.class);
+		ae.setString(Lists.newArrayList("one", "two"));
+		ae.addString("three");
+		List<String> strings = ae.getString();
+		assertNotNull(strings);
+		assertEquals(3, strings.size());
+		assertTrue(strings.contains("one"));
+		assertTrue(strings.contains("two"));
+		assertTrue(strings.contains("three"));
 	}
 
 	@Test
@@ -242,7 +308,7 @@ public class _EntityInvocationHandler extends TestBase {
 	}
 
 	@Test
-	public void entitientDifferentContentNotEqual() {
+	public void entityDifferentContentNotEqual() {
 		PrimitiveEntity pe1 = factory.create(PrimitiveEntity.class);
 		PrimitiveEntity pe2 = factory.create(PrimitiveEntity.class);
 		pe1.setInteger(Integer.valueOf(12));

@@ -32,7 +32,7 @@ public interface Entity<T extends Entity> {
 	/**
 	 * id fieldname
 	 */
-	static final String ID = "_id";
+	public static final String ID = "_id";
 
 	/**
 	 * Saves the entity to MongoDB. Saving only happens if the entity has unsaved changes.

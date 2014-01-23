@@ -65,7 +65,6 @@ public class _EntityPropertyFactory extends TestBase {
 		}
 	}
 
-	// TODO move to _EntityPropertyFactory
 	@Test
 	public void noMultiParameterSet() throws NoSuchMethodException {
 		try {
@@ -179,6 +178,47 @@ public class _EntityPropertyFactory extends TestBase {
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(),
 					containsString("You can only declare setter methods if there's a matching getter"));
+		}
+	}
+
+	@Test
+	public void adderNoGetter() throws NoSuchMethodException {
+		try {
+			factory.validateAdder(AdderTest.class.getDeclaredMethod("addNoGetter", String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("has no corresponding getter method"));
+		}
+	}
+
+	@Test
+	public void adderNoCollectionGetter() throws NoSuchMethodException {
+		try {
+			factory.validateAdder(AdderTest.class.getDeclaredMethod("addNoCollectionGetter", String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(),
+					containsString("Adder method only allowed for properties extending collection, but was class"));
+		}
+	}
+
+	@Test
+	public void adderWrongGenericTypeGetter() throws NoSuchMethodException {
+		try {
+			factory.validateAdder(AdderTest.class.getDeclaredMethod("addStrings", Integer.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("but adder has parameter of type"));
+		}
+	}
+
+	@Test
+	public void adderParameterCount() throws NoSuchMethodException {
+		try {
+			factory.validateAdder(AdderTest.class.getDeclaredMethod("addString", String.class, Integer.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Adder method must define exactly one parameter matching"));
 		}
 	}
 

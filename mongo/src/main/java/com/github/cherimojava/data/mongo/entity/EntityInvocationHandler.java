@@ -18,6 +18,7 @@ package com.github.cherimojava.data.mongo.entity;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -28,11 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.io.EntityEncoder;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
-import static com.google.common.base.Preconditions.*;
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
-//TODO add support for add
+import static com.github.cherimojava.data.mongo.entity.EntityFactory.getDefaultClass;
+import static com.google.common.base.Preconditions.*;
+import static java.lang.String.format;
 
 /**
  * Proxy class doing the magic for Entity based Interfaces
@@ -42,7 +45,7 @@ import static com.github.cherimojava.data.mongo.entity.Entity.ID;
  */
 class EntityInvocationHandler implements InvocationHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EntityInvocationHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(EntityInvocationHandler.class);
 
 	/**
 	 * holds the properties backing this entity class
@@ -141,7 +144,8 @@ class EntityInvocationHandler implements InvocationHandler {
 				changed = false;
 				return true;
 			} else {
-                LOG.info("Did not save Entity with id %s of class %s as no changes where made.", data.get(ID), properties.getEntityClass());
+				LOG.info("Did not save Entity with id %s of class %s as no changes where made.", data.get(ID),
+						properties.getEntityClass());
 				return false;
 			}
 		case "drop":
@@ -178,7 +182,42 @@ class EntityInvocationHandler implements InvocationHandler {
 				return proxy;
 			}
 		}
+		if (methodName.startsWith("add")) {
+			// for now we know that there's only one parameter
+			pp = properties.getProperty(method);
+			_add(pp, args[0]);
+		}
 		return null;
+	}
+
+	/**
+	 * verifies that the entity isn't sealed, if the entity is sealed no further modification is allowed and an
+	 * IllegalArgumentException is thrown
+	 */
+	private void checkNotSealed() {
+		checkArgument(!sealed, "Entity is sealed and does not allow further modification");
+	}
+
+	@SuppressWarnings("unchecked")
+	private void _add(ParameterProperty pp, Object value) {
+		checkNotSealed();
+		if (data.get(pp.getMongoName()) == null) {
+			try {
+				if (getDefaultClass(pp.getType()) != null) {
+					Collection coll = (Collection) getDefaultClass(pp.getType()).newInstance();
+					coll.add(value);
+					data.put(pp.getMongoName(), coll);
+				} else {
+					throw new IllegalStateException(format(
+							"Property is of interface %s, but no suitable implementation was registered", pp.getType()));
+				}
+			} catch (InstantiationException | IllegalAccessException e) {
+				// TODO Can this really happen, we check it upfront if it's matching...
+				throw Throwables.propagate(e);
+			}
+		} else {
+			((Collection) data.get(pp.getMongoName())).add(value);
+		}
 	}
 
 	/**
@@ -194,7 +233,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 *             if the entity is sealed and doesn't allow further modifications
 	 */
 	private void _put(ParameterProperty pp, Object value) {
-		checkArgument(!sealed, "Entity is sealed and does not allow further modifications");
+		checkNotSealed();
 		pp.validate(value);
 		if (value != data.put(pp.getMongoName(), value)) {
 			changed = true;

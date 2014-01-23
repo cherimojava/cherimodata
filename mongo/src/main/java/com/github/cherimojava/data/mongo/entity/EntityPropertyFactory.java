@@ -16,6 +16,9 @@
 package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -106,6 +109,8 @@ class EntityPropertyFactory {
 				validateGetter(m);
 				ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, validator);
 				builder.addParameter(pp);
+			} else if (m.getName().startsWith("add")) {
+				validateAdder(m);
 			} else {
 				throw new IllegalArgumentException(format(
 						"Found method %s, which isn't conform with Entity method convention", m.getName()));
@@ -119,6 +124,29 @@ class EntityPropertyFactory {
 	 * duty to verify that a Set method is legit, meaning if a property is computed it's forbidden to have a setter for
 	 * it
 	 */
+
+	/**
+	 * validates that a method matches the adder constraints. The constraints are:
+	 * <ul>
+	 * <li>Adder can be only declared for Properties of type Collection
+	 * <li>Adder has only parameter
+	 * <li>Parameter type matches the type of the Collection
+	 * </ul>
+	 *
+	 * @param adder
+	 */
+	void validateAdder(Method adder) {
+		checkArgument(adder.getParameterTypes().length == 1,
+				"Adder method must define exactly one parameter matching the generic type of the property.");
+		Method getter = getGetterFromAdder(adder);
+		checkArgument(Collection.class.isAssignableFrom(getter.getReturnType()),
+				"Adder method only allowed for properties extending collection, but was %s.", getter.getReturnType());
+		Type getterType = ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0];
+		Type adderType = adder.getParameterTypes()[0];
+		checkArgument(getterType.equals(adderType),
+				"Collection has a generic type of %s, but adder has parameter of type %s", getterType, adderType);
+	}
+
 	/**
 	 * validates that a method matches the setter constraints. The constraints are:
 	 * <ul>

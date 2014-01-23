@@ -22,12 +22,10 @@ import org.junit.Test;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 
-import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
-import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
-
 public class _EntityUtils extends TestBase {
 	/**
 	 * TestCase that the capitalization/decapitalization of names works as expected
@@ -54,6 +52,7 @@ public class _EntityUtils extends TestBase {
 		assertEquals("string", getPojoNameFromMethod(PrimitiveEntity.class.getDeclaredMethod("getString")));
 		assertEquals("string",
 				getPojoNameFromMethod(PrimitiveEntity.class.getDeclaredMethod("setString", String.class)));
+        assertEquals("string", getPojoNameFromMethod(AdderTest.class.getDeclaredMethod("addString", String.class, Integer.class)));
 	}
 
 	@Test

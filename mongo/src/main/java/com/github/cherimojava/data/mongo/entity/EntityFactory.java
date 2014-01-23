@@ -15,8 +15,15 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
@@ -32,6 +39,7 @@ import com.github.cherimojava.data.mongo.io.EntityCodec;
 import com.github.cherimojava.data.mongo.io.EntityDecoder;
 import com.google.common.collect.Maps;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.mongodb.Index.Builder;
@@ -58,7 +66,19 @@ public class EntityFactory {
 	 */
 	private Map<Class<? extends Entity>, MongoCollection<? extends Entity>> preparedEntites;
 
+	/**
+	 * contains information about Default Implementations used when property defines a interface
+	 */
+	private static Map<Class, Class> interfaceImpls;
+
 	private static EntityPropertyFactory defFactory = new EntityPropertyFactory();
+
+	static {
+		interfaceImpls = Maps.newConcurrentMap();
+		interfaceImpls.put(List.class, ArrayList.class);
+		interfaceImpls.put(Set.class, HashSet.class);
+		interfaceImpls.put(Queue.class, LinkedBlockingQueue.class);
+	}
 
 	/**
 	 * creates a new EntityFactory, with the given Database for storage. Instances created through create will be linked
@@ -85,7 +105,9 @@ public class EntityFactory {
 	 *         Entity.drop())
 	 */
 	public <T extends Entity> T create(Class<T> clazz) {
-		return instantiate(clazz, new EntityInvocationHandler(checkAndPrepare(clazz), preparedEntites.get(clazz)));
+		EntityInvocationHandler handler = new EntityInvocationHandler(checkAndPrepare(clazz),
+				preparedEntites.get(clazz));
+		return instantiate(clazz, handler);
 	}
 
 	/**
@@ -218,5 +240,32 @@ public class EntityFactory {
 	 */
 	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
 		return new EntityDecoder<T>(this, getProperties(clazz)).decode(new JSONReader(json));
+	}
+
+	/**
+	 * Sets a default class for a given Interface, which will be used if a Add method is invoked but no underlying
+	 * object is existing yet. Supplied class must provide a parameterless public constructor and must be not abstract
+	 *
+	 * @param interfaze
+	 *            on for which the given implementation will be invoked
+	 * @param implementation
+	 *            concrete implementation of the given interface of which a new instance might be created must have a
+	 *            empty constructor and can't be abstract
+	 * @param <T>
+	 */
+	public static <T> void setDefaultClass(Class<T> interfaze, Class<? extends T> implementation) {
+		checkArgument(interfaze.isInterface(), "Can set default Classes only for interfaces");
+		checkArgument(!implementation.isInterface(), "Default class can't be an interface itself");
+		checkArgument(!Modifier.isAbstract(implementation.getModifiers()), "Implementation can't be abstract");
+		try {
+			implementation.getConstructor();
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException("Supplied implementation does not provide a parameterless constructor.");
+		}
+		interfaceImpls.put(interfaze, implementation);
+	}
+
+	public static Class getDefaultClass(Class interfaze) {
+		return interfaceImpls.get(interfaze);
 	}
 }

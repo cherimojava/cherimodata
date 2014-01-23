@@ -87,6 +87,7 @@ public final class ParameterProperty {
 	/**
 	 * returns if this method allows for fluent API access or not
 	 */
+	// TODO this needs to be more sophisticated now, add might return instance too
 	public Boolean isFluent() {
 		return fluent;
 	}
@@ -260,6 +261,8 @@ public final class ParameterProperty {
 				}
 			} else {
 				// only if this is not a computed property we have a setter for it
+				// TODO right now we're failing if there's no setter, but would it make sense to allow that there's no
+				// setter defined?
 				builder.setFluent(isAssignableFromClass(getSetterFromGetter(m)));
 			}
 			builder.setType(m.getReturnType()).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(

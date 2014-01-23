@@ -15,6 +15,9 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
 
 import org.junit.Before;
@@ -54,6 +57,49 @@ public class _EntityFactory extends TestBase {
 		MockitoAnnotations.initMocks(this);
 		when(db.getCollection(anyString(), any(EntityCodec.class))).thenReturn(coll);
 		factory = new EntityFactory(db);
+	}
+
+	@Test
+	public void defaultClassesOnlyForInterfaces() {
+		factory.setDefaultClass(List.class, ArrayList.class);
+		try {
+			factory.setDefaultClass(ArrayList.class, ArrayList.class);
+			fail("Should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Can set default Classes only for interfaces"));
+		}
+	}
+
+	@Test
+	public void defaultClassMustBeClass() {
+		try {
+			factory.setDefaultClass(List.class, List.class);
+			fail("Should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Default class can't be an interface itself"));
+		}
+	}
+
+	@Test
+	public void mustHaveEmptyConstructor() {
+		try {
+			factory.setDefaultClass(List.class, NoPubList.class);
+			fail("Should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(),
+					containsString("Supplied implementation does not provide a parameterless constructor."));
+		}
+	}
+
+	// TODO add test that after load the DefaultImpl information is carried over
+	@Test
+	public void defaultClassNotAbstract() {
+		try {
+			factory.setDefaultClass(List.class, AbstractNoPubList.class);
+			fail("Should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Implementation can't be abstract"));
+		}
 	}
 
 	@Test
@@ -106,5 +152,17 @@ public class _EntityFactory extends TestBase {
 	@Named("collection")
 	@Collection(indexes = { @Index(name = "single", value = { @IndexField(field = "string", order = IndexField.Ordering.ASC) }) })
 	private interface InvalidIndexedEntity extends Entity<InvalidIndexedEntity> {
+	}
+
+	private class NoPubList extends ArrayList {
+		public NoPubList(int i) {
+			super(i);
+		}
+	}
+
+	private abstract class AbstractNoPubList extends NoPubList {
+		public AbstractNoPubList(int i) {
+			super(i);
+		}
 	}
 }

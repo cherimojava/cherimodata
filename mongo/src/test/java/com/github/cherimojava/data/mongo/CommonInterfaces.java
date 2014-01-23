@@ -157,7 +157,7 @@ public class CommonInterfaces {
 
 		public void setNoParamSet();
 
-        public void setNoGetter(String s);
+		public void setNoGetter(String s);
 
 		public String getMultiParamSet();
 
@@ -172,5 +172,32 @@ public class CommonInterfaces {
 		public String getInvalidProp();
 
 		public InvalidEntity setInvalidProp(String s);
+	}
+
+	public static interface AdderTest extends Entity {
+		public void addNoGetter(String m);
+
+		public String getNoCollectionGetter();
+
+		public void addNoCollectionGetter(String m);
+
+		public List<String> getStrings();
+
+		public void addStrings(Integer i);
+
+		public void addString(String s, Integer i);
+	}
+
+	public static interface AddEntity extends Entity<AddEntity> {
+		@Id
+		public String getId();
+
+		public AddEntity setId(String id);
+
+		public List<String> getString();
+
+		public void addString(String s);
+
+		public void setString(List<String> s);
 	}
 }
