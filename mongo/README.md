@@ -1,4 +1,6 @@
-Cherimongo is an work in Progress Object Document Mapper for MongoDB and Java. It allows you easily to define POJOs which can be easily stored within mongodb. At the moment there's no maven artefact, but this will be added at a later time, until then you need to checkout, import and build the artifact yourself.
+Cherimodata mongo ![Build status](https://travis-ci.org/cherimojava/cherimodata.png?branch=master)
+=================
+Cherimodata mongo is an work in Progress Object Document Mapper for MongoDB and Java. It allows you easily to define POJOs which can be easily stored within mongodb. At the moment there's no maven artefact, but this will be added at a later time, until then you need to checkout, import and build the artifact yourself.
 
 ## POJO declaration
 To get started you need to define your POJO as an Interface extending *me.philnate.cherimodata.mongo.Entity* (I'll explain the difference later)

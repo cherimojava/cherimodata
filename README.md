@@ -1,4 +1,4 @@
-cherimodata
+cherimodata ![Build status](https://travis-ci.org/cherimojava/cherimodata.png?branch=master)
 ===========
 Cherimojava project dedicated to ease the work with data stores.
 
