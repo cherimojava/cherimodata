@@ -16,6 +16,7 @@
 package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Locale;
 
 import javax.inject.Named;
@@ -132,11 +133,26 @@ public class EntityUtils {
 		}
 	}
 
+	/**
+	 * returns the getter method matching the given Adder method or throws an exception if no such method exists
+	 *
+	 * @param m
+	 * @return
+	 */
 	public static Method getGetterFromAdder(Method m) {
 		try {
 			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("add", "get"));
 		} catch (NoSuchMethodException e) {
 			throw new IllegalArgumentException(format("Method %s has no corresponding getter method", m.getName()));
+		}
+	}
+
+	public static Method getAdderFromGetter(Method m) {
+		try {
+			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("get", "add"),
+					(Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0]);
+		} catch (Exception e) {
+			throw new IllegalArgumentException(format("Method %s has no corresponding adder method", m.getName()));
 		}
 	}
 

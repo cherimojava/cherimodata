@@ -16,6 +16,8 @@
 package com.github.cherimojava.data.mongo.entity;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import javax.validation.ConstraintViolationException;
@@ -28,9 +30,9 @@ import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.getSetterFromGetter;
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.isAssignableFromClass;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,7 +46,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class ParameterProperty {
 	private final String mongoName;
 	private final String pojoName;
-	private final boolean fluent;
 	private final boolean constraints;
 	private final Class<?> type;
 	private final Validator validator;
@@ -52,13 +53,14 @@ public final class ParameterProperty {
 	private final boolean tranzient;
 	private final Computer computer;
 	private final ReferenceType reference;
+	private final Map<MethodType, Boolean> typeReturnMap;
 
 	ParameterProperty(Builder builder) {
 		checkNotNull(builder.type, "type cannot be null");
 		checkNotNull(builder.validator);
 		checkArgument(StringUtils.isNotEmpty(builder.pojoName), "pojo name cannot be null or empty string");
 		checkArgument(StringUtils.isNotEmpty(builder.mongoName), "mongo name cannot be null or empty string");
-		fluent = builder.fluent;
+		typeReturnMap = Collections.unmodifiableMap(builder.typeReturnMap);
 		type = builder.type;
 		pojoName = builder.pojoName;
 		mongoName = builder.mongoName;
@@ -85,11 +87,14 @@ public final class ParameterProperty {
 	}
 
 	/**
-	 * returns if this method allows for fluent API access or not
+	 * returns if this method allows for fluent API access or not. Returns null if the specified method isn't existent
+	 * for this property
+	 *
+	 * @param type
+	 *            add or get method to check
 	 */
-	// TODO this needs to be more sophisticated now, add might return instance too
-	public Boolean isFluent() {
-		return fluent;
+	public Boolean isFluent(MethodType type) {
+		return typeReturnMap.get(type);
 	}
 
 	/**
@@ -176,7 +181,6 @@ public final class ParameterProperty {
 	static class Builder {
 		private String mongoName;
 		private String pojoName;
-		private boolean fluent = false;
 		private Class<?> type;
 		private boolean constraints = false;
 		private Validator validator;
@@ -184,6 +188,7 @@ public final class ParameterProperty {
 		private boolean tranzient;
 		private Computer computer;
 		private ReferenceType reference;
+		private Map<MethodType, Boolean> typeReturnMap = Maps.newHashMap();
 
 		Builder setTransient(boolean tranzient) {
 			this.tranzient = tranzient;
@@ -200,8 +205,8 @@ public final class ParameterProperty {
 			return this;
 		}
 
-		Builder setFluent(boolean fluent) {
-			this.fluent = fluent;
+		Builder setFluent(MethodType method, boolean fluent) {
+			typeReturnMap.put(method, fluent);
 			return this;
 		}
 
@@ -263,7 +268,16 @@ public final class ParameterProperty {
 				// only if this is not a computed property we have a setter for it
 				// TODO right now we're failing if there's no setter, but would it make sense to allow that there's no
 				// setter defined?
-				builder.setFluent(isAssignableFromClass(getSetterFromGetter(m)));
+				builder.setFluent(MethodType.SETTER, isAssignableFromClass(getSetterFromGetter(m)));
+			}
+			if (java.util.Collection.class.isAssignableFrom(m.getReturnType())) {
+				try {
+					// only if we have an adder enabled Property type check for this
+					builder.setFluent(MethodType.ADDER, isAssignableFromClass(getAdderFromGetter(m)));
+				} catch (IllegalArgumentException e) {
+					// if we catch the IAE it means that there's no adder declared
+					// TODO we should log something at least
+				}
 			}
 			builder.setType(m.getReturnType()).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
 					EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
@@ -283,9 +297,20 @@ public final class ParameterProperty {
 		}
 	}
 
+	/**
+	 * Enumeration about Reference Types. This is information is needed for Referenced Entities
+	 */
 	private static enum ReferenceType {
 		NONE, // value is no reference
 		IMMEDIATE, // value is reference but immediately loaded
 		LAZY// value is lazy loaded reference
+	}
+
+	/**
+	 * Information about the method being described
+	 */
+	static enum MethodType {
+		ADDER,
+		SETTER
 	}
 }

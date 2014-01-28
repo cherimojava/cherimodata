@@ -26,6 +26,7 @@ import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
+
 public class _EntityUtils extends TestBase {
 	/**
 	 * TestCase that the capitalization/decapitalization of names works as expected
@@ -52,7 +53,8 @@ public class _EntityUtils extends TestBase {
 		assertEquals("string", getPojoNameFromMethod(PrimitiveEntity.class.getDeclaredMethod("getString")));
 		assertEquals("string",
 				getPojoNameFromMethod(PrimitiveEntity.class.getDeclaredMethod("setString", String.class)));
-        assertEquals("string", getPojoNameFromMethod(AdderTest.class.getDeclaredMethod("addString", String.class, Integer.class)));
+		assertEquals("string",
+				getPojoNameFromMethod(AdderTest.class.getDeclaredMethod("addString", String.class, Integer.class)));
 	}
 
 	@Test
@@ -110,6 +112,14 @@ public class _EntityUtils extends TestBase {
 	public void collectionNameResolution() {
 		assertEquals("primitiveEntity", getCollectionName(PrimitiveEntity.class));
 		assertEquals("Nested", getCollectionName(NestedEntity.class));
+	}
+
+	// TODO move/add unit tests for getSetter/Adder/GetterFrom... methods
+	@Test
+	public void isAssignableFromClass() throws NoSuchMethodException {
+		assertTrue(EntityUtils.isAssignableFromClass(PrimitiveEntity.class.getDeclaredMethod("setInteger",
+				Integer.class)));
+		assertFalse(EntityUtils.isAssignableFromClass(NestedEntity.class.getDeclaredMethod("setString", String.class)));
 	}
 
 	private static interface NameForId extends Entity<NameForId> {

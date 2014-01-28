@@ -91,7 +91,6 @@ public class _EntityFactory extends TestBase {
 		}
 	}
 
-	// TODO add test that after load the DefaultImpl information is carried over
 	@Test
 	public void defaultClassNotAbstract() {
 		try {

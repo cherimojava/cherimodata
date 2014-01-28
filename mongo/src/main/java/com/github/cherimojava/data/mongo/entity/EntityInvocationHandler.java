@@ -178,7 +178,7 @@ class EntityInvocationHandler implements InvocationHandler {
 
 			_put(pp, args[0]);
 			// if we want this to be fluent we need to return this
-			if (pp.isFluent()) {
+			if (pp.isFluent(ParameterProperty.MethodType.SETTER)) {
 				return proxy;
 			}
 		}
@@ -186,6 +186,10 @@ class EntityInvocationHandler implements InvocationHandler {
 			// for now we know that there's only one parameter
 			pp = properties.getProperty(method);
 			_add(pp, args[0]);
+			// if we want this to be fluent we need to return this
+			if (pp.isFluent(ParameterProperty.MethodType.ADDER)) {
+				return proxy;
+			}
 		}
 		return null;
 	}

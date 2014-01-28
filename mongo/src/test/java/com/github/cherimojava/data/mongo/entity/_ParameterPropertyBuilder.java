@@ -41,9 +41,9 @@ public class _ParameterPropertyBuilder extends TestBase {
 
 	@Test
 	public void detectFluent() throws NoSuchMethodException {
-		assertFalse(Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).isFluent());
-		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getOwnClass"), validator).isFluent());
-		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getSuperClass"), validator).isFluent());
+		assertFalse(Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).isFluent(ParameterProperty.MethodType.SETTER));
+		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getOwnClass"), validator).isFluent(ParameterProperty.MethodType.SETTER));
+		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getSuperClass"), validator).isFluent(ParameterProperty.MethodType.SETTER));
 	}
 
 	@Test
