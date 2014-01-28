@@ -6,7 +6,6 @@
         <groupId>com.github.cherimojava</groupId>
         <artifactId>parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>tmplib</relativePath>
     </parent>
 
     <groupId>com.github.cherimojava.data</groupId>
