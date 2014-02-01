@@ -33,8 +33,11 @@ import com.google.common.base.Charsets;
 /**
  * Converts a JSON HTTPMessage to and from Entity. If you want to return/read a list of Entities you must wrap them due
  * to Java limitations into a custom Entity which holds a list of entities. To enable this converter you need to add it
- * to your RequestMappingHandlerAdapter. This can happen through overriding the appropriate WebMvcConfigurationSupport
- * methods like configureMessageConverters or addDefaultHttpMessageConverters
+ * to your {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter}. This can happen
+ * through overriding the appropriate
+ * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport} methods like
+ * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport#configureMessageConverters} or
+ * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport#addDefaultHttpMessageConverters}
  *
  * @author philnate
  * @since 1.0.0
@@ -44,7 +47,8 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 	private final EntityFactory factory;
 
 	/**
-	 * creates a new EntityConverter which utilizes the given EntityFactory
+	 * creates a new EntityConverter which utilizes the given @{link
+	 * com.github.cherimojava.data.mongo.entity.EntityFactory}
 	 *
 	 * @param factory
 	 *            to be used to convert from/to HTTPMessage/Entity
@@ -55,8 +59,8 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 	}
 
 	/**
-	 * Checks if the given class can be handled by this Converter or not. Returns true for all Entity based classes,
-	 * false otherwise
+	 * Checks if the given class can be handled by this Converter or not. Returns true for all
+	 * {@link com.github.cherimojava.data.mongo.entity.Entity} based classes, false otherwise
 	 *
 	 * @param clazz
 	 *            to check if it's supported
@@ -70,7 +74,7 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 	@Override
 	protected Entity readInternal(Class<? extends Entity> clazz, HttpInputMessage inputMessage) throws IOException,
 			HttpMessageNotReadableException {
-		return factory.fromJson(clazz, IOUtils.toString(inputMessage.getBody(), Charsets.UTF_8));
+		return factory.fromJson(clazz, IOUtils.toString(inputMessage.getBody(), Charsets.UTF_8.name()));
 	}
 
 	@Override

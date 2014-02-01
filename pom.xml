@@ -74,6 +74,16 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
+                <scope>system</scope>
+                <systemPath>${project.basedir}/../tmplib/mongodb-driver-3.0.0-SNAPSHOT.jar</systemPath>
+            </dependency>
+            <!-- only temporary needed to be declared-->
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>bson</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+                <scope>system</scope>
+                <systemPath>${project.basedir}/../tmplib/bson-3.0.0-SNAPSHOT.jar</systemPath>
             </dependency>
             <dependency>
                 <groupId>de.flapdoodle.embed</groupId>
@@ -91,11 +101,15 @@
                 <version>${cherimodata.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cherimojava</groupId>
-                <artifactId>parent</artifactId>
-                <version>${cherimodata.version}</version>
-                <scope>system</scope>
-                <systemPath>${project.basedir}/tmplib/parent-1.0.0-SNAPSHOT.pom</systemPath>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+            </dependency>
+            <!-- JSR303 Bean Validation -->
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>5.0.1.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

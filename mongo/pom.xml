@@ -69,20 +69,16 @@
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
-            <version>1</version>
         </dependency>
         <!-- JSR303 Bean Validation -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>5.0.1.Final</version>
         </dependency>
         <!-- Test -->
         <dependency>
             <groupId>uk.co.datumedge</groupId>
             <artifactId>hamcrest-json</artifactId>
-            <version>0.2</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -100,16 +96,12 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/tmplib/mongodb-driver-3.0.0-SNAPSHOT.jar</systemPath>
         </dependency>
         <!-- only temporary needed to be declared-->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>bson</artifactId>
             <version>3.0.0-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/tmplib/bson-3.0.0-SNAPSHOT.jar</systemPath>
         </dependency>
 
         <dependency>
