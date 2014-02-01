@@ -144,7 +144,7 @@ class EntityInvocationHandler implements InvocationHandler {
 				changed = false;
 				return true;
 			} else {
-				LOG.info("Did not save Entity with id %s of class %s as no changes where made.", data.get(ID),
+				LOG.info("Did not save Entity with id {} of class {} as no changes where made.", data.get(ID),
 						properties.getEntityClass());
 				return false;
 			}

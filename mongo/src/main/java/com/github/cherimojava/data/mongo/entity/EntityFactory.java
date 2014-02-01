@@ -134,7 +134,7 @@ public class EntityFactory {
 	private <T extends Entity> EntityProperties checkAndPrepare(Class<T> clazz) {
 		EntityProperties properties = defFactory.create(clazz);
 		if (!preparedEntites.containsKey(clazz)) {
-			LOG.debug("First usage of Entity class %s, checking MongoDB setup", clazz);
+			LOG.debug("First usage of Entity class {}, checking MongoDB setup", clazz);
 			prepareEntity(properties);
 		}
 		return properties;
@@ -150,7 +150,7 @@ public class EntityFactory {
 		Collection c = clazz.getAnnotation(Collection.class);
 		MongoCollection<? extends Entity> coll = EntityCodec.getCollectionFor(db, properties);
 		if (c != null && c.indexes() != null) {
-			LOG.debug("Entity class %s has indexes, ensuring that MongoDB is setup", properties.getEntityClass());
+			LOG.debug("Entity class {} has indexes, ensuring that MongoDB is setup", properties.getEntityClass());
 			for (Index index : c.indexes()) {
 				Builder indxBuilder = builder();
 				if (index.unique()) {
@@ -167,7 +167,7 @@ public class EntityFactory {
 							: OrderBy.DESC);
 				}
 				org.mongodb.Index indx = indxBuilder.build();
-				LOG.debug("Creating index %s for Entity class %", indx.toDocument(), properties.getEntityClass());
+				LOG.debug("Creating index {} for Entity class {}", indx.toDocument(), properties.getEntityClass());
 				coll.tools().ensureIndex(indxBuilder.build());
 			}
 		}
