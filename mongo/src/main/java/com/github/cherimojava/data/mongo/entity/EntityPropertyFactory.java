@@ -169,7 +169,7 @@ class EntityPropertyFactory {
 		Method getter;
 		try {
 			getter = getGetterFromSetter(setter);
-		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(format(
 					"You can only declare setter methods if there's a matching getter. Found %s without getter",
 					setter.getName()));

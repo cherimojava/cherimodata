@@ -36,12 +36,22 @@ import static org.apache.commons.lang3.StringUtils.*;
  * @since 1.0.0
  */
 public class EntityUtils {
+	// TODO add validation that the given methods are really are what they're supposed to be
 	/**
-	 * decapitalizes a String. E.g. CamelCase will become camelCase while URL will stay URL, but URLe becomes uRLe.
+	 * Utility class no Need for Instance
+	 */
+	private EntityUtils() {
+
+	}
+
+	/**
+	 * decapitalizes a String. E.g. CamelCase will become camelCase while URL will stay URL, but URLe becomes uRLe. For
+	 * inversion see {@link #capitalize(String)}.
 	 *
 	 * @param name
-	 *            string to decapitalize. For invertion see capitalize(String)
+	 *            string to decapitalize}
 	 * @return decapitalized string
+	 * @see #capitalize(String)
 	 */
 	public static String decapitalize(String name) {
 		if (name.length() == 1) {
@@ -56,11 +66,12 @@ public class EntityUtils {
 
 	/**
 	 * Capitalizes a String. I.e. the first Letter will be converted into uppercase, all other letters will stay as is.
-	 * For invertion see decapitalize(String)
+	 * For inversion see {@link #decapitalize(String)}.
 	 *
 	 * @param name
 	 *            string to capitalize.
 	 * @return capitalized string
+	 * @see #decapitalize(String)
 	 */
 	public static String capitalize(String name) {
 		return StringUtils.capitalize(name);
@@ -73,8 +84,7 @@ public class EntityUtils {
 	 *            method to retrieve name from
 	 * @return propertyname derived from the given method
 	 */
-	// TODO this might be better placed within ParameterProperty
-	public static String getPojoNameFromMethod(Method m) {
+	static String getPojoNameFromMethod(Method m) {
 		String methodName = m.getName();
 		checkArgument((methodName.startsWith("set") || methodName.startsWith("get") || methodName.startsWith("add"))
 				&& m.getName().length() > 3, "Don't know how to retrieve name from this method, got [%s]", m.getName());
@@ -89,7 +99,7 @@ public class EntityUtils {
 	 *            method to retrieve mongo name from
 	 * @return mongo name for the given getter method (parameter)
 	 */
-	public static String getMongoNameFromMethod(Method m) {
+	static String getMongoNameFromMethod(Method m) {
 		checkArgument(m.getName().startsWith("get"), "Mongo name can only be retrieved from get methods, but was %s",
 				m.getName());
 		checkArgument(!(m.isAnnotationPresent(Named.class) && m.isAnnotationPresent(Id.class)),
@@ -124,8 +134,14 @@ public class EntityUtils {
 
 	/**
 	 * returns the setter method of the given getter method or throws an exception if no such method exists
+	 *
+	 * @param m
+	 *            getter method for which a matching setter method shall be found
+	 * @return setter method belonging to the given getter method
+	 * @throws java.lang.IllegalArgumentException
+	 *             if the given getter Method has no setter method
 	 */
-	public static Method getSetterFromGetter(Method m) {
+	static Method getSetterFromGetter(Method m) {
 		try {
 			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("g", "s"), m.getReturnType());
 		} catch (NoSuchMethodException e) {
@@ -137,9 +153,12 @@ public class EntityUtils {
 	 * returns the getter method matching the given Adder method or throws an exception if no such method exists
 	 *
 	 * @param m
-	 * @return
+	 *            adder method for which the matching getter method shall be found
+	 * @return getter method belonging to the given Adder method
+	 * @throws java.lang.IllegalArgumentException
+	 *             if the given Adder method has no corresponding getter method
 	 */
-	public static Method getGetterFromAdder(Method m) {
+	static Method getGetterFromAdder(Method m) {
 		try {
 			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("add", "get"));
 		} catch (NoSuchMethodException e) {
@@ -147,7 +166,16 @@ public class EntityUtils {
 		}
 	}
 
-	public static Method getAdderFromGetter(Method m) {
+	/**
+	 * returns the adder method matching the given Getter method or throws an exception if no such method exists
+	 *
+	 * @param m
+	 *            getter method for which a matching adder method shall be found
+	 * @return adder method belongign to the given Getter method
+	 * @throws java.lang.IllegalArgumentException
+	 *             if the given method has no matching adder method
+	 */
+	static Method getAdderFromGetter(Method m) {
 		try {
 			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("get", "add"),
 					(Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0]);
@@ -160,21 +188,29 @@ public class EntityUtils {
 	 * returns the getter method belonging to the given setter method
 	 *
 	 * @param m
-	 * @return
-	 * @throws NoSuchMethodException
+	 *            setter method for which a matching getter method shall be found
+	 * @return getter method belonging to the given Setter method
+	 * @throws java.lang.IllegalArgumentException
+	 *             if the given method has no matching adder method
 	 */
-	public static Method getGetterFromSetter(Method m) throws NoSuchMethodException {
-		Method getter = m.getDeclaringClass().getMethod(m.getName().replaceFirst("s", "g"));
-		checkArgument(getter.getReturnType().equals(m.getParameterTypes()[0]),
-				"You can only declare setter methods if there's a matching getter. Found %s without getter",
-				m.getName());
-		return getter;
+	static Method getGetterFromSetter(Method m) {
+		try {
+			Method getter = m.getDeclaringClass().getMethod(m.getName().replaceFirst("s", "g"));
+			checkArgument(getter.getReturnType().equals(m.getParameterTypes()[0]),
+					"You can only declare setter methods if there's a matching getter. Found %s without getter",
+					m.getName());
+			return getter;
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException(format("Method %s has no corresponding getter method", m.getName()));
+		}
 	}
 
 	/**
 	 * checks if the given method has a return type which is assignable from the declaring class
+	 *
+	 * @return true if the given method return type is assignable from the declaring class, false otherwise
 	 */
-	public static boolean isAssignableFromClass(Method m) {
+	static boolean isAssignableFromClass(Method m) {
 		return m.getReturnType().isAssignableFrom(m.getDeclaringClass());
 	}
 }

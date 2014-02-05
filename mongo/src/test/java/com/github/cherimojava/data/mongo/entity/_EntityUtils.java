@@ -15,6 +15,8 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import java.util.List;
+
 import javax.inject.Named;
 
 import org.junit.Test;
@@ -34,15 +36,12 @@ public class _EntityUtils extends TestBase {
 	@Test
 	public void capitalizationStringUtils() {
 		assertEquals("camelCase", decapitalize("CamelCase"));
-		assertEquals("URL", decapitalize("URL"));
-
 		assertEquals("CamelCase", capitalize("camelCase"));
-		assertEquals("URL", capitalize("URL"));
-
-		assertEquals("s", decapitalize(("S")));
+		assertEquals("s", decapitalize("S"));
 		assertEquals("S", capitalize("s"));
-		assertEquals("SE", decapitalize("SE"));
-		assertEquals("SE", capitalize("SE"));
+
+		assertEquals(capitalize("URL"), decapitalize("URL"));
+		assertEquals(capitalize("SE"), decapitalize("SE"));
 	}
 
 	/**
@@ -63,7 +62,7 @@ public class _EntityUtils extends TestBase {
 	}
 
 	/**
-	 * TestCase that invalid method names aren't resolved
+	 * TestCase that invalid methods like equals/get fail
 	 */
 	@Test
 	public void invalidMethodNameResolution() throws NoSuchMethodException {
@@ -82,39 +81,69 @@ public class _EntityUtils extends TestBase {
 		}
 	}
 
+	/**
+	 * Check that it's not possible to declare Id through @Named
+	 */
 	@Test
 	public void nameAnnotationForId() throws NoSuchMethodException {
 		try {
-			getMongoNameFromMethod(NameForId.class.getDeclaredMethod("getSomething"));
+			getMongoNameFromMethod(IdNameTest.class.getDeclaredMethod("getSomething"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("not allowed to use @Name annotation to declare id field"));
 		}
 	}
 
+	/**
+	 * check that if the method name is Id it's resolved into Entity.ID
+	 */
+	@Test
+	public void nameIsId() throws NoSuchMethodException {
+		assertEquals(Entity.ID, getMongoNameFromMethod(IdNameTest.class.getDeclaredMethod("getId")));
+	}
+
+	/**
+	 * check that @Id annotation gets resolved into Entity.ID name
+	 */
+	@Test
+	public void idAnnotated() throws NoSuchMethodException {
+		assertEquals(Entity.ID, getMongoNameFromMethod(IdNameTest.class.getDeclaredMethod("getThisIsId")));
+	}
+
+	/**
+	 * check that it's not possible to annotate a method with @Id and @Named
+	 */
 	@Test
 	public void idAndNameAnnotationInvalid() throws NoSuchMethodException {
 		try {
-			getMongoNameFromMethod(NameForId.class.getDeclaredMethod("getBoth"));
+			getMongoNameFromMethod(IdNameTest.class.getDeclaredMethod("getBoth"));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("You can not annotate a property with @Name and @Id"));
 		}
 	}
 
+	/**
+	 * check Method to Mongo name resolution
+	 */
 	@Test
 	public void mongoNameResolution() throws NoSuchMethodException {
 		assertEquals("string", getMongoNameFromMethod(PrimitiveEntity.class.getDeclaredMethod("getString")));
 		assertEquals("Integer", getMongoNameFromMethod(PrimitiveEntity.class.getDeclaredMethod("getInteger")));
 	}
 
+	/**
+	 * test the collection Name generation based on Classname
+	 */
 	@Test
 	public void collectionNameResolution() {
 		assertEquals("primitiveEntity", getCollectionName(PrimitiveEntity.class));
 		assertEquals("Nested", getCollectionName(NestedEntity.class));
 	}
 
-	// TODO move/add unit tests for getSetter/Adder/GetterFrom... methods
+	/**
+	 * check if method return type is assignable from the declaring class
+	 */
 	@Test
 	public void isAssignableFromClass() throws NoSuchMethodException {
 		assertTrue(EntityUtils.isAssignableFromClass(PrimitiveEntity.class.getDeclaredMethod("setInteger",
@@ -122,12 +151,78 @@ public class _EntityUtils extends TestBase {
 		assertFalse(EntityUtils.isAssignableFromClass(NestedEntity.class.getDeclaredMethod("setString", String.class)));
 	}
 
-	private static interface NameForId extends Entity<NameForId> {
+	/**
+	 * check if the adder is correctly retrieved from the getter
+	 */
+	@Test
+	public void adderFromGetter() throws NoSuchMethodException {
+		assertEquals(AddEntity.class.getDeclaredMethod("addString", String.class),
+				getAdderFromGetter(AddEntity.class.getDeclaredMethod("getString")));
+		try {
+			assertEquals(AddEntity.class.getDeclaredMethod("addString", String.class),
+					getAdderFromGetter(AddEntity.class.getDeclaredMethod("getId")));
+			fail("Should throw an exception");
+		} catch (Exception e) {
+			assertThat(e.getMessage(), containsString("has no corresponding adder"));
+		}
+	}
+
+	/**
+	 * Test that Getter can be retrieved from Adder
+	 */
+	@Test
+	public void getterFromAdder() throws NoSuchMethodException {
+		assertEquals(AddEntity.class.getDeclaredMethod("getString"),
+				getGetterFromAdder(AddEntity.class.getDeclaredMethod("addString", String.class)));
+	}
+
+	/**
+	 * Test that Getter can be retrieved correctly from Setter
+	 */
+	@Test
+	public void getterFromSetter() throws NoSuchMethodException {
+		assertEquals(PrimitiveEntity.class.getDeclaredMethod("getString"),
+				getGetterFromSetter(PrimitiveEntity.class.getDeclaredMethod("setString", String.class)));
+		assertEquals(AddEntity.class.getDeclaredMethod("getString"),
+				getGetterFromSetter(AddEntity.class.getDeclaredMethod("setString", List.class)));
+		try {
+			getGetterFromSetter(IdNameTest.class.getDeclaredMethod("setLame", String.class));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("has no corresponding getter"));
+		}
+	}
+
+	/**
+	 * Test that Setter can be retrieved correctly from a Getter
+	 */
+	@Test
+	public void setterFromGetter() throws NoSuchMethodException {
+		assertEquals(PrimitiveEntity.class.getDeclaredMethod("setString", String.class),
+				getSetterFromGetter(PrimitiveEntity.class.getDeclaredMethod("getString")));
+		assertEquals(AddEntity.class.getDeclaredMethod("setString", List.class),
+				getSetterFromGetter(AddEntity.class.getDeclaredMethod("getString")));
+		try {
+			getSetterFromGetter(IdNameTest.class.getDeclaredMethod("getSomething"));
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("has no corresponding setter"));
+		}
+	}
+
+	private static interface IdNameTest extends Entity<IdNameTest> {
 		@Named("_id")
 		public String getSomething();
 
 		@Named("something")
 		@Id
 		public String getBoth();
+
+		public String getId();
+
+		@Id
+		public String getThisIsId();
+
+		public String setLame(String s);
 	}
 }
