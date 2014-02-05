@@ -25,6 +25,8 @@ import javax.validation.Validator;
 import javax.validation.metadata.BeanDescriptor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
@@ -38,7 +40,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Contains information for a parameter like it's mongodb name, if it's transient, etc. This class is immutable, use
- * ParameterProperty.Builder to create a new Instance of ParameterProperty
+ * {@link ParameterProperty.Builder} to create a new Instance of ParameterProperty
  *
  * @author pknobel
  * @since 1.0.0
@@ -60,6 +62,7 @@ public final class ParameterProperty {
 		checkNotNull(builder.validator);
 		checkArgument(StringUtils.isNotEmpty(builder.pojoName), "pojo name cannot be null or empty string");
 		checkArgument(StringUtils.isNotEmpty(builder.mongoName), "mongo name cannot be null or empty string");
+
 		typeReturnMap = Collections.unmodifiableMap(builder.typeReturnMap);
 		type = builder.type;
 		pojoName = builder.pojoName;
@@ -174,11 +177,13 @@ public final class ParameterProperty {
 	}
 
 	/**
-	 * Builder to create a new ParameterProperty
+	 * Builder to create a new {@link ParameterProperty}
 	 *
 	 * @author philnate
 	 */
 	static class Builder {
+		private static final Logger LOG = LoggerFactory.getLogger(Builder.class);
+
 		private String mongoName;
 		private String pojoName;
 		private Class<?> type;
@@ -245,7 +250,7 @@ public final class ParameterProperty {
 		}
 
 		/**
-		 * creates a new ParameterProperty based on the attributes from the given get Method
+		 * creates a new {@link ParameterProperty} based on the attributes from the given get Method
 		 *
 		 * @param m
 		 *            to create ParameterProperty from
@@ -275,8 +280,8 @@ public final class ParameterProperty {
 					// only if we have an adder enabled Property type check for this
 					builder.setFluent(MethodType.ADDER, isAssignableFromClass(getAdderFromGetter(m)));
 				} catch (IllegalArgumentException e) {
-					// if we catch the IAE it means that there's no adder declared
-					// TODO we should log something at least
+					LOG.debug("No Adder method declared for {} in Entity {}", m.getName(),
+							m.getDeclaringClass().getName());
 				}
 			}
 			builder.setType(m.getReturnType()).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(

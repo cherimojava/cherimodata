@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.io.EntityEncoder;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
@@ -116,16 +115,9 @@ class EntityInvocationHandler implements InvocationHandler {
 
 		switch (methodName) {
 		case "get":
-			// check if the mongo name is declared
-			pp = properties.getProperty((String) args[0]);
-			checkArgument(pp != null, "Unknown property %s, not declared for Entity %s", args[0],
-					properties.getEntityClass());
-			return _get(pp);// we know that this is a string param
+			return _get(checkPropertyExists((String) args[0]));// we know that this is a string param
 		case "set":
-			pp = properties.getProperty((String) args[0]);
-			checkArgument(pp != null, "Unknown property %s, not declared for Entity %s", args[0],
-					properties.getEntityClass());
-			_put(pp, args[1]);
+			_put(checkPropertyExists((String) args[0]), args[1]);
 			return proxy;
 		case "save":
 			checkState(collection != null,
@@ -202,6 +194,22 @@ class EntityInvocationHandler implements InvocationHandler {
 		checkArgument(!sealed, "Entity is sealed and does not allow further modification");
 	}
 
+	/**
+	 * check if the given propertyName exists as Mongo property
+	 *
+	 * @param propertyName
+	 *            mongoDB name of property to check
+	 * @return ParameterProperty belonging to the given PropertyName
+	 * @throws java.lang.IllegalArgumentException
+	 *             if the given PropertyName isn't declared
+	 */
+	private ParameterProperty checkPropertyExists(String propertyName) {
+		ParameterProperty pp = properties.getProperty(propertyName);
+		checkArgument(pp != null, "Unknown property %s, not declared for Entity %s", propertyName,
+				properties.getEntityClass());
+		return pp;
+	}
+
 	@SuppressWarnings("unchecked")
 	private void _add(ParameterProperty pp, Object value) {
 		checkNotSealed();
@@ -216,8 +224,7 @@ class EntityInvocationHandler implements InvocationHandler {
 							"Property is of interface %s, but no suitable implementation was registered", pp.getType()));
 				}
 			} catch (InstantiationException | IllegalAccessException e) {
-				// TODO Can this really happen, we check it upfront if it's matching...
-				throw Throwables.propagate(e);
+				throw new IllegalStateException("The impossible happened. Could not instantiate Class", e);
 			}
 		} else {
 			((Collection) data.get(pp.getMongoName())).add(value);

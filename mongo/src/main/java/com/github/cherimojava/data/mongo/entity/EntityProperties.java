@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getMongoNameFromMethod;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -75,7 +76,9 @@ public final class EntityProperties {
 		ImmutableMap.Builder<String, ParameterProperty> pojo = new ImmutableMap.Builder<>();
 		ImmutableMap.Builder<String, ParameterProperty> mongo = new ImmutableMap.Builder<>();
 		ImmutableList.Builder<ParameterProperty> valProps = new ImmutableList.Builder<>();
-		for (ParameterProperty pp : builder.properties) {
+
+		for (Method m : builder.properties) {
+			ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, builder.validator);
 			pojo.put(pp.getPojoName(), pp);
 			mongo.put(pp.getMongoName(), pp);
 			if (Entity.ID.equals(pp.getMongoName())) {
@@ -156,7 +159,10 @@ public final class EntityProperties {
 
 		private String collectionName;
 
-		private List<ParameterProperty> properties;
+		/**
+		 * List of Properties to add later
+		 */
+		private List<Method> properties;
 
 		private Set<String> mongoNames;
 		private Validator validator;
@@ -176,10 +182,10 @@ public final class EntityProperties {
 			return this;
 		}
 
-		Builder addParameter(ParameterProperty pp) {
-			checkArgument(mongoNames.add(pp.getMongoName()), "Entity contains already a property whose name is %s",
-					pp.getMongoName());
-			properties.add(pp);
+		Builder addParameter(Method m) {
+			String mongoName = getMongoNameFromMethod(m);
+			checkArgument(mongoNames.add(mongoName), "Entity contains already a property whose name is %s", mongoName);
+			properties.add(m);
 			return this;
 		}
 

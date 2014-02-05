@@ -107,8 +107,7 @@ class EntityPropertyFactory {
 				validateSetter(m);
 			} else if (m.getName().startsWith("get")) {
 				validateGetter(m);
-				ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, validator);
-				builder.addParameter(pp);
+				builder.addParameter(m);
 			} else if (m.getName().startsWith("add")) {
 				validateAdder(m);
 			} else {
