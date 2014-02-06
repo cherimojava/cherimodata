@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 import static org.mongodb.MongoHelper.getMongoDatabase;
@@ -334,6 +335,16 @@ public class _DeEncoding extends MongoBase {
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("doesn't match any declared enum value of"));
 		}
+	}
+
+	@Test
+	public void saveDrop() {
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		factory.create(PrimitiveEntity.class).setString("don't delete").save();
+		pe.setString("413").save();
+		assertEquals(2, db.getCollection(getCollectionName(PrimitiveEntity.class)).find().count());
+		pe.drop();
+		assertEquals(1, db.getCollection(getCollectionName(PrimitiveEntity.class)).find().count());
 	}
 
 	private static interface TransientEntity extends Entity {

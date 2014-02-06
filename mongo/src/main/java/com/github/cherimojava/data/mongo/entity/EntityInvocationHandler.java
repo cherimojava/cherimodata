@@ -351,7 +351,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 *            MongoCollection in which this entity is saved
 	 */
 	static <T extends Entity> void drop(EntityInvocationHandler handler, MongoCollection<T> coll) {
-		// coll.drop((T)handler.proxy);
+		coll.find(new Document(ID, ((T) handler.proxy).get(ID))).removeOne();
 	}
 
 	/**
