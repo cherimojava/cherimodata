@@ -27,8 +27,10 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mongodb.CollectibleCodec;
+import org.mongodb.Document;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
+import org.mongodb.MongoView;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
@@ -51,6 +53,7 @@ public class _EntityInvocationHandler extends TestBase {
 	CommonInterfaces.PrimitiveEntity pe;
 	EntityInvocationHandler handler;
 	EntityFactory factory;
+    MongoCollection collection;
 
 	@Before
 	public void init() {
@@ -58,7 +61,8 @@ public class _EntityInvocationHandler extends TestBase {
 		handler = new EntityInvocationHandler(new EntityPropertyFactory().create(PrimitiveEntity.class));
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
-		when(db.getCollection(anyString(), any(CollectibleCodec.class))).thenReturn(mock(MongoCollection.class));
+        collection = mock(MongoCollection.class);
+		when(db.getCollection(anyString(), any(CollectibleCodec.class))).thenReturn(collection);
 	}
 
 	@Test
@@ -158,6 +162,8 @@ public class _EntityInvocationHandler extends TestBase {
 	@Test
 	public void noFailOnSaveDropIfMongoGiven() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+        when(collection.find(any(Document.class))).thenReturn(mock(MongoView.class));
+		pe.setString("some String");
 		pe.save();
 		pe.drop();
 	}
