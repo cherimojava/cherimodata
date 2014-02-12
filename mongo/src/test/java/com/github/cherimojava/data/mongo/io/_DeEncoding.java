@@ -16,6 +16,7 @@
 package com.github.cherimojava.data.mongo.io;
 
 import java.io.StringWriter;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -309,6 +310,19 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	@Test
+	public void collectionDeEncodingDB() {
+		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(Listed.class));
+		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(Listed.class));
+		Listed<PrimitiveEntity> listed = factory.create(Listed.class);
+		listed.setList(Lists.newArrayList(factory.create(PrimitiveEntity.class).setString("nested")));
+		StringWriter swriter = new StringWriter();
+		JSONWriter jwriter = new JSONWriter(swriter);
+
+		enc.encode(jwriter, listed);
+		assertJson(sameJSONAs("{ \"list\": [{\"string\": \"nested\"}]}"), swriter.toString());
+	}
+
+	@Test
 	public void enumDeEncoding() {
 		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(EnumEntity.class));
 		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(EnumEntity.class));
@@ -368,5 +382,12 @@ public class _DeEncoding extends MongoBase {
 			Misc,
 			Other
 		}
+	}
+
+	private interface Listed<T extends Entity> extends Entity<Listed> {
+
+		public Listed<T> setList(List<T> entities);
+
+		public List<T> getList();
 	}
 }
