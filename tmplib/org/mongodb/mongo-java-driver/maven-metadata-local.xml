@@ -3,9 +3,10 @@
   <groupId>org.mongodb</groupId>
   <artifactId>mongo-java-driver</artifactId>
   <versioning>
+    <release>3.0.0-cj</release>
     <versions>
-      <version>3.0.0-SNAPSHOT</version>
+      <version>3.0.0-cj</version>
     </versions>
-    <lastUpdated>20140206212754</lastUpdated>
+    <lastUpdated>20140218191401</lastUpdated>
   </versioning>
 </metadata>
