@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.mongodb.MongoCollection;
@@ -37,7 +38,12 @@ import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
 import com.github.cherimojava.data.mongo.io.EntityDecoder;
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -60,18 +66,75 @@ public class EntityFactory {
 	 */
 	private final MongoDatabase db;
 
-	// TODO switch to a loading cache here
 	/**
 	 * holds to a given Entity class the corresponding MongoCollection backing it
 	 */
-	private Map<Class<? extends Entity>, MongoCollection<? extends Entity>> preparedEntites;
+	private LoadingCache<Class<? extends Entity>, MongoCollection<? extends Entity>> preparedEntites = CacheBuilder.newBuilder().build(
+			new CacheLoader<Class<? extends Entity>, MongoCollection<? extends Entity>>() {
+				@Override
+				public MongoCollection<? extends Entity> load(Class<? extends Entity> clazz) throws Exception {
+					LOG.debug("First usage of Entity class {}, checking MongoDB setup", clazz);
+					return prepareEntity(defFactory.create(clazz));
+				}
+
+				/**
+				 * Prepares the data structure for this Entity class in the given database, this means creating declared
+				 * indexes etc.
+				 */
+				private MongoCollection<? extends Entity> prepareEntity(final EntityProperties properties) {
+					// TODO need to add verification that index field matches existing property
+					Class<? extends Entity> clazz = properties.getEntityClass();
+					Collection c = clazz.getAnnotation(Collection.class);
+					MongoCollection<? extends Entity> coll = EntityCodec.getCollectionFor(db, properties);
+					if (c != null && c.indexes() != null) {
+						LOG.debug("Entity class {} has indexes, ensuring that MongoDB is setup",
+								properties.getEntityClass());
+						for (Index index : c.indexes()) {
+							Builder indxBuilder = builder();
+							if (index.unique()) {
+								indxBuilder.unique(true);
+							}
+							if (isNotEmpty(index.name())) {
+								indxBuilder.name(index.name());
+							}
+
+							for (IndexField field : index.value()) {
+								checkNotNull(properties.getProperty(field.field()),
+										"Index field '%s' for index '%s' does not exist for %s", field.field(),
+										index.name(), clazz);
+								indxBuilder.addKey(field.field(),
+										(field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC : OrderBy.DESC);
+							}
+							org.mongodb.Index indx = indxBuilder.build();
+							LOG.debug("Creating index {} for Entity class {}", indx.toDocument(),
+									properties.getEntityClass());
+							coll.tools().ensureIndex(indxBuilder.build());
+						}
+					}
+					return coll;
+				}
+			});
+
+	/**
+	 * get the mongo collection belonging to the given entity class
+	 *
+	 * @param clazz
+	 * @return
+	 */
+	private MongoCollection<? extends Entity> getCollection(Class clazz) {
+		try {
+			return preparedEntites.get(clazz);
+		} catch (UncheckedExecutionException | ExecutionException e) {
+			throw Throwables.propagate(e.getCause());
+		}
+	}
 
 	/**
 	 * contains information about Default Implementations used when property defines a interface
 	 */
 	private static Map<Class, Class> interfaceImpls;
 
-	private static EntityPropertyFactory defFactory = new EntityPropertyFactory();
+	private static final EntityPropertyFactory defFactory = new EntityPropertyFactory();
 
 	static {
 		interfaceImpls = Maps.newConcurrentMap();
@@ -88,7 +151,6 @@ public class EntityFactory {
 	 *            MongoDatabase into which Entities will be saved if created throught create method
 	 */
 	public EntityFactory(MongoDatabase db) {
-		preparedEntites = Maps.newConcurrentMap();
 		this.db = db;
 	}
 
@@ -105,8 +167,7 @@ public class EntityFactory {
 	 *         Entity.drop())
 	 */
 	public <T extends Entity> T create(Class<T> clazz) {
-		EntityInvocationHandler handler = new EntityInvocationHandler(checkAndPrepare(clazz),
-				preparedEntites.get(clazz));
+		EntityInvocationHandler handler = new EntityInvocationHandler(defFactory.create(clazz), getCollection(clazz));
 		return instantiate(clazz, handler);
 	}
 
@@ -119,59 +180,7 @@ public class EntityFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Entity> T load(Class<T> clazz, Object id) {
-		checkAndPrepare(clazz);
-		return EntityInvocationHandler.find((MongoCollection<T>) preparedEntites.get(clazz), id);
-	}
-
-	/**
-	 * Checks if the given Entity is already setup within MongoDB, if not it's setup
-	 *
-	 * @param clazz
-	 *            Entity class to check if it's already prepared within the given DB
-	 * @param <T>
-	 *            Entity type
-	 */
-	private <T extends Entity> EntityProperties checkAndPrepare(Class<T> clazz) {
-		EntityProperties properties = defFactory.create(clazz);
-		if (!preparedEntites.containsKey(clazz)) {
-			LOG.debug("First usage of Entity class {}, checking MongoDB setup", clazz);
-			prepareEntity(properties);
-		}
-		return properties;
-	}
-
-	/**
-	 * Prepares the data structure for this Entity class in the given database, this means creating declared indexes
-	 * etc.
-	 */
-	private synchronized void prepareEntity(final EntityProperties properties) {
-		// TODO need to add verification that index field matches existing property
-		Class<? extends Entity> clazz = properties.getEntityClass();
-		Collection c = clazz.getAnnotation(Collection.class);
-		MongoCollection<? extends Entity> coll = EntityCodec.getCollectionFor(db, properties);
-		if (c != null && c.indexes() != null) {
-			LOG.debug("Entity class {} has indexes, ensuring that MongoDB is setup", properties.getEntityClass());
-			for (Index index : c.indexes()) {
-				Builder indxBuilder = builder();
-				if (index.unique()) {
-					indxBuilder.unique(true);
-				}
-				if (isNotEmpty(index.name())) {
-					indxBuilder.name(index.name());
-				}
-
-				for (IndexField field : index.value()) {
-					checkNotNull(properties.getProperty(field.field()),
-							"Index field '%s' for index '%s' does not exist for %s", field.field(), index.name(), clazz);
-					indxBuilder.addKey(field.field(), (field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC
-							: OrderBy.DESC);
-				}
-				org.mongodb.Index indx = indxBuilder.build();
-				LOG.debug("Creating index {} for Entity class {}", indx.toDocument(), properties.getEntityClass());
-				coll.tools().ensureIndex(indxBuilder.build());
-			}
-		}
-		preparedEntites.put(clazz, coll);
+		return EntityInvocationHandler.find((MongoCollection<T>) getCollection(clazz), id);
 	}
 
 	/**
