@@ -28,6 +28,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
 public class _ParameterPropertyBuilder extends TestBase {
@@ -41,9 +42,12 @@ public class _ParameterPropertyBuilder extends TestBase {
 
 	@Test
 	public void detectFluent() throws NoSuchMethodException {
-		assertFalse(Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).isFluent(ParameterProperty.MethodType.SETTER));
-		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getOwnClass"), validator).isFluent(ParameterProperty.MethodType.SETTER));
-		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getSuperClass"), validator).isFluent(ParameterProperty.MethodType.SETTER));
+		assertFalse(Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).isFluent(
+				ParameterProperty.MethodType.SETTER));
+		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getOwnClass"), validator).isFluent(
+				ParameterProperty.MethodType.SETTER));
+		assertTrue(Builder.buildFrom(FluentEntity.class.getMethod("getSuperClass"), validator).isFluent(
+				ParameterProperty.MethodType.SETTER));
 	}
 
 	@Test
@@ -97,6 +101,16 @@ public class _ParameterPropertyBuilder extends TestBase {
 		assertFalse(Builder.buildFrom(NestedEntity.class.getDeclaredMethod("getPE"), validator).isLazyLoaded());
 	}
 
+	@Test
+	public void referenceOnlyOnEntities() throws NoSuchMethodException {
+		try {
+			Builder.buildFrom(InvalidReference.class.getDeclaredMethod("getInvalidProp"), validator);
+			fail("Should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Reference annotation can only be used for Entity types"));
+		}
+	}
+
 	private static interface Ids extends Entity {
 		@Id
 		public String getEIDE();
@@ -125,5 +139,12 @@ public class _ParameterPropertyBuilder extends TestBase {
 		public PrimitiveEntity getValidProp();
 
 		public ReferencedEntity setValidProp(PrimitiveEntity pe);
+	}
+
+	public static interface InvalidReference extends Entity {
+		@Reference
+		public String getInvalidProp();
+
+		public ReferencedEntity setInvalidProp(String s);
 	}
 }

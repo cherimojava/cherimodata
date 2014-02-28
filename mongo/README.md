@@ -33,30 +33,32 @@ Per property you need a setter and getter method, fulfilling:
 ## Possible Annotations
 Annotations need to be placed on Getter methods, and not on setter to keep it consistent with JSR-301 validation
 
-Class Level
+###Class Level
 * @Named, allows to use a different collection name than the one the framework would choose
 * @Collection currently only serves as container for the Index declaration
 * @Index, used within @Collection defines an index name (optional), if it shall be unique and the order and
 fields to be included in the index
 * @IndexField, fieldname and ordering of the field within the index
 
-Property Level
+###Property Level
 * @Id, tells that this property shall be treated as the Id field (will map to mongodb _\_id_). If not declared
 implicit id will be used. Can't be used more than once per Entity
 * @Named, set the MongoDB name to be different than the java name, might use \_id, converting the field into \_id
 (can't be done more than once, not combined with @Id).
 * All Java Validation annotations like @Size, @NotNull, @DecimalMin, @DecimalMax, @Future, etc.
-* Transient, tells that this field isn't persisted
-* Computed tells that this property is being computed. Once must not declare a setter for those fields
+* @Transient, tells that this field isn't persisted
+* @Computed tells that this property is being computed. Once must not declare a setter for those fields
+* @Reference only on Entity type properties. Tells that the Entity supplied with this property will not be inlined. By default other Entities will be inlined
 
-Java to MongoDB name resolution works as following:
+###Property MongoDB name mapping
+The Java to MongoDB name resolution follows these rules:
 
 * CamelCase is preserved except the first letter (if capital) will be turned to lowerCase
 * If all Letter are capital, nothing will be transformed
 * If there's only one letter it will be converted to lower case (no matter if it's upper case or not)
 
-h3. TODO
+##TODO
 
-* DBRef for subdocuments, loaded on the fly.
+* On the fly loading for subdocuments.
 * Transactional Support as described in MongoDBs 2PC document
 * Search functionality based on method names

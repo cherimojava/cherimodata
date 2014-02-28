@@ -290,6 +290,8 @@ public final class ParameterProperty {
 					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
 					computer);
 			if (m.isAnnotationPresent(Reference.class)) {
+				checkArgument(Entity.class.isAssignableFrom(m.getReturnType()),
+						"Reference annotation can only be used for Entity types but was {}", m.getReturnType());
 				if (m.getAnnotation(Reference.class).lazy()) {
 					builder.setReferenceType(ReferenceType.LAZY);
 				} else {
