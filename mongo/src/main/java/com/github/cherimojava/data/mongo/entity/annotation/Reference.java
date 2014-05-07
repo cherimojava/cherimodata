@@ -21,8 +21,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Tells that this property isn't inlined into the document, instead only a DBRef reference will be stored. The nested
- * entity will be stored within the same database as the parent entity.
+ * Tells that this property isn't inlined into the document, instead only a reference will be stored. The nested entity
+ * will be stored within the same database as the parent entity.
  *
  * @author philnate
  * @since 1.0.0

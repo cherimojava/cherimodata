@@ -79,7 +79,7 @@ public interface Entity<T extends Entity> {
 
 	/**
 	 * Seals the Entity, so that no further modifications can be done to it. If you have references to stored mutable
-	 * objects, you still can modify them
+	 * objects, you still can modify those
 	 */
 	public void seal();
 

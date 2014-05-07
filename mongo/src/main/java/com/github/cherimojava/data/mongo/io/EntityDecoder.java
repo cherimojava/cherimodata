@@ -106,7 +106,7 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 				if (pp.isTransient() || pp.isComputed()) {
 					// transient values aren't read, even tough they're written (by earlier version of Entity, etc.)
 					// same is true for computed, even tough they're written it's value won't be used, so skip it
-					reader.skipValue();// sent value to /dev/null
+					reader.skipValue();// send value to /dev/null
 					continue;
 				}
 				if (pp.getType().isEnum()) {
