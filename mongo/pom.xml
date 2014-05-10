@@ -97,12 +97,6 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
         </dependency>
-        <!-- only temporary needed to be declared-->
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>bson</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
-        </dependency>
 
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
