@@ -77,7 +77,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.mongodb</groupId>
-                <artifactId>mongo-java-driver</artifactId>
+                <artifactId>mongodb-driver</artifactId>
                 <version>3.0.0-cj</version>
             </dependency>
             <!-- only temporary needed to be declared-->
