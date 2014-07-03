@@ -27,6 +27,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cherimodata.version>1.0.0-SNAPSHOT</cherimodata.version>
         <parentDir>${basedir}</parentDir>
+        <mongodb.version>3.0.0-SNAPSHOT</mongodb.version>
     </properties>
 
     <prerequisites>
@@ -78,13 +79,13 @@
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver</artifactId>
-                <version>3.0.0-cj</version>
+                <version>${mongodb.version}</version>
             </dependency>
             <!-- only temporary needed to be declared-->
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>bson</artifactId>
-                <version>3.0.0-cj</version>
+                <version>${mongodb.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.flapdoodle.embed</groupId>

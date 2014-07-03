@@ -15,23 +15,23 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.lang.reflect.Method;
-
-import org.bson.BSONWriter;
-import org.bson.types.ObjectId;
-import org.mongodb.Encoder;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-import org.mongodb.codecs.Codecs;
-import org.mongodb.codecs.PrimitiveCodecs;
-import org.mongodb.json.JSONWriter;
-
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
 import com.github.cherimojava.data.mongo.entity.ParameterProperty;
+import org.bson.BsonWriter;
+import org.bson.codecs.Codec;
+import org.bson.codecs.Encoder;
+import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.json.JsonWriter;
+import org.bson.types.ObjectId;
+import org.mongodb.MongoCollection;
+import org.mongodb.MongoDatabase;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
 
 /**
  * Encoder which encodes Entity instances to their JSON representation
@@ -43,22 +43,24 @@ import com.github.cherimojava.data.mongo.entity.ParameterProperty;
  */
 public class EntityEncoder<T extends Entity> implements Encoder<T> {
 
-	private final Codecs codecs;
 	private final Class<T> clazz;
+	private final CodecRegistry codecRegistry;
 	private MongoDatabase db;
 
-	public EntityEncoder(MongoDatabase db, EntityProperties properties) {
-		codecs = new Codecs(PrimitiveCodecs.createDefault(), new EntityEncoderRegistry(db, properties));
+	public EntityEncoder(MongoDatabase db, EntityProperties properties, CodecRegistry codecRegistry) {
+		// codec = new Codecs(PrimitiveCodecs.createDefault(), new EntityEncoderRegistry(db, properties));
 		clazz = (Class<T>) properties.getEntityClass();
+		this.codecRegistry = codecRegistry;
 		this.db = db;
 	}
 
 	@Override
-	public void encode(BSONWriter bsonWriter, T value) {
+	public void encode(BsonWriter bsonWriter, T value, EncoderContext ctx) {
+		// right now the context doesn't contain anything we care about, ignore it
 		encode(bsonWriter, value, true);
 	}
 
-	private void encodeEntity(BSONWriter writer, T value, boolean toDB) {
+	private void encodeEntity(BsonWriter writer, T value, boolean toDB) {
 		EntityProperties properties = EntityFactory.getProperties(value.entityClass());
 		Object id = value.get(Entity.ID);
 		if (id != null && !properties.hasExplicitId()) {
@@ -66,7 +68,8 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 			// TODO shouldn't this be always true?
 			// only write out the id if it's not explicitly declared
 			writer.writeName(Entity.ID);
-			codecs.encode(writer, id);
+			Codec codec = codecRegistry.get(id.getClass());
+			codec.encode(writer, id, null);
 		}
 
 		for (Method method : value.entityClass().getMethods())
@@ -83,7 +86,10 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 					writer.writeStartDocument(propertyName);
 					EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getType());
 					Entity subEntity = (Entity) value.get(propertyName);
-					Object eid = EntityCodec._getId(subEntity);
+					Object eid = EntityCodec._obtainId(subEntity);
+					// this is just for compatibility with other tools, due to our Schema information we know where this
+					// comes from
+					writer.writeString("$ref", seProperties.getCollectionName());
 					writer.writeName("$id");
 					if (eid.getClass() == ObjectId.class) {
 						writer.writeObjectId((ObjectId) eid);
@@ -96,28 +102,32 @@ public class EntityEncoder<T extends Entity> implements Encoder<T> {
 					writer.writeEndDocument();
 					continue;
 				}
-				if (codecs.canDecode(method.getReturnType())) {
-					writer.writeName(propertyName);
-					codecs.encode(writer, value.get(propertyName));
-				} else if (Entity.class.isAssignableFrom(method.getReturnType())) {
+
+				if (Entity.class.isAssignableFrom(method.getReturnType())) {
 					// we got some entity, so we need to recurse
 					writer.writeName(propertyName);
 					encode(writer, (T) value.get(propertyName), toDB);
 				} else if (method.getReturnType().isEnum()) {
 					// enum handling
 					writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
+				} else {
+					// simple property
+					writer.writeName(propertyName);
+					Object v = value.get(propertyName);
+					Codec codec = codecRegistry.get(v.getClass());
+					codec.encode(writer, v, EncoderContext.builder().build());
 				}
 			}
 	}
 
-	private void encode(BSONWriter writer, T value, boolean toDB) {
+	private void encode(BsonWriter writer, T value, boolean toDB) {
 		writer.writeStartDocument();
 		encodeEntity(writer, value, toDB);
 		writer.writeEndDocument();
 	}
 
 	public String asString(T value) {
-		try (StringWriter swriter = new StringWriter(); JSONWriter writer = new JSONWriter(swriter)) {
+		try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
 			encode(writer, value, false);
 			return swriter.toString();
 		} catch (IOException e) {

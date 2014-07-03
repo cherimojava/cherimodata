@@ -15,26 +15,24 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.validation.ConstraintViolationException;
-
+import com.github.cherimojava.data.mongo.CommonInterfaces;
+import com.github.cherimojava.data.mongo.TestBase;
+import com.google.common.collect.Lists;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mongodb.CollectibleCodec;
 import org.mongodb.Document;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 import org.mongodb.MongoView;
+import org.mongodb.codecs.CollectibleCodec;
 
-import com.github.cherimojava.data.mongo.CommonInterfaces;
-import com.github.cherimojava.data.mongo.TestBase;
-import com.google.common.collect.Lists;
+import javax.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
@@ -53,7 +51,7 @@ public class _EntityInvocationHandler extends TestBase {
 	CommonInterfaces.PrimitiveEntity pe;
 	EntityInvocationHandler handler;
 	EntityFactory factory;
-    MongoCollection collection;
+	MongoCollection collection;
 
 	@Before
 	public void init() {
@@ -61,7 +59,7 @@ public class _EntityInvocationHandler extends TestBase {
 		handler = new EntityInvocationHandler(new EntityPropertyFactory().create(PrimitiveEntity.class));
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
-        collection = mock(MongoCollection.class);
+		collection = mock(MongoCollection.class);
 		when(db.getCollection(anyString(), any(CollectibleCodec.class))).thenReturn(collection);
 	}
 
@@ -162,7 +160,7 @@ public class _EntityInvocationHandler extends TestBase {
 	@Test
 	public void noFailOnSaveDropIfMongoGiven() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-        when(collection.find(any(Document.class))).thenReturn(mock(MongoView.class));
+		when(collection.find(any(Document.class))).thenReturn(mock(MongoView.class));
 		pe.setString("some String");
 		pe.save();
 		pe.drop();
@@ -374,7 +372,7 @@ public class _EntityInvocationHandler extends TestBase {
 		re.setPE(pe.setString("some"));
 		re.setInteger(5);
 		assertJson(
-				sameJSONAs("{ \"PE\" : { \"$id\" : { \"$oid\" : \"" + id.toHexString() + "\" } }, \"Integer\" : 5 }"),
+				sameJSONAs("{ \"PE\" : { \"$ref\" : \"primitiveEntity\" , \"$id\" : { \"$oid\" : \"" + id.toHexString() + "\" } }, \"Integer\" : 5 }"),
 				re.toString());
 	}
 

@@ -15,16 +15,22 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import org.bson.BSONReader;
-import org.bson.BSONWriter;
-import org.bson.types.ObjectId;
-import org.mongodb.CollectibleCodec;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
+import org.bson.*;
+import org.bson.codecs.Codec;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.configuration.RootCodecRegistry;
+import org.bson.types.ObjectId;
+import org.mongodb.MongoCollection;
+import org.mongodb.MongoDatabase;
+import org.mongodb.codecs.CollectibleCodec;
+
+import java.util.Arrays;
 
 /**
  * Codec which transforms Entity instances from/to JSON
@@ -39,45 +45,27 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	private final EntityEncoder<T> enc;
 	private final EntityDecoder<T> dec;
 	private final EntityFactory factory;
+	private final CodecRegistry codecRegistry;
+
+	public static final CodecRegistry DEFAULT_CODEC_REGISTRY = new RootCodecRegistry(
+			Arrays.<CodecProvider> asList(new EntityCodecProvider()));
 
 	public EntityCodec(MongoDatabase db, EntityProperties properties) {
 		clazz = (Class<T>) properties.getEntityClass();
 		factory = new EntityFactory(db);
-		enc = new EntityEncoder<>(db, properties);
-		dec = new EntityDecoder<>(factory, properties);
+		codecRegistry = DEFAULT_CODEC_REGISTRY;
+		enc = new EntityEncoder<>(db, properties, codecRegistry);
+		dec = new EntityDecoder<>(factory, properties, codecRegistry/* , new BsonTypeClassMap() */);
 	}
 
 	@Override
-	public Object getId(T document) {
-		return _getId(document);
-	}
-
-	/**
-	 * retrieves the id of the given document. If there's currently no Id set, an Id is generated and stored.
-	 *
-	 * @param document
-	 *            to retrieve doc id from
-	 * @return id of the document, which might be freshly generated
-	 */
-	public static Object _getId(Entity document) {
-		Object id = document.get(Entity.ID);
-		// if the returned id is null, we know that this must be an implicit id, otherwise we don't get this far before
-		// TODO with nested entity this might be not true
-		if (id == null) {
-			id = new ObjectId();
-			document.set(Entity.ID, id);
-		}
-		return id;
+	public T decode(BsonReader reader, DecoderContext ctx) {
+		return dec.decode(reader, ctx);
 	}
 
 	@Override
-	public <E> T decode(BSONReader reader) {
-		return dec.decode(reader);
-	}
-
-	@Override
-	public void encode(BSONWriter bsonWriter, T value) {
-		enc.encode(bsonWriter, value);
+	public void encode(BsonWriter bsonWriter, T value, EncoderContext ctx) {
+		enc.encode(bsonWriter, value, ctx);
 	}
 
 	@Override
@@ -93,6 +81,58 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 * @return
 	 */
 	public static MongoCollection<? extends Entity> getCollectionFor(MongoDatabase db, EntityProperties properties) {
-		return db.getCollection(properties.getCollectionName(), new EntityCodec<>(db, properties));
+		return db.getCollection(properties.getCollectionName(), (Codec) new EntityCodec<>(db, properties));
 	}
+
+	@Override
+	public void generateIdIfAbsentFromDocument(T document) {
+		_obtainId(document);
+	}
+
+	@Override
+	public boolean documentHasId(T document) {
+		return (getDocumentId(document) != null);
+	}
+
+	@Override
+	public BsonValue getDocumentId(T document) {
+		Object value = _getId(document);
+		if (value != null) {
+			if (ObjectId.class.isInstance(value)) {
+				return new BsonObjectId((ObjectId) value);
+			} else if (String.class.isInstance(value)) {
+				return new BsonString((String) value);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * returns the document id of the document or null if no id exists
+	 *
+	 * @param document
+	 * @param <T>
+	 * @return
+	 */
+	public static <T extends Entity> Object _getId(T document) {
+		return document.get(Entity.ID);
+	}
+
+	/**
+	 * returns the document id of the given document. If there's currently no id defined one will be created
+	 *
+	 * @param document
+	 *            document to obtain document id from
+	 * @return document id of the document (might be created during method invocation)
+	 */
+	public static <T extends Entity> Object _obtainId(T document) {
+		Object id = _getId(document);
+
+		if (id == null) {
+			id = new ObjectId();
+			document.set(Entity.ID, id);
+		}
+		return id;
+	}
+
 }

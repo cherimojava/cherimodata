@@ -15,22 +15,24 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import org.bson.BSONReader;
-import org.bson.BSONType;
+import com.github.cherimojava.data.mongo.entity.*;
+import com.google.common.collect.Maps;
+import org.bson.*;
+import org.bson.codecs.Decoder;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.types.Binary;
+import org.bson.types.MaxKey;
+import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
-import org.mongodb.Decoder;
 import org.mongodb.Document;
 import org.mongodb.MongoDatabase;
-import org.mongodb.codecs.Codecs;
-import org.mongodb.codecs.PrimitiveCodecs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.cherimojava.data.mongo.entity.Entity;
-import com.github.cherimojava.data.mongo.entity.EntityFactory;
-import com.github.cherimojava.data.mongo.entity.EntityProperties;
-import com.github.cherimojava.data.mongo.entity.EntityUtils;
-import com.github.cherimojava.data.mongo.entity.ParameterProperty;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static java.lang.String.format;
@@ -46,26 +48,53 @@ import static java.lang.String.format;
 public class EntityDecoder<T extends Entity> implements Decoder<T> {
 
 	private final Class<T> clazz;
-	private final Codecs codecs;
 	private final MongoDatabase db;
 	private final EntityFactory factory;
 	private static final Logger LOG = LoggerFactory.getLogger(EntityDecoder.class);
+	private final CodecRegistry codecRegistry;
+	private static final Map<BsonType, Class<?>> bsonTypeMap;
 
-	public EntityDecoder(EntityFactory factory, EntityProperties properties) {
+	// TODO utilize bsontypemap
+	static {
+		bsonTypeMap = Maps.newHashMap();
+		bsonTypeMap.put(BsonType.ARRAY, List.class);
+		bsonTypeMap.put(BsonType.BINARY, Binary.class);
+		bsonTypeMap.put(BsonType.BOOLEAN, Boolean.class);
+		bsonTypeMap.put(BsonType.DATE_TIME, Date.class);
+		bsonTypeMap.put(BsonType.DB_POINTER, BsonDbPointer.class);
+		bsonTypeMap.put(BsonType.DOCUMENT, Document.class);
+		bsonTypeMap.put(BsonType.DOUBLE, Double.class);
+		bsonTypeMap.put(BsonType.INT32, Integer.class);
+		bsonTypeMap.put(BsonType.INT64, Long.class);
+		bsonTypeMap.put(BsonType.MAX_KEY, MaxKey.class);
+		bsonTypeMap.put(BsonType.MIN_KEY, MinKey.class);
+		bsonTypeMap.put(BsonType.OBJECT_ID, ObjectId.class);
+		bsonTypeMap.put(BsonType.REGULAR_EXPRESSION, BsonRegularExpression.class);
+		bsonTypeMap.put(BsonType.STRING, String.class);
+		bsonTypeMap.put(BsonType.TIMESTAMP, BsonTimestamp.class);
+		bsonTypeMap.put(BsonType.UNDEFINED, BsonUndefined.class);
+	}
+
+	public EntityDecoder(EntityFactory factory, EntityProperties properties, CodecRegistry registry/*
+																									 * ,
+																									 * BsonTypeClassMap
+																									 * map
+																									 */) {
 		clazz = (Class<T>) properties.getEntityClass();
-		codecs = Codecs.builder().primitiveCodecs(PrimitiveCodecs.createDefault()).build();
+		codecRegistry = registry;
 		this.factory = factory;
 		db = factory.getDb();
 	}
 
 	@Override
-	public <E> T decode(BSONReader reader) {
+	public T decode(BsonReader reader, DecoderContext ctx) {
+		// right now don't care about DecoderContext
 		T e = factory.create(clazz);
 		EntityProperties properties = EntityFactory.getProperties(clazz);
 		reader.readStartDocument();
-		BSONType type;
-		while ((type = reader.readBSONType()) != BSONType.END_OF_DOCUMENT) {
-			if (type == BSONType.DOCUMENT) {
+		BsonType type;
+		while ((type = reader.readBsonType()) != BsonType.END_OF_DOCUMENT) {
+			if (type == BsonType.DOCUMENT) {
 				String name = reader.readName();
 				ParameterProperty pp = properties.getProperty(name);
 				if (pp == null) {
@@ -84,6 +113,8 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 				if (pp.isReference()) {
 					// Entity is only stored as reference, so we can only read the id from it
 					reader.readStartDocument();
+					// read the references collection, but we know where the reference belongs to, so discard
+					reader.readString("$ref");
 					e.set(name,
 							EntityCodec.getCollectionFor(db, seProperties).find(
 									new Document(
@@ -92,7 +123,8 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 													: reader.readString("$id"))).iterator().next());
 					reader.readEndDocument();
 				} else {
-					e.set(name, new EntityDecoder<>(factory, seProperties).decode(reader));
+					e.set(name, new EntityDecoder<>(factory, seProperties, codecRegistry/* , bsonTypeMap */).decode(
+							reader, null));
 				}
 			} else {
 				String propertyName = reader.readName();
@@ -118,7 +150,8 @@ public class EntityDecoder<T extends Entity> implements Decoder<T> {
 								"String %s doesn't match any declared enum value of enum %s", enumString, pp.getType()));
 					}
 				} else {
-					e.set(propertyName, codecs.decode(reader));
+					e.set(propertyName,
+							codecRegistry.get(bsonTypeMap.get(reader.getCurrentBsonType())).decode(reader, null));
 				}
 			}
 		}

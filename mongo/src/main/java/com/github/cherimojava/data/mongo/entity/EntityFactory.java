@@ -15,24 +15,6 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-import org.mongodb.OrderBy;
-import org.mongodb.json.JSONReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
@@ -45,7 +27,20 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.bson.json.JsonReader;
+import org.mongodb.MongoCollection;
+import org.mongodb.MongoDatabase;
+import org.mongodb.OrderBy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import static com.github.cherimojava.data.mongo.io.EntityCodec.DEFAULT_CODEC_REGISTRY;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -249,7 +244,7 @@ public class EntityFactory {
 	 *         Entity.save()
 	 */
 	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
-		return new EntityDecoder<T>(this, getProperties(clazz)).decode(new JSONReader(json));
+		return new EntityDecoder<T>(this, getProperties(clazz), DEFAULT_CODEC_REGISTRY).decode(new JsonReader(json),null);
 	}
 
 	/**
