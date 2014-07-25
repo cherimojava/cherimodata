@@ -15,8 +15,14 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
+import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.*;
+
 import javax.validation.Validation;
 import javax.validation.Validator;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,11 +31,6 @@ import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
-
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
-import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
 
 public class _ParameterPropertyBuilder extends TestBase {
 
@@ -53,6 +54,23 @@ public class _ParameterPropertyBuilder extends TestBase {
 	@Test
 	public void detectType() throws NoSuchMethodException {
 		assertEquals(String.class, Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).getType());
+		assertEquals(List.class, Builder.buildFrom(Ids.class.getMethod("getListEntity"), validator).getType());
+	}
+
+	@Test
+	public void detectContainedType() throws NoSuchMethodException {
+		try {
+			Builder.buildFrom(Ids.class.getMethod("getList"), validator);
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Collections need to be generic"));
+		}
+		ParameterProperty pp = Builder.buildFrom(Ids.class.getMethod("getListEntity"), validator);
+		assertEquals(List.class, pp.getType());
+		assertEquals(Entity.class, pp.getGenericType());
+		assertTrue(pp.isCollection());
+
+		assertFalse(Builder.buildFrom(PrimitiveEntity.class.getDeclaredMethod("getInteger"), validator).isCollection());
 	}
 
 	@Test
@@ -120,6 +138,15 @@ public class _ParameterPropertyBuilder extends TestBase {
 		public String getId();
 
 		public Ids setId(String id);
+
+		public List getList();
+
+		public Ids setList(List l);
+
+		public List<Entity> getListEntity();
+
+		public Ids setListEntity(List<Entity> l);
+
 	}
 
 	private static interface ComputedEntity extends Entity {

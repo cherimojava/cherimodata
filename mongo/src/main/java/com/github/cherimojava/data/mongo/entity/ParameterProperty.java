@@ -15,14 +15,19 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.metadata.BeanDescriptor;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -33,10 +38,6 @@ import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Contains information for a parameter like it's mongodb name, if it's transient, etc. This class is immutable, use
@@ -50,6 +51,7 @@ public final class ParameterProperty {
 	private final String pojoName;
 	private final boolean constraints;
 	private final Class<?> type;
+	private final Class<?> genericType;
 	private final Validator validator;
 	private final Class<? extends Entity> declaringClass;
 	private final boolean tranzient;
@@ -65,6 +67,7 @@ public final class ParameterProperty {
 
 		typeReturnMap = Collections.unmodifiableMap(builder.typeReturnMap);
 		type = builder.type;
+		genericType = builder.genericType;
 		pojoName = builder.pojoName;
 		mongoName = builder.mongoName;
 		constraints = builder.constraints;
@@ -161,6 +164,25 @@ public final class ParameterProperty {
 	}
 
 	/**
+	 * returns if the property is a collection, meaning the return type needs to be enriched with the actual class the
+	 * return type contains.
+	 *
+	 * @return true if the type is a collection, false otherwise
+	 */
+	public boolean isCollection() {
+		return genericType != null;
+	}
+
+	/**
+	 * returns the contained type if {@link #isCollection()} is returning true. Otherwise null is returned
+	 *
+	 * @return
+	 */
+	public Class<?> getGenericType() {
+		return genericType;
+	}
+
+	/**
 	 * validates the given value if it matches the defined constraints for this property. Throws
 	 * ConstraintViolationException if the value doesn't comply with the declared Constraints
 	 *
@@ -187,6 +209,7 @@ public final class ParameterProperty {
 		private String mongoName;
 		private String pojoName;
 		private Class<?> type;
+		private Class<?> genericType;
 		private boolean constraints = false;
 		private Validator validator;
 		private Class<? extends Entity> declaringClass;
@@ -217,6 +240,11 @@ public final class ParameterProperty {
 
 		Builder setType(Class<?> type) {
 			this.type = type;
+			return this;
+		}
+
+		Builder setGenericType(Class<?> genericType) {
+			this.genericType = genericType;
 			return this;
 		}
 
@@ -289,6 +317,10 @@ public final class ParameterProperty {
 					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
 					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
 					computer);
+			if (Collection.class.isAssignableFrom(m.getReturnType())) {
+				checkArgument(m.getGenericReturnType().getClass() != Class.class, "Collections need to be generic");
+				builder.setGenericType((Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0]);
+			}
 			if (m.isAnnotationPresent(Reference.class)) {
 				checkArgument(Entity.class.isAssignableFrom(m.getReturnType()),
 						"Reference annotation can only be used for Entity types but was {}", m.getReturnType());
