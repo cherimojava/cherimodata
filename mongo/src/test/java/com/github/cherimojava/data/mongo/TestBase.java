@@ -15,11 +15,15 @@
  */
 package com.github.cherimojava.data.mongo;
 
+import static org.junit.Assert.assertThat;
+
+import org.bson.BsonReader;
 import org.hamcrest.Matcher;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 
-import static org.junit.Assert.assertThat;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.io.EntityCodec;
 
 /**
  * Base Class for Simple Tests not requiring MongoDB access
@@ -39,5 +43,18 @@ public abstract class TestBase {
 	 */
 	public void assertJson(Matcher<? super String> expected, String actual) {
 		assertThat(actual, expected);
+	}
+
+	/**
+	 * small util method easing decoding of stuff
+	 *
+	 * @param decoder
+	 * @param reader
+	 * @param clazz
+	 * @param <E>
+	 * @return
+	 */
+	public <E extends Entity> E decode(EntityCodec decoder, BsonReader reader, Class<E> clazz) {
+		return (E) decoder.decode(reader, EntityCodec.createContext(clazz));
 	}
 }

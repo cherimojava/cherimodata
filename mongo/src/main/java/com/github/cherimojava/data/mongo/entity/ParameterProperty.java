@@ -24,6 +24,8 @@ import javax.validation.Validator;
 import javax.validation.metadata.BeanDescriptor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -303,7 +305,7 @@ public final class ParameterProperty {
 				// setter defined?
 				builder.setFluent(MethodType.SETTER, isAssignableFromClass(getSetterFromGetter(m)));
 			}
-			if (java.util.Collection.class.isAssignableFrom(m.getReturnType())) {
+			if (Collection.class.isAssignableFrom(m.getReturnType())) {
 				try {
 					// only if we have an adder enabled Property type check for this
 					builder.setFluent(MethodType.ADDER, isAssignableFromClass(getAdderFromGetter(m)));
@@ -319,7 +321,13 @@ public final class ParameterProperty {
 					computer);
 			if (Collection.class.isAssignableFrom(m.getReturnType())) {
 				checkArgument(m.getGenericReturnType().getClass() != Class.class, "Collections need to be generic");
-				builder.setGenericType((Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0]);
+				Type type = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
+				if (TypeVariable.class.isAssignableFrom(type.getClass())) {
+                    //right now I dont know how to provide actual type at runtime...
+					builder.setGenericType(Entity.class);
+				} else {
+					builder.setGenericType((Class) type);
+				}
 			}
 			if (m.isAnnotationPresent(Reference.class)) {
 				checkArgument(Entity.class.isAssignableFrom(m.getReturnType()),

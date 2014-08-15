@@ -15,14 +15,10 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import com.github.cherimojava.data.mongo.io.EntityEncoder;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.mongodb.Document;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoCursor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.github.cherimojava.data.mongo.entity.Entity.ID;
+import static com.github.cherimojava.data.mongo.entity.EntityFactory.getDefaultClass;
+import static com.google.common.base.Preconditions.*;
+import static java.lang.String.format;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -30,11 +26,15 @@ import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.github.cherimojava.data.mongo.entity.Entity.ID;
-import static com.github.cherimojava.data.mongo.entity.EntityFactory.getDefaultClass;
-import static com.github.cherimojava.data.mongo.io.EntityCodec.DEFAULT_CODEC_REGISTRY;
-import static com.google.common.base.Preconditions.*;
-import static java.lang.String.format;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.mongodb.Document;
+import org.mongodb.MongoCollection;
+import org.mongodb.MongoCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.cherimojava.data.mongo.io.EntityCodec;
+import com.google.common.collect.Maps;
 
 /**
  * Proxy class doing the magic for Entity based Interfaces
@@ -326,7 +326,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 * @return JSON representation of the Entity
 	 */
 	private String _toString() {
-		return new EntityEncoder<>(null, properties,DEFAULT_CODEC_REGISTRY).asString(proxy);
+		return new EntityCodec<>(null, properties).asString(proxy);
 	}
 
 	/**

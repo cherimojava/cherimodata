@@ -15,24 +15,12 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import com.github.cherimojava.data.mongo.entity.annotation.Collection;
-import com.github.cherimojava.data.mongo.entity.annotation.Index;
-import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
-import com.github.cherimojava.data.mongo.io.EntityCodec;
-import com.github.cherimojava.data.mongo.io.EntityDecoder;
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import org.bson.json.JsonReader;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-import org.mongodb.OrderBy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.github.cherimojava.data.mongo.io.EntityCodec.createContext;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.mongodb.Index.Builder;
+import static org.mongodb.Index.builder;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -40,12 +28,24 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.github.cherimojava.data.mongo.io.EntityCodec.DEFAULT_CODEC_REGISTRY;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.mongodb.Index.Builder;
-import static org.mongodb.Index.builder;
+import org.bson.json.JsonReader;
+import org.mongodb.MongoCollection;
+import org.mongodb.MongoDatabase;
+import org.mongodb.OrderBy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.cherimojava.data.mongo.entity.annotation.Collection;
+import com.github.cherimojava.data.mongo.entity.annotation.Index;
+import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
+import com.github.cherimojava.data.mongo.io.EntityCodec;
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 /**
  * Utility class for working with Entity based Proxies.
@@ -244,7 +244,7 @@ public class EntityFactory {
 	 *         Entity.save()
 	 */
 	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
-		return new EntityDecoder<T>(this, getProperties(clazz), DEFAULT_CODEC_REGISTRY).decode(new JsonReader(json),null);
+		return new EntityCodec<T>(db, defFactory.create(clazz)).decode(new JsonReader(json), createContext(clazz));
 	}
 
 	/**

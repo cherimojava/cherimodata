@@ -15,22 +15,18 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import com.github.cherimojava.data.mongo.entity.Entity;
-import com.github.cherimojava.data.mongo.entity.EntityFactory;
-import org.bson.codecs.*;
-import org.bson.codecs.CodeCodec;
-import org.bson.codecs.MaxKeyCodec;
-import org.bson.codecs.MinKeyCodec;
-import org.bson.codecs.ObjectIdCodec;
-import org.bson.codecs.configuration.CodecProvider;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.mongodb.codecs.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.bson.codecs.*;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.mongodb.MongoDatabase;
+import org.mongodb.codecs.*;
+
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
 
 /**
  * A {@link org.bson.codecs.configuration.CodecProvider} for Entities and all the default Codec implementations on which
@@ -41,13 +37,15 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class EntityCodecProvider implements CodecProvider {
 	private BsonTypeClassMap mapping;
-	private final Map<Class<?>, Codec<?>> codecs = new HashMap<Class<?>, Codec<?>>();
+	private final Map<Class<?>, Codec<?>> codecs = new HashMap<>();
+    private final MongoDatabase db;
 
 	/**
-	 * Constructs a new instance with a defalut {@link com.github.cherimojava.data.mongo.io.BsonTypeMapping}
+	 * Constructs a new instance with default {@link org.mongodb.codecs.BsonTypeClassMap}
 	 */
-	public EntityCodecProvider() {
-		mapping = new BsonTypeClassMap();
+	public EntityCodecProvider(MongoDatabase db,Class<? extends Entity> clazz) {
+		mapping = new EntityTypeMap(clazz);
+        this.db = db;
 		addCodecs();
 	}
 
@@ -57,19 +55,25 @@ public class EntityCodecProvider implements CodecProvider {
 		if (codecs.containsKey(clazz)) {
 			return (Codec<T>) codecs.get(clazz);
 		}
+		// TODO coming from decoding site, we only get Entity as class, how to get properties from this...
+		// solution could be that instead we provide the class we have to go to in the decoding context and keep the
+		// decoder free of this information
 
 		if (Entity.class.isAssignableFrom(clazz)) {
-			checkArgument(clazz.getInterfaces().length == 1,
-					"Got Entity castable class but the number of interfaces doesn't match.", clazz,
-					clazz.getInterfaces());
+//			checkArgument(clazz.getInterfaces().length == 1,
+//					"Got Entity castable class but the number of interfaces doesn't match.", clazz,
+//					Lists.newArrayList(clazz.getInterfaces()));
 
-			return (Codec<T>) new EntityCodec(null,
+			return (Codec<T>) new EntityCodec(db,
 					EntityFactory.getProperties((Class<? extends Entity>) clazz.getInterfaces()[0]));
 		}
 
 		if (List.class.isAssignableFrom(clazz)) {
-			// TODO this is pretty ugly
 			return (Codec<T>) new ListCodec(registry, mapping);
+		}
+
+		if (clazz.isArray()) {
+			return (Codec<T>) new ArrayCodec(registry, mapping);
 		}
 
 		return null;

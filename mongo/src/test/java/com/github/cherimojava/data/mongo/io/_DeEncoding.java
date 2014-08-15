@@ -15,12 +15,18 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import com.github.cherimojava.data.mongo.MongoBase;
-import com.github.cherimojava.data.mongo.entity.Entity;
-import com.github.cherimojava.data.mongo.entity.EntityFactory;
-import com.github.cherimojava.data.mongo.entity.annotation.Id;
-import com.github.cherimojava.data.mongo.entity.annotation.Transient;
-import com.google.common.collect.Lists;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
+import static com.github.cherimojava.data.mongo.entity.Entity.ID;
+import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.*;
+import static org.mongodb.MongoHelper.getMongoDatabase;
+import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
+
+import java.io.StringWriter;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bson.json.JsonReader;
 import org.bson.json.JsonWriter;
@@ -32,20 +38,13 @@ import org.junit.Test;
 import org.mongodb.Document;
 import org.mongodb.MongoDatabase;
 
-import java.io.StringWriter;
-import java.util.List;
+import com.github.cherimojava.data.mongo.MongoBase;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Transient;
+import com.google.common.collect.Lists;
 
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
-import static com.github.cherimojava.data.mongo.entity.Entity.ID;
-import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
-import static com.github.cherimojava.data.mongo.io.EntityCodec.DEFAULT_CODEC_REGISTRY;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
-import static org.mongodb.MongoHelper.getMongoDatabase;
-import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
-
-//TODO this has to idle around until the encoding/decoding stuff is stable from mongodb
 //TODO primitive types not working yet
 
 @SuppressWarnings("unchecked")
@@ -63,7 +62,6 @@ public class _DeEncoding extends MongoBase {
 	@After
 	public void mongoCleanUp() {
 		db.tools().drop();
-		// db.executeCommand(new Document("dropDatabase", 1), ReadPreference.primary());
 	}
 
 	/**
@@ -71,10 +69,7 @@ public class _DeEncoding extends MongoBase {
 	 */
 	@Test
 	public void basicDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(PrimitiveEntity.class),
-				DEFAULT_CODEC_REGISTRY);
-		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(PrimitiveEntity.class),
-				DEFAULT_CODEC_REGISTRY);
+		EntityCodec codec = new EntityCodec<>(db, EntityFactory.getProperties(PrimitiveEntity.class));
 
 		PrimitiveEntity pe = instantiate(PrimitiveEntity.class);
 		pe.setString("value");
@@ -83,13 +78,13 @@ public class _DeEncoding extends MongoBase {
 		StringWriter swriter = new StringWriter();
 		JsonWriter jwriter = new JsonWriter(swriter);
 
-		enc.encode(jwriter, pe, null);
+		codec.encode(jwriter, pe, null);
 
 		assertJson(sameJSONAs("{ \"Integer\" : 123, \"string\" : \"value\" }"), swriter.toString());
 
 		JsonReader jreader = new JsonReader(swriter.toString());
 
-		PrimitiveEntity read = (PrimitiveEntity) dec.decode(jreader, null);
+		PrimitiveEntity read = decode(codec, jreader, PrimitiveEntity.class);
 
 		assertEquals(pe.getString(), read.getString());
 		assertEquals(pe.getInteger(), read.getInteger());
@@ -115,19 +110,18 @@ public class _DeEncoding extends MongoBase {
 	public void noDuplicateIdWritten() {
 		ExplicitIdEntity eid = factory.fromJson(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
 		assertEquals("explicit", eid.getName());
-		EntityEncoder<ExplicitIdEntity> enc = new EntityEncoder<>(db, factory.getProperties(ExplicitIdEntity.class),
-				DEFAULT_CODEC_REGISTRY);
+		EntityCodec<ExplicitIdEntity> codec = new EntityCodec<>(db, factory.getProperties(ExplicitIdEntity.class));
 
 		StringWriter swriter = new StringWriter();
 		JsonWriter writer = new JsonWriter(swriter);
-		enc.encode(writer, eid, null);
+		codec.encode(writer, eid, null);
 		assertEquals(1, StringUtils.countMatches(swriter.toString(), "explicit"));
 
 		ExplicitIdEntity eid2 = factory.create(ExplicitIdEntity.class);
 		eid2.setName("once");
 		swriter = new StringWriter();
 		writer = new JsonWriter(swriter);
-		enc.encode(writer, eid2, null);
+		codec.encode(writer, eid2, null);
 		assertEquals(1, StringUtils.countMatches(swriter.toString(), "once"));
 	}
 
@@ -190,10 +184,7 @@ public class _DeEncoding extends MongoBase {
 	 */
 	@Test
 	public void nestedDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(NestedEntity.class),
-				DEFAULT_CODEC_REGISTRY);
-		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(NestedEntity.class),
-				DEFAULT_CODEC_REGISTRY);
+		EntityCodec codec = new EntityCodec<>(db, EntityFactory.getProperties(NestedEntity.class));
 
 		PrimitiveEntity pe = instantiate(PrimitiveEntity.class);
 		pe.setString("value");
@@ -206,13 +197,13 @@ public class _DeEncoding extends MongoBase {
 		StringWriter swriter = new StringWriter();
 		JsonWriter jwriter = new JsonWriter(swriter);
 
-		enc.encode(jwriter, ce, null);
+		codec.encode(jwriter, ce, null);
 
 		assertJson(sameJSONAs("{ \"string\" : \"outer\", \"PE\" : { \"Integer\" : 123, \"string\" : \"value\" } }"),
 				swriter.toString());
 
 		JsonReader jreader = new JsonReader(swriter.toString());
-		NestedEntity ceRead = (NestedEntity) dec.decode(jreader, null);
+		NestedEntity ceRead = decode(codec, jreader, NestedEntity.class);
 		PrimitiveEntity peRead = ceRead.getPE();
 
 		assertEquals(pe.getInteger(), peRead.getInteger());
@@ -295,10 +286,7 @@ public class _DeEncoding extends MongoBase {
 
 	@Test
 	public void collectionDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(CollectionEntity.class),
-				DEFAULT_CODEC_REGISTRY);
-		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(CollectionEntity.class),
-				DEFAULT_CODEC_REGISTRY);
+		EntityCodec codec = new EntityCodec<>(db, EntityFactory.getProperties(CollectionEntity.class));
 
 		CollectionEntity ce = instantiate(CollectionEntity.class);
 		ce.setArrayStrings(new String[] { "one", "two" });
@@ -307,56 +295,58 @@ public class _DeEncoding extends MongoBase {
 		StringWriter swriter = new StringWriter();
 		JsonWriter jwriter = new JsonWriter(swriter);
 
-		enc.encode(jwriter, ce, null);
+		codec.encode(jwriter, ce, null);
 		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"),
 				swriter.toString());
 
 		JsonReader jreader = new JsonReader(swriter.toString());
-		CollectionEntity ceRead = (CollectionEntity) dec.decode(jreader, null);
+		CollectionEntity ceRead = decode(codec, jreader, CollectionEntity.class);
 		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"),
 				ceRead.toString());
 	}
 
 	@Test
 	public void collectionDeEncodingDB() {
-		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(Listed.class), DEFAULT_CODEC_REGISTRY);
-		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(Listed.class),
-				DEFAULT_CODEC_REGISTRY);
-		Listed<PrimitiveEntity> listed = factory.create(Listed.class);
+		EntityCodec codec = new EntityCodec<>(db, EntityFactory.getProperties(Listed.class));
+		Listed listed = factory.create(Listed.class);
 		listed.setList(Lists.newArrayList(factory.create(PrimitiveEntity.class).setString("nested")));
 		StringWriter swriter = new StringWriter();
 		JsonWriter jwriter = new JsonWriter(swriter);
 
-		enc.encode(jwriter, listed, null);
+		codec.encode(jwriter, listed, null);
 		assertJson(sameJSONAs("{ \"list\": [{\"string\": \"nested\"}]}"), swriter.toString());
+		JsonReader jsonReader = new JsonReader(swriter.toString());
+		Listed read = decode(codec, jsonReader, Listed.class);
+		assertNotNull(read.getList());
+		assertEquals(listed.getList().get(0), read.getList().get(0));
+
+        listed.save();
+        Listed r = factory.load(Listed.class,listed.get(ID));
+        assertEquals(listed,r);
 	}
 
 	@Test
 	public void enumDeEncoding() {
-		EntityEncoder enc = new EntityEncoder<>(db, EntityFactory.getProperties(EnumEntity.class),
-				DEFAULT_CODEC_REGISTRY);
-		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(EnumEntity.class),
-				DEFAULT_CODEC_REGISTRY);
+		EntityCodec codec = new EntityCodec<>(db, EntityFactory.getProperties(EnumEntity.class));
 		EnumEntity ee = instantiate(EnumEntity.class);
 		ee.setCategory(EnumEntity.Category.Misc);
 
 		StringWriter swriter = new StringWriter();
 		JsonWriter jwriter = new JsonWriter(swriter);
 
-		enc.encode(jwriter, ee, null);
+		codec.encode(jwriter, ee, null);
 		assertJson(sameJSONAs("{ \"category\": \"Misc\" }"), swriter.toString());
 		JsonReader jreader = new JsonReader(swriter.toString());
-		EnumEntity eeRead = (EnumEntity) dec.decode(jreader, null);
+		EnumEntity eeRead = decode(codec, jreader, EnumEntity.class);
 		assertEquals(ee, eeRead);
 	}
 
 	@Test
 	public void enumDeEncodingUnknownEnum() {
-		EntityDecoder dec = new EntityDecoder<>(factory, EntityFactory.getProperties(EnumEntity.class),
-				DEFAULT_CODEC_REGISTRY);
+		EntityCodec codec = new EntityCodec<>(db, EntityFactory.getProperties(EnumEntity.class));
 		JsonReader jreader = new JsonReader("{ \"category\": \"miscellaneous\" }");
 		try {
-			EnumEntity eeRead = (EnumEntity) dec.decode(jreader, null);
+			decode(codec, jreader, EnumEntity.class);
 			fail("Should throw an exception");
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("doesn't match any declared enum value of"));
@@ -396,10 +386,10 @@ public class _DeEncoding extends MongoBase {
 		}
 	}
 
-	private interface Listed<T extends Entity> extends Entity<Listed> {
+	private interface Listed extends Entity<Listed> {
 
-		public Listed<T> setList(List<T> entities);
+		public Listed setList(List<PrimitiveEntity> entities);
 
-		public List<T> getList();
+		public List<PrimitiveEntity> getList();
 	}
 }
