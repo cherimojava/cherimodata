@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.entity.*;
+import com.google.common.base.Throwables;
 
 /**
  * Codec which transforms Entity instances from/to JSON
@@ -229,7 +230,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 				}
 			}
 		}
-		// reader.readEndDocument();
 		return e;
 	}
 
@@ -334,7 +334,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 			encode(writer, value, false);
 			return swriter.toString();
 		} catch (IOException e) {
-			return e.getMessage();
+            Throwables.propagate(e);
+            return null;
 		}
 	}
 }

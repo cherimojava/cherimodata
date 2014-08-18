@@ -15,17 +15,22 @@
  */
 package com.github.cherimojava.data.spring;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.*;
+
+import org.bson.codecs.Codec;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mongodb.CollectibleCodec;
 import org.mongodb.MongoCollection;
 import org.mongodb.MongoDatabase;
 import org.springframework.http.HttpInputMessage;
@@ -41,15 +46,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class _EntityConverter extends TestBase {
 	@Mock
@@ -92,7 +88,7 @@ public class _EntityConverter extends TestBase {
 	public void readInternal() throws IOException {
 		HttpInputMessage him = mock(HttpInputMessage.class);
 		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(CollectibleCodec.class))).thenReturn(mock(MongoCollection.class));
+		when(db.getCollection(anyString(), any(Codec.class))).thenReturn(mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		InputStream is = new ByteArrayInputStream("{ \"string\" : \"SomeString\" }".getBytes());
 		when(him.getBody()).thenReturn(is);
@@ -104,7 +100,7 @@ public class _EntityConverter extends TestBase {
 	@Test
 	public void integration() throws Exception {
 		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(CollectibleCodec.class))).thenReturn(mock(MongoCollection.class));
+		when(db.getCollection(anyString(), any(Codec.class))).thenReturn(mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
 				new EntityConverter(factory)).build();
@@ -132,8 +128,7 @@ public class _EntityConverter extends TestBase {
 	private class EntityController {
 
 		@RequestMapping(value = "/t", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-		public @ResponseBody
-		SimpleEntity post(@RequestBody SimpleEntity setting) {
+		public @ResponseBody SimpleEntity post(@RequestBody SimpleEntity setting) {
 			assertEquals("ping", setting.getString());
 			return EntityFactory.instantiate(SimpleEntity.class).setString("PONG");
 		}

@@ -158,7 +158,7 @@ class EntityInvocationHandler implements InvocationHandler {
 			return _hashCode();
 		case "load":
 			checkState(collection != null,
-					"Entity was created without MongoDB reference. You have to load entity through an EntityFactory");
+					"Entity was created without MongoDB reference. You have to load entities through an EntityFactory");
 			return find(collection, args[0]);
 		}
 
