@@ -27,7 +27,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cherimodata.version>1.0.0-SNAPSHOT</cherimodata.version>
         <parentDir>${basedir}</parentDir>
-        <mongodb.version>3.0.0-SNAPSHOT</mongodb.version>
+        <mongodb.version>3.0.0-cj</mongodb.version>
     </properties>
 
     <prerequisites>
