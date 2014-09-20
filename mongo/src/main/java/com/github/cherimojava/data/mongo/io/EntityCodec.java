@@ -61,9 +61,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	public static final String ENTITY_CLASS = "cherimongo-eclass";
 	private final MongoDatabase db;
 
-	public static final CodecRegistry DEFAULT_CODEC_REGISTRY = new RootCodecRegistry(
-			Arrays.<CodecProvider> asList(new EntityCodecProvider(null, Entity.class)));
-
 	public EntityCodec(MongoDatabase db, EntityProperties properties) {
 		clazz = (Class<T>) properties.getEntityClass();
 		this.db = db;
