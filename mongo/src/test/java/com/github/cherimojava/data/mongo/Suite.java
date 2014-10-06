@@ -44,7 +44,6 @@ import de.flapdoodle.embed.process.runtime.Network;
 @Filter(Suite.class)
 public class Suite implements TestClassFilter {
 
-	protected static final String dbName = "testDB";
 	protected static final String storagePath = "/tmp/" + UUID.randomUUID();
 
 	private static int port = 0;
@@ -56,7 +55,7 @@ public class Suite implements TestClassFilter {
 	private static boolean running = false;
 
 	private static Version version() {
-		return Version.V2_4_6;
+		return Version.V2_6_1;
 	}
 
 	private static IMongodConfig mongodConfig() throws IOException {
