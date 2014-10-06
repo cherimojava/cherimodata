@@ -95,7 +95,12 @@
         <!-- MongoDB dependencies -->
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver</artifactId>
+            <artifactId>mongo-java-driver-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>${mongodb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>

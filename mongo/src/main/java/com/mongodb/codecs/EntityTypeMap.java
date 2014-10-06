@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mongodb.codecs;
+package com.mongodb.codecs;
 
 import java.util.Map;
 
+import com.mongodb.codecs.BsonTypeClassMap;
 import org.bson.BsonType;
 
 import com.github.cherimojava.data.mongo.entity.Entity;

@@ -15,27 +15,14 @@
  */
 package org.mongodb.codecs;
 
-import org.bson.codecs.EncoderContext;
-import org.bson.json.JsonWriter;
-import org.junit.Test;
-import org.mongodb.Document;
-
-import java.io.StringWriter;
-
 public class TestCase {
 
-	@Test
-	public void testCodecs() {
-		DocumentCodec codec = new DocumentCodec();
-		Document doc = new Document();
-		doc.append("int", 1);
-		doc.append("Integer", new Integer(2));
-		doc.append("array", new int[] { 3, 3, 3 });
-		StringWriter swriter = new StringWriter();
-		JsonWriter writer = new JsonWriter(swriter);
-		codec.encode(writer, doc, EncoderContext.builder().build());
-		System.out.println(swriter.toString());
-	}
+	/*
+	 * @Test public void testCodecs() { DocumentCodec codec = new DocumentCodec(); Document doc = new Document();
+	 * doc.append("int", 1); doc.append("Integer", new Integer(2)); doc.append("array", new int[] { 3, 3, 3 });
+	 * StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter); codec.encode(writer, doc,
+	 * EncoderContext.builder().build()); System.out.println(swriter.toString()); }
+	 */
 	// /**
 	// * currently the new driver isn't capable of handling correctly primitive types
 	// */

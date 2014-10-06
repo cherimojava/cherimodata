@@ -23,8 +23,8 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.mongodb.codecs.BsonTypeClassMap;
-import org.mongodb.codecs.ListCodec;
+import com.mongodb.codecs.BsonTypeClassMap;
+import com.mongodb.codecs.ListCodec;
 
 import com.google.common.collect.Lists;
 

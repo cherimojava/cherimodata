@@ -22,13 +22,11 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.mongodb.MongoClient;
-import org.mongodb.MongoClients;
-import org.mongodb.MongoDatabase;
-import org.mongodb.connection.ServerAddress;
 
-import com.github.cherimojava.data.mongo.TestBase;
 import com.google.common.collect.Lists;
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * Base Class for Tests requiring MongoDB
@@ -56,8 +54,8 @@ public class MongoBase extends TestBase {
 
 	@Before
 	public final void dbSetup() throws IOException {
-		client = MongoClients.create(new ServerAddress("localhost", Suite.getPort()));
-		db = client.getDatabase(Suite.dbName);
+		client = new MongoClient(new ServerAddress("localhost", Suite.getPort()));
+		db = client.getDatabase(this.getClass().getSimpleName());
 		collectionCleanUp = Lists.newArrayList();
 	}
 

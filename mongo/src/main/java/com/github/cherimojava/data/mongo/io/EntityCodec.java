@@ -22,27 +22,25 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import org.bson.*;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
-import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.configuration.RootCodecRegistry;
 import org.bson.json.JsonWriter;
 import org.bson.types.ObjectId;
 import org.mongodb.Document;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-import org.mongodb.codecs.CollectibleCodec;
-import org.mongodb.codecs.EntityTypeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.entity.*;
 import com.google.common.base.Throwables;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.FindOptions;
+import com.mongodb.codecs.CollectibleCodec;
+import com.mongodb.codecs.EntityTypeMap;
 
 /**
  * Codec which transforms Entity instances from/to JSON
@@ -65,7 +63,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 		clazz = (Class<T>) properties.getEntityClass();
 		this.db = db;
 		factory = new EntityFactory(db);
-		codecRegistry = new RootCodecRegistry(Arrays.<CodecProvider> asList(new EntityCodecProvider(db, clazz)));
+		codecRegistry = EntityCodecProvider.createCodecRegistry(db, clazz);
 		dctx = createContext(clazz);
 	}
 
@@ -77,7 +75,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 * @return
 	 */
 	public static MongoCollection<? extends Entity> getCollectionFor(MongoDatabase db, EntityProperties properties) {
-		return db.getCollection(properties.getCollectionName(), (Codec) new EntityCodec<>(db, properties));
+		return db.getCollection(properties.getCollectionName(), properties.getEntityClass(),
+				EntityCodecProvider.createMongoCollectionOptions(db, properties.getEntityClass()));
 	}
 
 	/*
@@ -151,84 +150,84 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	private <E extends Entity> E decodeEntity(BsonReader reader, DecoderContext ctx) {
-		Class<E> clazz = (Class<E>) ctx.getParameter(ENTITY_CLASS);
-		checkNotNull(clazz, "Can't decode document without information to which class it belongs");
-		E e = factory.create(clazz);
-		EntityProperties properties = EntityFactory.getProperties(clazz);
-		// reader.readStartDocument();
-		BsonType type;
-		while ((type = reader.readBsonType()) != BsonType.END_OF_DOCUMENT) {
-			if (type == BsonType.DOCUMENT) {
-				String name = reader.readName();
-				ParameterProperty pp = properties.getProperty(name);
-				if (pp == null) {
-					LOG.debug("Found subdocument named {}, but this subdocument isn't known for Entity {}", name,
-							clazz.getSimpleName());
-					reader.skipValue();
-					continue;
-				}
-				Class<? extends Entity> cls = null;
-				try {
-					cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
-				} catch (NoSuchMethodException e1) {
-					e1.printStackTrace();
-				}
-				EntityProperties seProperties = EntityFactory.getProperties(cls);
-				if (pp.isReference()) {
-					// Entity is only stored as reference, so we can only read the id from it
-					reader.readStartDocument();
-					// read the references collection, but we know where the reference belongs to, so discard
-					reader.readString("$ref");
-					e.set(name,
-							EntityCodec.getCollectionFor(db, seProperties).find(
-									new Document(
-											ID,
-											seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId("$id")
-													: reader.readString("$id"))).iterator().next());
-					reader.readEndDocument();
-				} else {
-					e.set(name, decode(reader, createContext(seProperties.getEntityClass())));
-				}
-			} else {
-				String propertyName = reader.readName();
-				ParameterProperty pp = properties.getProperty(propertyName);
-				if (pp == null) {
-					LOG.debug("Found property named {}, but this property isn't known for Entity {}", propertyName,
-							clazz.getSimpleName());
-					reader.skipValue();
-					continue;
-				}
-				if (pp.isTransient() || pp.isComputed()) {
-					// transient values aren't read, even tough they're written (by earlier version of Entity, etc.)
-					// same is true for computed, even tough they're written it's value won't be used, so skip it
-					reader.skipValue();// send value to /dev/null
-					continue;
-				}
-				if (pp.getType().isEnum()) {
-					String enumString = reader.readString();
-					try {
-						e.set(propertyName, Enum.valueOf((Class<? extends Enum>) pp.getType(), enumString));
-					} catch (IllegalArgumentException iae) {
-						throw new IllegalArgumentException(format(
-								"String %s doesn't match any declared enum value of enum %s", enumString, pp.getType()));
-					}
-				} else {
-					if (pp.isCollection() && Entity.class.isAssignableFrom(pp.getGenericType())) {
-                        EntityProperties ep =   EntityFactory.getProperties((Class<? extends
-                                Entity>)pp.getGenericType());
-                        EntityCodec code = new EntityCodec<>(db,ep);
-                         CodecRegistry registry = code.codecRegistry;
+        Class<E> clazz = (Class<E>) ctx.getParameter(ENTITY_CLASS);
+        checkNotNull(clazz, "Can't decode document without information to which class it belongs");
+        E e = factory.create(clazz);
+        EntityProperties properties = EntityFactory.getProperties(clazz);
+        // reader.readStartDocument();
+        BsonType type;
+        while ((type = reader.readBsonType()) != BsonType.END_OF_DOCUMENT) {
+            if (type == BsonType.DOCUMENT) {
+                String name = reader.readName();
+                ParameterProperty pp = properties.getProperty(name);
+                if (pp == null) {
+                    LOG.debug("Found subdocument named {}, but this subdocument isn't known for Entity {}", name,
+                            clazz.getSimpleName());
+                    reader.skipValue();
+                    continue;
+                }
+                Class<? extends Entity> cls = null;
+                try {
+                    cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
+                } catch (NoSuchMethodException e1) {
+                    e1.printStackTrace();
+                }
+                EntityProperties seProperties = EntityFactory.getProperties(cls);
+                if (pp.isReference()) {
+                    // Entity is only stored as reference, so we can only read the id from it
+                    reader.readStartDocument();
+                    // read the references collection, but we know where the reference belongs to, so discard
+                    reader.readString("$ref");
+                    e.set(name,
+                            EntityCodec.getCollectionFor(db, seProperties).find(new FindOptions().criteria(
+                    new Document(
+                                            ID,
+                                            seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId("$id")
+                                                    : reader.readString("$id")))).iterator().next());
+                    reader.readEndDocument();
+                } else {
+                    e.set(name, decode(reader, createContext(seProperties.getEntityClass())));
+                }
+            } else {
+                String propertyName = reader.readName();
+                ParameterProperty pp = properties.getProperty(propertyName);
+                if (pp == null) {
+                    LOG.debug("Found property named {}, but this property isn't known for Entity {}", propertyName,
+                            clazz.getSimpleName());
+                    reader.skipValue();
+                    continue;
+                }
+                if (pp.isTransient() || pp.isComputed()) {
+                    // transient values aren't read, even tough they're written (by earlier version of Entity, etc.)
+                    // same is true for computed, even tough they're written it's value won't be used, so skip it
+                    reader.skipValue();// send value to /dev/null
+                    continue;
+                }
+                if (pp.getType().isEnum()) {
+                    String enumString = reader.readString();
+                    try {
+                        e.set(propertyName, Enum.valueOf((Class<? extends Enum>) pp.getType(), enumString));
+                    } catch (IllegalArgumentException iae) {
+                        throw new IllegalArgumentException(format(
+                                "String %s doesn't match any declared enum value of enum %s", enumString, pp.getType()));
+                    }
+                } else {
+                    if (pp.isCollection() && Entity.class.isAssignableFrom(pp.getGenericType())) {
+                        EntityProperties ep = EntityFactory.getProperties((Class<? extends
+                                Entity>) pp.getGenericType());
+                        EntityCodec code = new EntityCodec<>(db, ep);
+                        CodecRegistry registry = code.codecRegistry;
                         e.set(propertyName, registry.get(typeMap.get(reader.getCurrentBsonType())).decode(reader,
                                 code.dctx));
-					} else {
-						e.set(propertyName,
-								codecRegistry.get(typeMap.get(reader.getCurrentBsonType())).decode(reader,null));
-					}
-				}
-			}
-		}
-		return e;
-	}
+                    } else {
+                        e.set(propertyName,
+                                codecRegistry.get(typeMap.get(reader.getCurrentBsonType())).decode(reader, null));
+                    }
+                }
+            }
+        }
+        return e;
+    }
 
 	/**
 	 * creates a DecoderContext based on the given EntityClass
@@ -272,52 +271,60 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 			codec.encode(writer, id, null);
 		}
 
-		for (Method method : value.entityClass().getMethods())
-			// TODO we wanna test this inheritance
-			if (method.getName().startsWith("get") && method.getName().length() > 3) {
-				ParameterProperty pp = properties.getProperty(method);
-				String propertyName = pp.getMongoName();
-				if (pp.isTransient() || value.get(propertyName) == null) {
-					// transient properties aren't encoded
-					// null isn't encoded
-					continue;
-				}
-				if (pp.isReference()) {
-					writer.writeStartDocument(propertyName);
-					EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getType());
-					Entity subEntity = (Entity) value.get(propertyName);
-					Object eid = EntityCodec._obtainId(subEntity);
-					// this is just for compatibility with other tools, due to our Schema information we know where this
-					// comes from
-					writer.writeString("$ref", seProperties.getCollectionName());
-					writer.writeName("$id");
-					if (eid.getClass() == ObjectId.class) {
-						writer.writeObjectId((ObjectId) eid);
-					} else {
-						writer.writeString(eid.toString());
-					}
-					if (toDB) {
-						((MongoCollection<Entity>) EntityCodec.getCollectionFor(db, seProperties)).save(subEntity);
-					}
-					writer.writeEndDocument();
-					continue;
-				}
+		for (Method method : value.entityClass().getMethods()) {
+            // TODO we wanna test this inheritance
+            if (method.getName().startsWith("get") && method.getName().length() > 3) {
+//                if (Entity.ID.equals(properties.getProperty(method).getMongoName())) {
+//                    //by default skip the id encoding
+//                    //TODO need to adjust this for toString prints
+//                    continue;
+//                }
+                ParameterProperty pp = properties.getProperty(method);
+                String propertyName = pp.getMongoName();
+                if (pp.isTransient() || value.get(propertyName) == null) {
+                    // transient properties aren't encoded
+                    // null isn't encoded
+                    continue;
+                }
+                if (pp.isReference()) {
+                    writer.writeStartDocument(propertyName);
+                    EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getType());
+                    Entity subEntity = (Entity) value.get(propertyName);
+                    Object eid = EntityCodec._obtainId(subEntity);
+                    // this is just for compatibility with other tools, due to our Schema information we know where this
+                    // comes from
+                    writer.writeString("$ref", seProperties.getCollectionName());
+                    writer.writeName("$id");
+                    if (eid.getClass() == ObjectId.class) {
+                        writer.writeObjectId((ObjectId) eid);
+                    } else {
+                        writer.writeString(eid.toString());
+                    }
+                    if (toDB) {
+                        subEntity.save();
+//                        ((MongoCollection<Entity>) EntityCodec.getCollectionFor(db, seProperties)).updateOne(
+//                                new Document(Entity.ID, subEntity.get(Entity.ID)), subEntity);
+                    }
+                    writer.writeEndDocument();
+                    continue;
+                }
 
-				if (Entity.class.isAssignableFrom(method.getReturnType())) {
-					// we got some entity, so we need to recurse
-					writer.writeName(propertyName);
-					encode(writer, (T) value.get(propertyName), toDB);
-				} else if (method.getReturnType().isEnum()) {
-					// enum handling
-					writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
-				} else {
-					// simple property
-					writer.writeName(propertyName);
-					Object v = value.get(propertyName);
-					Codec codec = codecRegistry.get(v.getClass());
-					codec.encode(writer, v, EncoderContext.builder().build());
-				}
-			}
+                if (Entity.class.isAssignableFrom(method.getReturnType())) {
+                    // we got some entity, so we need to recurse
+                    writer.writeName(propertyName);
+                    encode(writer, (T) value.get(propertyName), toDB);
+                } else if (method.getReturnType().isEnum()) {
+                    // enum handling
+                    writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
+                } else {
+                    // simple property
+                    writer.writeName(propertyName);
+                    Object v = value.get(propertyName);
+                    Codec codec = codecRegistry.get(v.getClass());
+                    codec.encode(writer, v, EncoderContext.builder().build());
+                }
+            }
+        }
 	}
 
 	private void encode(BsonWriter writer, T value, boolean toDB) {
@@ -327,12 +334,12 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	public String asString(T value) {
-		try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
-			encode(writer, value, false);
-			return swriter.toString();
-		} catch (IOException e) {
+        try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
+            encode(writer, value, false);
+            return swriter.toString();
+        } catch (IOException e) {
             Throwables.propagate(e);
             return null;
-		}
-	}
+        }
+    }
 }

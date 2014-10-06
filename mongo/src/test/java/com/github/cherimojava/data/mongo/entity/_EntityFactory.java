@@ -15,6 +15,13 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,22 +33,15 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mongodb.Document;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
-import com.github.cherimojava.data.mongo.io.EntityCodec;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCollectionOptions;
+import com.mongodb.client.MongoDatabase;
 
 public class _EntityFactory extends TestBase {
 
@@ -55,7 +55,7 @@ public class _EntityFactory extends TestBase {
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.initMocks(this);
-		when(db.getCollection(anyString(), any(EntityCodec.class))).thenReturn(coll);
+		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(coll);
 		factory = new EntityFactory(db);
 	}
 

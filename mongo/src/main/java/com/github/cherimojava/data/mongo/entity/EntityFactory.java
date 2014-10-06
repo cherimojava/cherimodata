@@ -18,9 +18,9 @@ package com.github.cherimojava.data.mongo.entity;
 import static com.github.cherimojava.data.mongo.io.EntityCodec.createContext;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.mongodb.operation.Index.Builder;
+import static com.mongodb.operation.Index.builder;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.mongodb.Index.Builder;
-import static org.mongodb.Index.builder;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -29,9 +29,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.bson.json.JsonReader;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-import org.mongodb.OrderBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +43,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.operation.OrderBy;
 
 /**
  * Utility class for working with Entity based Proxies.
@@ -101,7 +101,7 @@ public class EntityFactory {
 								indxBuilder.addKey(field.field(),
 										(field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC : OrderBy.DESC);
 							}
-							org.mongodb.Index indx = indxBuilder.build();
+							com.mongodb.operation.Index indx = indxBuilder.build();
 							LOG.debug("Creating index {} for Entity class {}", indx.getName(),
 									properties.getEntityClass());
 							coll.tools().createIndexes(Lists.newArrayList(indx));

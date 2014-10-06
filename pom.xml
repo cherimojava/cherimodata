@@ -78,7 +78,12 @@
         <dependencies>
             <dependency>
                 <groupId>org.mongodb</groupId>
-                <artifactId>mongodb-driver</artifactId>
+                <artifactId>mongo-java-driver-core</artifactId>
+                <version>${mongodb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongo-java-driver</artifactId>
                 <version>${mongodb.version}</version>
             </dependency>
             <!-- only temporary needed to be declared-->

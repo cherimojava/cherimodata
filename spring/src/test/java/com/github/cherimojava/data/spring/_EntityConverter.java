@@ -26,13 +26,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.*;
 
-import org.bson.codecs.Codec;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -46,6 +43,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCollectionOptions;
+import com.mongodb.client.MongoDatabase;
 
 public class _EntityConverter extends TestBase {
 	@Mock
@@ -88,7 +88,8 @@ public class _EntityConverter extends TestBase {
 	public void readInternal() throws IOException {
 		HttpInputMessage him = mock(HttpInputMessage.class);
 		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(Codec.class))).thenReturn(mock(MongoCollection.class));
+		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
+				mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		InputStream is = new ByteArrayInputStream("{ \"string\" : \"SomeString\" }".getBytes());
 		when(him.getBody()).thenReturn(is);
@@ -100,7 +101,8 @@ public class _EntityConverter extends TestBase {
 	@Test
 	public void integration() throws Exception {
 		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(Codec.class))).thenReturn(mock(MongoCollection.class));
+		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
+				mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
 				new EntityConverter(factory)).build();

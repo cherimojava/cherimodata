@@ -18,16 +18,19 @@ package com.github.cherimojava.data.mongo.entity;
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.google.common.collect.Lists;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoCollectionOptions;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.MockSettings;
 import org.mockito.MockitoAnnotations;
 import org.mongodb.Document;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoDatabase;
-import org.mongodb.MongoView;
-import org.mongodb.codecs.CollectibleCodec;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.codecs.CollectibleCodec;
 
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
@@ -60,7 +63,8 @@ public class _EntityInvocationHandler extends TestBase {
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
 		collection = mock(MongoCollection.class);
-		when(db.getCollection(anyString(), any(CollectibleCodec.class))).thenReturn(collection);
+		when(db.getCollection(anyString(),any(Class.class), any(MongoCollectionOptions.class))).thenReturn(collection);
+        when(collection.getOptions()).then(Answers.RETURNS_DEEP_STUBS.get());
 	}
 
 	@Test
@@ -155,41 +159,6 @@ public class _EntityInvocationHandler extends TestBase {
 		} catch (IllegalStateException e) {
 			assertThat(e.getMessage(), containsString("Entity was created without MongoDB reference."));
 		}
-	}
-
-	@Test
-	public void noFailOnSaveDropIfMongoGiven() {
-		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-		when(collection.find(any(Document.class))).thenReturn(mock(MongoView.class));
-		pe.setString("some String");
-		pe.save();
-		pe.drop();
-	}
-
-	@Test
-	public void explicitIdMustBeSetOnSave() {
-		ExplicitIdEntity pe = factory.create(ExplicitIdEntity.class);
-		pe.setName("sme").setName(null);// else it won't try to save
-		try {
-			pe.save();
-			fail("should throw an exception");
-		} catch (NullPointerException e) {
-			assertThat(e.getMessage(), containsString("An explicit defined Id "));
-		}
-		pe.setName("some");
-		pe.save();
-	}
-
-	@Test
-	public void saveOnlyIfNeeded() {
-		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-		assertFalse(pe.save());
-		assertTrue(pe.setString("some").save());
-		assertFalse(pe.save()); // no further changes
-		assertFalse(pe.setString("some").save()); // nothing changed
-		assertTrue(pe.set("Integer", 2).save());
-		assertFalse(pe.set("Integer", 2).save());// nothing changed
-		assertFalse(pe.save());// nothing changed
 	}
 
 	@Test
@@ -359,7 +328,7 @@ public class _EntityInvocationHandler extends TestBase {
 	public void toStringNoParamValidation() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
 		pe.setInteger(1);
-		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe.toString());
+		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe);
 	}
 
 	@Test
@@ -373,17 +342,17 @@ public class _EntityInvocationHandler extends TestBase {
 		re.setInteger(5);
 		assertJson(
 				sameJSONAs("{ \"PE\" : { \"$ref\" : \"primitiveEntity\" , \"$id\" : { \"$oid\" : \"" + id.toHexString() + "\" } }, \"Integer\" : 5 }"),
-				re.toString());
+				re);
 	}
 
 	@Test
 	public void toStringWriteIdIfSet() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
 		pe.setInteger(1);
-		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe.toString());
+		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe);
 		ObjectId id = new ObjectId();
 		pe.set("_id", id);
-		assertJson(sameJSONAs("{\"_id\":{\"$oid\":\"" + id.toString() + "\"},\"Integer\":1}"), pe.toString());
+		assertJson(sameJSONAs("{\"_id\":{\"$oid\":\"" + id.toString() + "\"},\"Integer\":1}"), pe);
 	}
 
 	@Test
@@ -391,6 +360,6 @@ public class _EntityInvocationHandler extends TestBase {
 		NestedEntity ne = factory.create(NestedEntity.class);
 		ne.setString("value");
 		ne.setPE((PrimitiveEntity) pe.setInteger(4));
-		assertJson(sameJSONAs("{\"string\": \"value\", \"PE\":{\"Integer\":4}}"), ne.toString());
+		assertJson(sameJSONAs("{\"string\": \"value\", \"PE\":{\"Integer\":4}}"), ne);
 	}
 }

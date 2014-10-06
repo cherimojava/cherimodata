@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mongodb;
+package com.mongodb.client;
+
+import com.mongodb.MongoClient;
 
 /**
  * little Helper class to overcome the package private limitation

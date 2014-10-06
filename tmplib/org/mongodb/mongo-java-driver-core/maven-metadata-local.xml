@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>org.mongodb</groupId>
-  <artifactId>mongodb-driver</artifactId>
+  <artifactId>mongo-java-driver-core</artifactId>
   <versioning>
     <release>3.0.0-cj</release>
     <versions>
       <version>3.0.0-cj</version>
     </versions>
-    <lastUpdated>20140819074123</lastUpdated>
+    <lastUpdated>20141006205840</lastUpdated>
   </versioning>
 </metadata>

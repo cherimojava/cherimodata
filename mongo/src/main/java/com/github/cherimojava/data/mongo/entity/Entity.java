@@ -125,4 +125,6 @@ public interface Entity<T extends Entity> {
 	 * @return Class of this Entity
 	 */
 	public Class<T> entityClass();
+
+    static interface UpdateEntity extends Entity {}
 }

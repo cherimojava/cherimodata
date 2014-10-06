@@ -15,6 +15,8 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,14 @@ import java.util.Map;
 import org.bson.codecs.*;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.mongodb.MongoDatabase;
-import org.mongodb.codecs.*;
+import org.bson.codecs.configuration.RootCodecRegistry;
+import org.mongodb.Document;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.mongodb.client.MongoCollectionOptions;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.codecs.*;
 
 /**
  * A {@link org.bson.codecs.configuration.CodecProvider} for Entities and all the default Codec implementations on which
@@ -41,7 +46,7 @@ public class EntityCodecProvider implements CodecProvider {
     private final MongoDatabase db;
 
 	/**
-	 * Constructs a new instance with default {@link org.mongodb.codecs.BsonTypeClassMap}
+	 * Constructs a new instance with default {@link com.mongodb.codecs.BsonTypeClassMap}
 	 */
 	public EntityCodecProvider(MongoDatabase db,Class<? extends Entity> clazz) {
 		mapping = new EntityTypeMap(clazz);
@@ -60,13 +65,15 @@ public class EntityCodecProvider implements CodecProvider {
 		// decoder free of this information
 
 		if (Entity.class.isAssignableFrom(clazz)) {
-//			checkArgument(clazz.getInterfaces().length == 1,
-//					"Got Entity castable class but the number of interfaces doesn't match.", clazz,
-//					Lists.newArrayList(clazz.getInterfaces()));
-
-			return (Codec<T>) new EntityCodec(db,
-					EntityFactory.getProperties((Class<? extends Entity>) clazz.getInterfaces()[0]));
+            //there are two possible class types we can get. Some are the real interfaces and the other classes are proxy based
+            Class<?> eclass = Proxy.isProxyClass(clazz)? clazz.getInterfaces()[0]: clazz;
+            return (Codec<T>) new EntityCodec(db,
+					EntityFactory.getProperties((Class<? extends Entity>) eclass));
 		}
+
+        if (Document.class.isAssignableFrom(clazz)) {
+            return (Codec<T>) new DocumentCodec(registry,mapping);
+        }
 
 		if (List.class.isAssignableFrom(clazz)) {
 			return (Codec<T>) new ListCodec(registry, mapping);
@@ -83,7 +90,6 @@ public class EntityCodecProvider implements CodecProvider {
 		addCodec(new BinaryCodec());
 		addCodec(new BooleanCodec());
 		addCodec(new DateCodec());
-		addCodec(new BsonDBPointerCodec());
 		addCodec(new DoubleCodec());
 		addCodec(new IntegerCodec());
 		addCodec(new LongCodec());
@@ -91,14 +97,31 @@ public class EntityCodecProvider implements CodecProvider {
 		addCodec(new MaxKeyCodec());
 		addCodec(new CodeCodec());
 		addCodec(new ObjectIdCodec());
-		addCodec(new BsonRegularExpressionCodec());
 		addCodec(new StringCodec());
 		addCodec(new SymbolCodec());
-		addCodec(new BsonTimestampCodec());
-		addCodec(new BsonUndefinedCodec());
 	}
 
 	private <T> void addCodec(final Codec<T> codec) {
 		codecs.put(codec.getEncoderClass(), codec);
 	}
+
+    /**
+     * creates a RootCodecRegistry with our EntityCodecProvider as sole CodecProvider 
+     * @param db
+     * @param clazz
+     * @return
+     */
+    public static CodecRegistry createCodecRegistry(MongoDatabase db, Class<? extends Entity> clazz) {
+        return new RootCodecRegistry(Arrays.<CodecProvider> asList(new EntityCodecProvider(db, clazz)));
+    }
+
+    /**
+     * creates current default MongoCollectionOptions containing only the codecRegistry to use
+     * @param db
+     * @param clazz
+     * @return
+     */
+    public static MongoCollectionOptions createMongoCollectionOptions(MongoDatabase db, Class<? extends Entity> clazz) {
+        return MongoCollectionOptions.builder().codecRegistry(createCodecRegistry(db,clazz)).build();
+    }
 }

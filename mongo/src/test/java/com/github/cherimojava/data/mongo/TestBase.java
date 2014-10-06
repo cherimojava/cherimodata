@@ -24,6 +24,9 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
+import org.mongodb.Document;
+
+import java.io.StringWriter;
 
 /**
  * Base Class for Simple Tests not requiring MongoDB access
@@ -41,10 +44,33 @@ public abstract class TestBase {
 	 * @param actual
 	 * @return
 	 */
-	public void assertJson(Matcher<? super String> expected, String actual) {
-		assertThat(actual, expected);
+	public void assertJson(Matcher<? super String> expected, Document actual) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for (String key: actual.keySet()) {
+            sb.append(key).append("=").append(actual.get(key)).append(",");
+        }
+		assertThat(sb.append("}").toString(), expected);
 	}
 
+    /*public void assertJson(Matcher<? super String> expected, Document actual) {
+        assertThat("{"+actual.entrySet().toString()+"}", expected);
+    }*/
+
+    public void assertJson(Matcher<? super String> expected, StringWriter actual) {
+        assertThat(actual.toString(), expected);
+    }
+
+    /**
+     * little helper to verify the content of a Entity with some given JSON string
+     * @param expected
+     * @param actual
+     * @param <E>
+     */
+    public  <E extends Entity> void assertJson(Matcher<? super String> expected, E actual )
+    {
+        assertThat(actual.toString(),expected);
+    }
 	/**
 	 * small util method easing decoding of stuff
 	 *

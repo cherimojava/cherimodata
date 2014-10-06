@@ -27,14 +27,19 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentWrapper;
 import org.mongodb.Document;
-import org.mongodb.MongoCollection;
-import org.mongodb.MongoCursor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.io.EntityCodec;
 import com.google.common.collect.Maps;
+import com.mongodb.MongoCursor;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.FindOptions;
+import com.mongodb.client.model.UpdateOneOptions;
+import com.mongodb.client.result.UpdateResult;
 
 /**
  * Proxy class doing the magic for Entity based Interfaces
@@ -339,7 +344,14 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T extends Entity> void save(EntityInvocationHandler handler, MongoCollection<T> coll) {
-		coll.save((T) handler.proxy);
+        BsonDocumentWrapper wrapper=new BsonDocumentWrapper<>(handler.proxy, (org.bson.codecs.Encoder<Entity>) coll.getOptions().getCodecRegistry().get(handler.properties.getEntityClass()));
+//		wrapper.remove(Entity.ID);
+        UpdateResult res=coll.updateOne(EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID, EntityCodec._obtainId(handler.proxy)),
+				new BsonDocument("$set",wrapper),new UpdateOneOptions());
+        if (res.getMatchedCount()==0){
+            //TODO this seems too nasty, there must be a better way.for now live with it
+            coll.insertOne((T) handler.proxy);
+        }
 	}
 
 	/**
@@ -351,7 +363,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 *            MongoCollection in which this entity is saved
 	 */
 	static <T extends Entity> void drop(EntityInvocationHandler handler, MongoCollection<T> coll) {
-		coll.find(new Document(ID, ((T) handler.proxy).get(ID))).removeOne();
+		coll.findOneAndDelete(new Document(ID, ((T) handler.proxy).get(ID)));
 	}
 
 	/**
@@ -369,7 +381,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T extends Entity> T find(MongoCollection<T> collection, Object id) {
-		try (MongoCursor<? extends Entity> curs = collection.find(new Document(Entity.ID, id)).limit(1).iterator()) {
+		try (MongoCursor<? extends Entity> curs = collection.find(new FindOptions().limit(1).criteria(new Document(Entity.ID, id))).iterator()){
 			return (T) ((curs.hasNext()) ? curs.next() : null);
 		}
 	}
