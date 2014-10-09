@@ -55,7 +55,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	private final EntityFactory factory;
 	private final CodecRegistry codecRegistry;
 	private static final Logger LOG = LoggerFactory.getLogger(EntityCodec.class);
-	public static final String ENTITY_CLASS = "cherimongo-eclass";
 	private final MongoDatabase db;
 
 	public EntityCodec(MongoDatabase db, EntityProperties properties) {
