@@ -81,6 +81,6 @@ public abstract class TestBase {
 	 * @return
 	 */
 	public <E extends Entity> E decode(EntityCodec decoder, BsonReader reader, Class<E> clazz) {
-		return (E) decoder.decode(reader, EntityCodec.createContext(clazz));
+		return (E) decoder.decode(reader, null);
 	}
 }

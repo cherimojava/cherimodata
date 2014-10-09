@@ -15,7 +15,6 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import static com.github.cherimojava.data.mongo.io.EntityCodec.createContext;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.mongodb.operation.Index.Builder;
@@ -244,7 +243,7 @@ public class EntityFactory {
 	 *         Entity.save()
 	 */
 	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
-		return new EntityCodec<T>(db, defFactory.create(clazz)).decode(new JsonReader(json), createContext(clazz));
+		return new EntityCodec<T>(db, defFactory.create(clazz)).decode(new JsonReader(json), null);
 	}
 
 	/**
