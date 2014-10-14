@@ -70,6 +70,10 @@
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
         </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
         <!-- JSR303 Bean Validation -->
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -124,7 +128,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
         </dependency>
-        <!--TODO move version info to parent-->
+        <!-- TODO move version info to parent -->
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>

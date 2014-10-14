@@ -99,6 +99,7 @@ public class EntityCodecProvider implements CodecProvider {
 		addCodec(new ObjectIdCodec());
 		addCodec(new StringCodec());
 		addCodec(new SymbolCodec());
+        addCodec(new DateTimeCodec());
 	}
 
 	private <T> void addCodec(final Codec<T> codec) {
