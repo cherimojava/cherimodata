@@ -17,12 +17,16 @@ package com.github.cherimojava.data.spring;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
+import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
@@ -42,7 +46,8 @@ import com.google.common.base.Charsets;
  * @author philnate
  * @since 1.0.0
  */
-public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
+public class EntityConverter extends AbstractHttpMessageConverter<Entity> implements
+		GenericHttpMessageConverter<Entity> {
 
 	private final EntityFactory factory;
 
@@ -74,6 +79,25 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 	@Override
 	protected Entity readInternal(Class<? extends Entity> clazz, HttpInputMessage inputMessage) throws IOException,
 			HttpMessageNotReadableException {
+		return fromJson(clazz, inputMessage);
+	}
+
+	@Override
+	public Entity read(Type type, Class<?> contextClass, HttpInputMessage inputMessage) throws IOException,
+			HttpMessageNotReadableException {
+		// as this method is only called after we decided that we can decode the requested type, we only need to check
+		// what we have (plain entity/list of entities)
+		if (type instanceof Class) {
+			// simple class
+			return fromJson((Class<? extends Entity>) type, inputMessage);
+		} else {
+			// collection
+			return fromJson((Class<? extends Entity>) ((ParameterizedType) type).getActualTypeArguments()[0],
+					inputMessage);
+		}
+	}
+
+	private Entity fromJson(Class<? extends Entity> clazz, HttpInputMessage inputMessage) throws IOException {
 		return factory.fromJson(clazz, IOUtils.toString(inputMessage.getBody(), Charsets.UTF_8.name()));
 	}
 
@@ -84,4 +108,29 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> {
 			osw.write(o.toString());
 		}
 	}
+
+	@Override
+	public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
+		if (MediaType.APPLICATION_JSON.equals(mediaType)) {
+			if (type instanceof Class) {
+				// check if this is a simple entity class
+				return Entity.class.isAssignableFrom((Class) type);
+			}
+			if (type instanceof ParameterizedType) {
+				// is this a parameterized type
+				ParameterizedType pt = (ParameterizedType) type;
+				if (pt.getRawType() instanceof Class && Collection.class.isAssignableFrom((Class) pt.getRawType())) {
+					// is this rawtype a class and is this class some collection
+					Type generic = pt.getActualTypeArguments()[0];
+					if (generic instanceof Class && Entity.class.isAssignableFrom((Class) generic)) {
+						// is this collection generic an entity
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	// TODO add tests for canRead
 }

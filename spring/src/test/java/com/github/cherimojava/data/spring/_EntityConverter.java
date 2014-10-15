@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.*;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCollectionOptions;
 import com.mongodb.client.MongoDatabase;
@@ -99,7 +101,7 @@ public class _EntityConverter extends TestBase {
 	}
 
 	@Test
-	public void integration() throws Exception {
+	public void integrationSingleEntity() throws Exception {
 		MongoDatabase db = mock(MongoDatabase.class);
 		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
 				mock(MongoCollection.class));
@@ -111,6 +113,23 @@ public class _EntityConverter extends TestBase {
 				mvc.perform(
 						post("/t").contentType(MediaType.APPLICATION_JSON).content("{\"string\":\"ping\"}").accept(
 								MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+	}
+
+	@Test
+	public void integrationEntityList() throws Exception {
+		MongoDatabase db = mock(MongoDatabase.class);
+		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
+				mock(MongoCollection.class));
+		EntityFactory factory = new EntityFactory(db);
+		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
+				new EntityConverter(factory)).build();
+		assertEquals(
+				"[{ \"string\" : \"PING\" },{ \"string\" : \"PONG\" }]",
+				mvc.perform(
+						post("/l").contentType(MediaType.APPLICATION_JSON).content(
+								"[{\"string\":\"ping\"},{\"string\":\"pong\"}]").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isOk()).andReturn().getResponse().getContentAsString());
+
 	}
 
 	private static interface Level1 extends Entity {
@@ -133,6 +152,15 @@ public class _EntityConverter extends TestBase {
 		public @ResponseBody SimpleEntity post(@RequestBody SimpleEntity setting) {
 			assertEquals("ping", setting.getString());
 			return EntityFactory.instantiate(SimpleEntity.class).setString("PONG");
+		}
+
+		@RequestMapping(value = "l", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public @ResponseBody List<SimpleEntity> postList(@RequestBody List<SimpleEntity> settings) {
+			assertEquals(2, settings.size());
+			assertEquals("ping", settings.get(0).getString());
+			assertEquals("pong", settings.get(1).getString());
+			return Lists.newArrayList(EntityFactory.instantiate(SimpleEntity.class).setString("PING"),
+					EntityFactory.instantiate(SimpleEntity.class).setString("PING"));
 		}
 	}
 }
