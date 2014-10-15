@@ -132,6 +132,16 @@ public class _EntityFactory extends TestBase {
 		assertEquals((int) pe.getInteger(), 3);
 	}
 
+	@Test
+	public void readList() {
+		List<CommonInterfaces.PrimitiveEntity> list = factory.readList(CommonInterfaces.PrimitiveEntity.class,
+				"[{\"string\": \"one\",\"Integer\":1},{\"string\": \"two\",\"Integer\":2}]");
+		assertEquals(list.get(0).getString(), "one");
+		assertEquals((int) list.get(0).getInteger(), 1);
+		assertEquals(list.get(1).getString(), "two");
+		assertEquals((int) list.get(1).getInteger(), 2);
+	}
+
 	@Collection(indexes = {
 			@Index(name = "single", value = { @IndexField(field = "string", order = IndexField.Ordering.ASC) }),
 			@Index(value = { @IndexField(field = "string", order = IndexField.Ordering.DESC),

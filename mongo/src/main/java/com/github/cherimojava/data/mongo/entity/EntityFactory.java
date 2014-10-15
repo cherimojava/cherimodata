@@ -247,6 +247,23 @@ public class EntityFactory {
 	}
 
 	/**
+	 * creates a list of Entities from the given JSON String, which is of the given Entity class
+	 * 
+	 * @param clazz
+	 *            entity class of the lists string representation
+	 * @param json
+	 *            String representation of the entity list
+	 * @param <T>
+	 *            Entity class
+	 * @return List of entities represented by the given String, with MongoDB reference. This means each entity is able
+	 *         to be saved, e.g. Entity.save()
+	 */
+	public <T extends Entity> List<T> readList(Class<T> clazz, String json) {
+		return (List<T>) new EntityCodec<T>(db, defFactory.create(clazz)).getCodec(List.class).decode(
+				new JsonReader(json), null);
+	}
+
+	/**
 	 * Sets a default class for a given Interface, which will be used if a Add method is invoked but no underlying
 	 * object is existing yet. Supplied class must provide a parameterless public constructor and must be not abstract
 	 *

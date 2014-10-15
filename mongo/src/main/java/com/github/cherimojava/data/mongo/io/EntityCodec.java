@@ -322,6 +322,10 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 		writer.writeEndDocument();
 	}
 
+	public Codec getCodec(Class clazz) {
+		return codecRegistry.get(clazz);
+	}
+
 	public String asString(T value) {
         try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
             encode(writer, value, false);
