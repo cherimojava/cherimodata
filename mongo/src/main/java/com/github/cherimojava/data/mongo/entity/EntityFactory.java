@@ -116,7 +116,7 @@ public class EntityFactory {
 	 * @param clazz
 	 * @return
 	 */
-	private MongoCollection<? extends Entity> getCollection(Class clazz) {
+	public MongoCollection<? extends Entity> getCollection(Class<? extends Entity> clazz) {
 		try {
 			return preparedEntites.get(clazz);
 		} catch (UncheckedExecutionException | ExecutionException e) {
