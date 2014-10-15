@@ -46,8 +46,8 @@ import com.google.common.base.Charsets;
  * @author philnate
  * @since 1.0.0
  */
-public class EntityConverter extends AbstractHttpMessageConverter<Entity> implements
-		GenericHttpMessageConverter<Entity> {
+public class EntityConverter extends AbstractHttpMessageConverter<Object> implements
+		GenericHttpMessageConverter<Object> {
 
 	private final EntityFactory factory;
 
@@ -77,23 +77,23 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> implem
 	}
 
 	@Override
-	protected Entity readInternal(Class<? extends Entity> clazz, HttpInputMessage inputMessage) throws IOException,
+	protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage) throws IOException,
 			HttpMessageNotReadableException {
-		return fromJson(clazz, inputMessage);
+		return fromJson((Class<? extends Entity>) clazz, inputMessage);
 	}
 
 	@Override
-	public Entity read(Type type, Class<?> contextClass, HttpInputMessage inputMessage) throws IOException,
+	public Object read(Type type, Class<?> contextClass, HttpInputMessage inputMessage) throws IOException,
 			HttpMessageNotReadableException {
 		// as this method is only called after we decided that we can decode the requested type, we only need to check
 		// what we have (plain entity/list of entities)
 		if (type instanceof Class) {
 			// simple class
-			return fromJson((Class<? extends Entity>) type, inputMessage);
+			return factory.readEntity((Class<? extends Entity>) type, IOUtils.toString(inputMessage.getBody()));
 		} else {
 			// collection
-			return fromJson((Class<? extends Entity>) ((ParameterizedType) type).getActualTypeArguments()[0],
-					inputMessage);
+			return factory.readList((Class<? extends Entity>) ((ParameterizedType) type).getActualTypeArguments()[0],
+					IOUtils.toString(inputMessage.getBody()));
 		}
 	}
 
@@ -102,7 +102,7 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> implem
 	}
 
 	@Override
-	protected void writeInternal(Entity o, HttpOutputMessage outputMessage) throws IOException,
+	protected void writeInternal(Object o, HttpOutputMessage outputMessage) throws IOException,
 			HttpMessageNotWritableException {
 		try (OutputStreamWriter osw = new OutputStreamWriter(outputMessage.getBody())) {
 			osw.write(o.toString());
@@ -130,6 +130,14 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> implem
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+		// this is rather ugly, would be great if we could get hold of the Type rather than class, so that we can check
+		// for the generic type and decide upon this
+		return MediaType.APPLICATION_JSON.equals(mediaType)
+				&& (Entity.class.isAssignableFrom(clazz) || Collection.class.isAssignableFrom(clazz));
 	}
 
 	// TODO add tests for canRead

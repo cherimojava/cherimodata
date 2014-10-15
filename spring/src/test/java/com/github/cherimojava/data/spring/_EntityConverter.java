@@ -124,7 +124,7 @@ public class _EntityConverter extends TestBase {
 		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
 				new EntityConverter(factory)).build();
 		assertEquals(
-				"[{ \"string\" : \"PING\" },{ \"string\" : \"PONG\" }]",
+				"[{ \"string\" : \"PING\" }, { \"string\" : \"PONG\" }]",
 				mvc.perform(
 						post("/l").contentType(MediaType.APPLICATION_JSON).content(
 								"[{\"string\":\"ping\"},{\"string\":\"pong\"}]").accept(MediaType.APPLICATION_JSON)).andExpect(
@@ -160,7 +160,7 @@ public class _EntityConverter extends TestBase {
 			assertEquals("ping", settings.get(0).getString());
 			assertEquals("pong", settings.get(1).getString());
 			return Lists.newArrayList(EntityFactory.instantiate(SimpleEntity.class).setString("PING"),
-					EntityFactory.instantiate(SimpleEntity.class).setString("PING"));
+					EntityFactory.instantiate(SimpleEntity.class).setString("PONG"));
 		}
 	}
 }
