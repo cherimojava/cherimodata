@@ -242,7 +242,7 @@ public class EntityFactory {
 	 * @return Entity instance representing the given String, with MongoDB reference. Thus being able to perform e.g.
 	 *         Entity.save()
 	 */
-	public <T extends Entity> T fromJson(Class<T> clazz, String json) {
+	public <T extends Entity> T readEntity(Class<T> clazz, String json) {
 		return new EntityCodec<T>(db, defFactory.create(clazz)).decode(new JsonReader(json), null);
 	}
 

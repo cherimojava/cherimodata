@@ -113,7 +113,7 @@ public class _DeEncoding extends MongoBase {
 
 	@Test
 	public void noDuplicateIdWritten() {
-		ExplicitIdEntity eid = factory.fromJson(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
+		ExplicitIdEntity eid = factory.readEntity(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
 		assertEquals("explicit", eid.getName());
 		EntityCodec<ExplicitIdEntity> codec = new EntityCodec<>(db, factory.getProperties(ExplicitIdEntity.class));
 
@@ -246,16 +246,16 @@ public class _DeEncoding extends MongoBase {
 
 	@Test
 	public void ignoreUnknownProps() {
-		PrimitiveEntity pe = factory.fromJson(PrimitiveEntity.class,
-				"{\"string\":\"some\",\"Integer\":1,\"unknown\":\"dontfail\"}");
+		PrimitiveEntity pe = factory.readEntity(PrimitiveEntity.class,
+                "{\"string\":\"some\",\"Integer\":1,\"unknown\":\"dontfail\"}");
 		assertEquals(1, (int) pe.getInteger());
 		assertEquals("some", pe.getString());
 	}
 
 	@Test
 	public void ignoreUnknownSubtype() {
-		PrimitiveEntity pe = factory.fromJson(PrimitiveEntity.class,
-				"{\"unknown\": {\"string\":\"dontfail\"},\"string\":\"some\",\"Integer\":1}");
+		PrimitiveEntity pe = factory.readEntity(PrimitiveEntity.class,
+                "{\"unknown\": {\"string\":\"dontfail\"},\"string\":\"some\",\"Integer\":1}");
 		assertEquals(1, (int) pe.getInteger());
 		assertEquals("some", pe.getString());
 	}

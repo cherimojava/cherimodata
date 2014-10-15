@@ -126,8 +126,8 @@ public class _EntityFactory extends TestBase {
 
 	@Test
 	public void fromJSON() {
-		CommonInterfaces.PrimitiveEntity pe = factory.fromJson(CommonInterfaces.PrimitiveEntity.class,
-				"{\"string\": \"something\",\"Integer\":3}");
+		CommonInterfaces.PrimitiveEntity pe = factory.readEntity(CommonInterfaces.PrimitiveEntity.class,
+                "{\"string\": \"something\",\"Integer\":3}");
 		assertEquals(pe.getString(), "something");
 		assertEquals((int) pe.getInteger(), 3);
 	}

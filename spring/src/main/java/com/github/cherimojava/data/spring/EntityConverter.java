@@ -98,7 +98,7 @@ public class EntityConverter extends AbstractHttpMessageConverter<Entity> implem
 	}
 
 	private Entity fromJson(Class<? extends Entity> clazz, HttpInputMessage inputMessage) throws IOException {
-		return factory.fromJson(clazz, IOUtils.toString(inputMessage.getBody(), Charsets.UTF_8.name()));
+		return factory.readEntity(clazz, IOUtils.toString(inputMessage.getBody(), Charsets.UTF_8.name()));
 	}
 
 	@Override
