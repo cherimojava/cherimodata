@@ -15,28 +15,6 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import com.github.cherimojava.data.mongo.CommonInterfaces;
-import com.github.cherimojava.data.mongo.TestBase;
-import com.google.common.collect.Lists;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.client.MongoCollectionOptions;
-import org.bson.types.ObjectId;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Answers;
-import org.mockito.Mock;
-import org.mockito.MockSettings;
-import org.mockito.MockitoAnnotations;
-import org.mongodb.Document;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.codecs.CollectibleCodec;
-
-import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -46,6 +24,26 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.validation.ConstraintViolationException;
+
+import org.bson.types.ObjectId;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import com.github.cherimojava.data.mongo.CommonInterfaces;
+import com.github.cherimojava.data.mongo.TestBase;
+import com.google.common.collect.Lists;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCollectionOptions;
+import com.mongodb.client.MongoDatabase;
 
 public class _EntityInvocationHandler extends TestBase {
 
@@ -63,8 +61,8 @@ public class _EntityInvocationHandler extends TestBase {
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
 		collection = mock(MongoCollection.class);
-		when(db.getCollection(anyString(),any(Class.class), any(MongoCollectionOptions.class))).thenReturn(collection);
-        when(collection.getOptions()).then(Answers.RETURNS_DEEP_STUBS.get());
+		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(collection);
+		when(collection.getOptions()).then(Answers.RETURNS_DEEP_STUBS.get());
 	}
 
 	@Test
@@ -341,8 +339,8 @@ public class _EntityInvocationHandler extends TestBase {
 		re.setPE(pe.setString("some"));
 		re.setInteger(5);
 		assertJson(
-				sameJSONAs("{ \"PE\" : { \"$ref\" : \"primitiveEntity\" , \"$id\" : { \"$oid\" : \"" + id.toHexString() + "\" } }, \"Integer\" : 5 }"),
-				re);
+				sameJSONAs("{ \"PE\" : { \"$ref\" : \"primitiveEntitys\" , \"$id\" : { \"$oid\" : \""
+						+ id.toHexString() + "\" } }, \"Integer\" : 5 }"), re);
 	}
 
 	@Test

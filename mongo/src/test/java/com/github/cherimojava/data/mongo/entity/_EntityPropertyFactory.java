@@ -42,7 +42,7 @@ public class _EntityPropertyFactory extends TestBase {
 
 	@Test
 	public void collectionName() {
-		assertEquals("primitiveEntity", factory.create(PrimitiveEntity.class).getCollectionName());
+		assertEquals("primitiveEntitys", factory.create(PrimitiveEntity.class).getCollectionName());
 		assertEquals("Nested", factory.create(NestedEntity.class).getCollectionName());
 	}
 

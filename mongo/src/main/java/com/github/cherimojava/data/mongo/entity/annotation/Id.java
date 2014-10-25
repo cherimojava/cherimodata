@@ -15,11 +15,7 @@
  */
 package com.github.cherimojava.data.mongo.entity.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Simple Marker Annotation denoting the id field if it's not named Id. Cannot be combined with a property which is
@@ -33,4 +29,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface Id {
+	// TODO inherit from final, so that an exception trying to update this is thrown early
 }

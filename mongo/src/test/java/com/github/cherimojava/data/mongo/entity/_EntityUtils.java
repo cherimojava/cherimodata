@@ -137,7 +137,7 @@ public class _EntityUtils extends TestBase {
 	 */
 	@Test
 	public void collectionNameResolution() {
-		assertEquals("primitiveEntity", getCollectionName(PrimitiveEntity.class));
+		assertEquals("primitiveEntitys", getCollectionName(PrimitiveEntity.class));
 		assertEquals("Nested", getCollectionName(NestedEntity.class));
 	}
 

@@ -15,6 +15,10 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.*;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Locale;
@@ -24,10 +28,6 @@ import javax.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * Utility Class holding commonly used functionality to work with Entities
@@ -122,14 +122,14 @@ public class EntityUtils {
 	 * @param clazz
 	 *            Entity from which to retrieve the collection name
 	 * @return the name of the Entity as declared with the Named annotation or the clazz name if annotation isn't
-	 *         present
+	 *         present as plural
 	 */
 	public static String getCollectionName(Class<? extends Entity> clazz) {
 		Named name = clazz.getAnnotation(Named.class);
 		if (name != null && isNotEmpty(name.value())) {
 			return name.value();
 		}
-		return uncapitalize(clazz.getSimpleName());
+		return uncapitalize(clazz.getSimpleName() + "s");
 	}
 
 	/**

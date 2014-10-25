@@ -102,7 +102,7 @@ public class _DeEncoding extends MongoBase {
 		pe.setInteger(12);
 		pe.save();
 
-		Document doc = db.getCollection("primitiveEntity").find(new FindOptions().limit(1)).iterator().next();
+		Document doc = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new FindOptions().limit(1)).iterator().next();
 		assertJson(sameJSONAs("{ \"Integer\" : 12, \"string\" : \"some string\" }").allowingExtraUnexpectedFields(),
 				doc);
 
@@ -137,7 +137,8 @@ public class _DeEncoding extends MongoBase {
 		cpe.setInteger(1);
 		cpe.save();
 
-		Document doc = db.getCollection("computedPropertyEntity").find(new FindOptions().limit(1)).iterator().next();
+		Document doc = db.getCollection(getCollectionName(ComputedPropertyEntity.class)).find(
+				new FindOptions().limit(1)).iterator().next();
 		assertJson(
 				sameJSONAs("{ \"string\":\"some\", \"Integer\":1, \"computed\":\"some1\"}").allowingExtraUnexpectedFields(),
 				doc);
@@ -150,7 +151,7 @@ public class _DeEncoding extends MongoBase {
 		ee.setName("some");
 		ee.save();
 
-		Document doc = db.getCollection("explicitIdEntity").find(new FindOptions().limit(1)).iterator().next();
+		Document doc = db.getCollection(getCollectionName(ExplicitIdEntity.class)).find(new FindOptions().limit(1)).iterator().next();
 		assertJson(sameJSONAs("{ \"_id\" : \"some\" }").allowingExtraUnexpectedFields(), doc);
 
 		ExplicitIdEntity read = factory.load(ExplicitIdEntity.class, doc.get("_id"));
@@ -165,7 +166,8 @@ public class _DeEncoding extends MongoBase {
 
 		te.save();
 
-		Document doc = db.getCollection("transientEntity").find(new FindOptions().criteria(new Document("_id", "some"))).iterator().next();
+		Document doc = db.getCollection(getCollectionName(TransientEntity.class)).find(
+				new FindOptions().criteria(new Document("_id", "some"))).iterator().next();
 		assertJson(sameJSONAs("{ \"_id\" : \"some\" }"), doc);
 
 		TransientEntity read = factory.load(TransientEntity.class, doc.get("_id"));
@@ -227,14 +229,14 @@ public class _DeEncoding extends MongoBase {
 		re.setString("some");
 
 		re.save();
-		Document reRead = db.getCollection("referencingEntity").find(
+		Document reRead = db.getCollection(getCollectionName(ReferencingEntity.class)).find(
 				new FindOptions().criteria(new Document(ID, re.get(ID)))).iterator().next();
 		System.out.println(reRead);
 		ObjectId dbRef = (ObjectId) ((Document) reRead.get("PE")).get("$id");
 		assertNotNull(dbRef);
 		assertNotNull(pe.get(ID));
 		assertEquals(pe.get(ID), dbRef);
-		Document peRead = db.getCollection("primitiveEntity").find(
+		Document peRead = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(
 				new FindOptions().criteria(new Document(ID, pe.get(ID)))).iterator().next();
 
 		assertEquals(pe.get(ID), peRead.get(ID));
@@ -247,7 +249,7 @@ public class _DeEncoding extends MongoBase {
 	@Test
 	public void ignoreUnknownProps() {
 		PrimitiveEntity pe = factory.readEntity(PrimitiveEntity.class,
-                "{\"string\":\"some\",\"Integer\":1,\"unknown\":\"dontfail\"}");
+				"{\"string\":\"some\",\"Integer\":1,\"unknown\":\"dontfail\"}");
 		assertEquals(1, (int) pe.getInteger());
 		assertEquals("some", pe.getString());
 	}
@@ -255,7 +257,7 @@ public class _DeEncoding extends MongoBase {
 	@Test
 	public void ignoreUnknownSubtype() {
 		PrimitiveEntity pe = factory.readEntity(PrimitiveEntity.class,
-                "{\"unknown\": {\"string\":\"dontfail\"},\"string\":\"some\",\"Integer\":1}");
+				"{\"unknown\": {\"string\":\"dontfail\"},\"string\":\"some\",\"Integer\":1}");
 		assertEquals(1, (int) pe.getInteger());
 		assertEquals("some", pe.getString());
 	}
@@ -304,13 +306,11 @@ public class _DeEncoding extends MongoBase {
 		JsonWriter jwriter = new JsonWriter(swriter);
 
 		codec.encode(jwriter, ce, null);
-		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"),
-				swriter);
+		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"), swriter);
 
 		JsonReader jreader = new JsonReader(swriter.toString());
 		CollectionEntity ceRead = decode(codec, jreader, CollectionEntity.class);
-		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"),
-				ceRead);
+		assertJson(sameJSONAs("{ \"arrayStrings\": [\"one\",\"two\"],\"strings\":[\"three\",\"four\"] }"), ceRead);
 	}
 
 	@Test
@@ -328,9 +328,9 @@ public class _DeEncoding extends MongoBase {
 		assertNotNull(read.getList());
 		assertEquals(listed.getList().get(0), read.getList().get(0));
 
-        listed.save();
-        Listed r = factory.load(Listed.class,listed.get(ID));
-        assertEquals(listed,r);
+		listed.save();
+		Listed r = factory.load(Listed.class, listed.get(ID));
+		assertEquals(listed, r);
 	}
 
 	@Test
