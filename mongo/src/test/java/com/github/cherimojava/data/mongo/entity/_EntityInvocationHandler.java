@@ -172,6 +172,18 @@ public class _EntityInvocationHandler extends TestBase {
 	}
 
 	@Test
+	public void verifyPropertyConstraintOnStaticSave() {
+		PrimitiveEntity pe = EntityFactory.instantiate(PrimitiveEntity.class);
+		pe.setInteger(1);
+		try {
+			factory.save(pe);
+			fail("should throw an exception");
+		} catch (ConstraintViolationException e) {
+			assertThat(e.getConstraintViolations().iterator().next().getMessage(), containsString("null"));
+		}
+	}
+
+	@Test
 	public void sealEntityPut() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
 		pe.setInteger(1).seal();

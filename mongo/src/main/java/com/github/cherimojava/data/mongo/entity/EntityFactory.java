@@ -289,4 +289,15 @@ public class EntityFactory {
 	public static Class getDefaultClass(Class interfaze) {
 		return interfaceImpls.get(interfaze);
 	}
+
+	/**
+	 * saves the entity into the collection for this factory. This allows to save an entity into a different database
+	 * than it would be otherwise stored
+	 * 
+	 * @param e
+	 */
+	public void save(Entity e) {
+		EntityInvocationHandler handler = (EntityInvocationHandler) Proxy.getInvocationHandler(e);
+		EntityInvocationHandler.save(handler, getCollection(e.entityClass()));
+	}
 }

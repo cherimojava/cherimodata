@@ -278,6 +278,17 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	@Test
+	public void saveByFactory() {
+		PrimitiveEntity pe = EntityFactory.instantiate(PrimitiveEntity.class);
+		pe.setInteger(1);
+		pe.setString("some");
+
+		factory.save(pe);
+		PrimitiveEntity read = factory.load(PrimitiveEntity.class, pe.get(ID));
+		assertEquals(pe, read);
+	}
+
+	@Test
 	@Ignore
 	public void lazyLoadEntity() {
 		// right now we can check that it's not loaded by checking to String which then shouldn't show the lazy loaded

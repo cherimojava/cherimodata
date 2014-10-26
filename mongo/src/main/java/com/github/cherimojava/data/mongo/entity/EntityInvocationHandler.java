@@ -133,9 +133,6 @@ class EntityInvocationHandler implements InvocationHandler {
 					// TODO we can release this if it's of type ObjectId
 					checkNotNull(data.get(ID), "An explicit defined Id must be set before saving");
 				}
-				for (ParameterProperty cpp : properties.getValidationProperties()) {
-					cpp.validate(data.get(cpp.getMongoName()));
-				}
 				save(this, collection);
 				// change state only after successful saving to Mongo
 				changed = false;
@@ -344,14 +341,21 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T extends Entity> void save(EntityInvocationHandler handler, MongoCollection<T> coll) {
-        BsonDocumentWrapper wrapper=new BsonDocumentWrapper<>(handler.proxy, (org.bson.codecs.Encoder<Entity>) coll.getOptions().getCodecRegistry().get(handler.properties.getEntityClass()));
-//		wrapper.remove(Entity.ID);
-        UpdateResult res=coll.updateOne(EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID, EntityCodec._obtainId(handler.proxy)),
-				new BsonDocument("$set",wrapper),new UpdateOneOptions());
-        if (res.getMatchedCount()==0){
-            //TODO this seems too nasty, there must be a better way.for now live with it
-            coll.insertOne((T) handler.proxy);
-        }
+		for (ParameterProperty cpp : handler.properties.getValidationProperties()) {
+			cpp.validate(handler.data.get(cpp.getMongoName()));
+		}
+		BsonDocumentWrapper wrapper = new BsonDocumentWrapper<>(handler.proxy,
+				(org.bson.codecs.Encoder<Entity>) coll.getOptions().getCodecRegistry().get(
+						handler.properties.getEntityClass()));
+		// wrapper.remove(Entity.ID);
+		UpdateResult res = coll.updateOne(
+				EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID,
+						EntityCodec._obtainId(handler.proxy)), new BsonDocument("$set", wrapper),
+				new UpdateOneOptions());
+		if (res.getMatchedCount() == 0) {
+			// TODO this seems too nasty, there must be a better way.for now live with it
+			coll.insertOne((T) handler.proxy);
+		}
 	}
 
 	/**
@@ -381,7 +385,8 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T extends Entity> T find(MongoCollection<T> collection, Object id) {
-		try (MongoCursor<? extends Entity> curs = collection.find(new FindOptions().limit(1).criteria(new Document(Entity.ID, id))).iterator()){
+		try (MongoCursor<? extends Entity> curs = collection.find(
+				new FindOptions().limit(1).criteria(new Document(Entity.ID, id))).iterator()) {
 			return (T) ((curs.hasNext()) ? curs.next() : null);
 		}
 	}
