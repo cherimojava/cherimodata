@@ -41,7 +41,6 @@ public class EntityUtils {
 	 * Utility class no Need for Instance
 	 */
 	private EntityUtils() {
-
 	}
 
 	/**
@@ -212,5 +211,24 @@ public class EntityUtils {
 	 */
 	static boolean isAssignableFromClass(Method m) {
 		return m.getReturnType().isAssignableFrom(m.getDeclaringClass());
+	}
+
+	/**
+	 * marks an entity as persisted, which means that certain things might not be changed after on.
+	 * 
+	 * @param e
+	 */
+	public static void persist(Entity e) {
+		EntityInvocationHandler.getHandler(e).persist();
+	}
+
+	/**
+	 * returns if the given Entity is already persisted or not
+	 * 
+	 * @param e
+	 * @return
+	 */
+	public static boolean isPersisted(Entity e) {
+		return EntityInvocationHandler.getHandler(e).persisted;
 	}
 }

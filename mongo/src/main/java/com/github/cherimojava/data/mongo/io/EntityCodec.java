@@ -143,6 +143,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 
 	private <E extends Entity> E decodeEntity(BsonReader reader, Class<E> clazz) {
 		E e = factory.create(clazz);
+		EntityUtils.persist(e);
 		EntityProperties properties = EntityFactory.getProperties(clazz);
 		reader.readStartDocument();
 		BsonType type;
@@ -216,23 +217,23 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	private <E extends Entity> Collection<E> decodeArray(BsonReader reader, ParameterProperty props) {
-        Collection<E> coll;
-        try {
-            if (EntityFactory.getDefaultClass(props.getType())==null) {
-                throw new IllegalStateException(format(
-                        "Property is of interface %s, but no suitable implementation was registered", props.getType()));
-            }
-           coll= (Collection<E>) EntityFactory.getDefaultClass(props.getType()).newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalStateException("The impossible happened. Could not instantiate Class", e);
-        }
-        reader.readStartArray();
-        while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
-            coll.add(decodeEntity(reader, (Class<E>) props.getGenericType()));
-        }
-        reader.readEndArray();
-        return coll;
-    }
+		Collection<E> coll;
+		try {
+			if (EntityFactory.getDefaultClass(props.getType()) == null) {
+				throw new IllegalStateException(format(
+						"Property is of interface %s, but no suitable implementation was registered", props.getType()));
+			}
+			coll = (Collection<E>) EntityFactory.getDefaultClass(props.getType()).newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new IllegalStateException("The impossible happened. Could not instantiate Class", e);
+		}
+		reader.readStartArray();
+		while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
+			coll.add(decodeEntity(reader, (Class<E>) props.getGenericType()));
+		}
+		reader.readEndArray();
+		return coll;
+	}
 
 	/*
 	 * Encoder Stuff
@@ -255,6 +256,10 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 
 	private void encodeEntity(BsonWriter writer, T value, boolean toDB) {
 		EntityProperties properties = EntityFactory.getProperties(value.entityClass());
+
+		// mark this entity as persisted
+		EntityUtils.persist(value);
+
 		Object id = value.get(Entity.ID);
 		if (id != null && !properties.hasExplicitId()) {
 			// this is needed to write the object id, which at this time should be set in case it wasn't before
@@ -327,12 +332,12 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	public String asString(T value) {
-        try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
-            encode(writer, value, false);
-            return swriter.toString();
-        } catch (IOException e) {
-            Throwables.propagate(e);
-            return null;
-        }
-    }
+		try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
+			encode(writer, value, false);
+			return swriter.toString();
+		} catch (IOException e) {
+			Throwables.propagate(e);
+			return null;
+		}
+	}
 }

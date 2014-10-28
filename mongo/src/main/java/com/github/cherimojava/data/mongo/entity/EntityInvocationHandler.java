@@ -79,6 +79,11 @@ class EntityInvocationHandler implements InvocationHandler {
 	private boolean sealed = false;
 
 	/**
+	 * was this object already saved or not
+	 */
+	boolean persisted = false;
+
+	/**
 	 * holds the actual data of the Entity
 	 */
 	Map<String, Object> data;
@@ -295,11 +300,12 @@ class EntityInvocationHandler implements InvocationHandler {
 			// for all non proxies we know that we can return false
 			return false;
 		}
-		if (!Proxy.getInvocationHandler(o).getClass().equals(getClass())) {
+		InvocationHandler ihandler = Proxy.getInvocationHandler(o);
+		if (!ihandler.getClass().equals(getClass())) {
 			// for all proxies not being EntityInvocationHandler return false
 			return false;
 		}
-		EntityInvocationHandler handler = (EntityInvocationHandler) Proxy.getInvocationHandler(o);
+		EntityInvocationHandler handler = (EntityInvocationHandler) ihandler;
 		if (!handler.properties.getEntityClass().equals(properties.getEntityClass())) {
 			// this is not the same entity class, so false
 			return false;
@@ -356,6 +362,7 @@ class EntityInvocationHandler implements InvocationHandler {
 			// TODO this seems too nasty, there must be a better way.for now live with it
 			coll.insertOne((T) handler.proxy);
 		}
+		handler.persist();
 	}
 
 	/**
@@ -392,6 +399,17 @@ class EntityInvocationHandler implements InvocationHandler {
 	}
 
 	/**
+	 * returns the {@link com.github.cherimojava.data.mongo.entity.EntityInvocationHandler} of the given entity
+	 * 
+	 * @param e
+	 *            entity to retrieve handler from
+	 * @return EntityInvocationHandler the entity is baked by
+	 */
+	public static EntityInvocationHandler getHandler(Entity e) {
+		return (EntityInvocationHandler) Proxy.getInvocationHandler(checkNotNull(e));
+	}
+
+	/**
 	 * sets the proxy this handler backs, needed for internal work
 	 *
 	 * @param proxy
@@ -399,5 +417,12 @@ class EntityInvocationHandler implements InvocationHandler {
 	void setProxy(Entity proxy) {
 		checkArgument(this.proxy == null, "Proxy for Handler can be only set once");
 		this.proxy = proxy;
+	}
+
+	/**
+	 * marks that the given entity is persisted
+	 */
+	public void persist() {
+		persisted = true;
 	}
 }

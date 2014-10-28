@@ -34,8 +34,8 @@ import javax.validation.ConstraintViolationException;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
@@ -60,9 +60,8 @@ public class _EntityInvocationHandler extends TestBase {
 		handler = new EntityInvocationHandler(new EntityPropertyFactory().create(PrimitiveEntity.class));
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
-		collection = mock(MongoCollection.class);
+		collection = mock(MongoCollection.class, Mockito.RETURNS_DEEP_STUBS);
 		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(collection);
-		when(collection.getOptions()).then(Answers.RETURNS_DEEP_STUBS.get());
 	}
 
 	@Test
@@ -89,7 +88,7 @@ public class _EntityInvocationHandler extends TestBase {
 		Integer one = 1;
 		pe.setInteger(one);
 		assertEquals(one, pe.getInteger());
-		assertEquals(one, (Integer) pe.get("Integer"));
+		assertEquals(one, pe.get("Integer"));
 	}
 
 	@Test

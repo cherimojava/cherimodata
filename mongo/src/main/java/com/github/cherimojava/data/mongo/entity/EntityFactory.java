@@ -297,7 +297,6 @@ public class EntityFactory {
 	 * @param e
 	 */
 	public void save(Entity e) {
-		EntityInvocationHandler handler = (EntityInvocationHandler) Proxy.getInvocationHandler(e);
-		EntityInvocationHandler.save(handler, getCollection(e.entityClass()));
+		EntityInvocationHandler.save(EntityInvocationHandler.getHandler(e), getCollection(e.entityClass()));
 	}
 }

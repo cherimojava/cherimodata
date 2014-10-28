@@ -44,6 +44,7 @@ import org.mongodb.Document;
 import com.github.cherimojava.data.mongo.MongoBase;
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.EntityUtils;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.collect.Lists;
@@ -286,6 +287,26 @@ public class _DeEncoding extends MongoBase {
 		factory.save(pe);
 		PrimitiveEntity read = factory.load(PrimitiveEntity.class, pe.get(ID));
 		assertEquals(pe, read);
+	}
+
+	@Test
+	public void persistAfterSave() {
+		NestedEntity ne = factory.create(NestedEntity.class);
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		assertFalse(EntityUtils.isPersisted(ne));
+		assertFalse(EntityUtils.isPersisted(pe));
+
+		ne.setString("outer");
+		pe.setString("inner");
+		ne.setPE(pe);
+		ne.save();
+		assertTrue(EntityUtils.isPersisted(ne));
+		assertTrue(EntityUtils.isPersisted(pe));
+
+		NestedEntity read=factory.load(NestedEntity.class, ne.get(ID));
+
+		assertTrue(EntityUtils.isPersisted(read));
+		assertTrue(EntityUtils.isPersisted(read.getPE()));
 	}
 
 	@Test
