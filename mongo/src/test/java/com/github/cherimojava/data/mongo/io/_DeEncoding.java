@@ -45,6 +45,7 @@ import com.github.cherimojava.data.mongo.MongoBase;
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityUtils;
+import com.github.cherimojava.data.mongo.entity.annotation.Final;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.collect.Lists;
@@ -303,10 +304,35 @@ public class _DeEncoding extends MongoBase {
 		assertTrue(EntityUtils.isPersisted(ne));
 		assertTrue(EntityUtils.isPersisted(pe));
 
-		NestedEntity read=factory.load(NestedEntity.class, ne.get(ID));
+		NestedEntity read = factory.load(NestedEntity.class, ne.get(ID));
 
 		assertTrue(EntityUtils.isPersisted(read));
 		assertTrue(EntityUtils.isPersisted(read.getPE()));
+	}
+
+	@Test
+	public void finalIsFinalAfterSave() throws NoSuchMethodException {
+		ExplicitIdEntity e = factory.create(ExplicitIdEntity.class);
+		e.setName("some").save();
+		try {
+			e.setName("change");
+			fail("should throw an exception");
+		} catch (IllegalStateException ise) {
+			assertThat(ise.getMessage(), containsString("@Final property"));
+		}
+	}
+
+	@Test
+	public void finalIsFinalAfterLoad() {
+		ExplicitIdEntity e = factory.create(ExplicitIdEntity.class);
+		e.setName("t").save();
+		ExplicitIdEntity loaded = e.load("t");
+		try {
+			e.setName("different");
+			fail("should throw an exception");
+		} catch (IllegalStateException ise) {
+			assertThat(ise.getMessage(), containsString("@Final property"));
+		}
 	}
 
 	@Test
@@ -422,7 +448,6 @@ public class _DeEncoding extends MongoBase {
 	@Test
 	public void noFailOnSaveDropIfMongoGiven() {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-		// when(collection.find(any(Document.class))).thenReturn(mock(MongoView.class));
 		pe.setString("some String");
 		pe.save();
 		pe.drop();
@@ -460,6 +485,30 @@ public class _DeEncoding extends MongoBase {
 		e.setTime(DateTime.now()).setDate(new Date()).setId("1");
 		e.save();
 		assertEquals(e.toString(), factory.load(DateTimeEntity.class, "1").toString());
+	}
+
+	@Test
+	public void autoboxingNoHarmFinal() {
+		AutoboxedEntity ae = factory.create(AutoboxedEntity.class);
+		ae.setInt(3).save();
+
+		assertEquals(3, (int) ae.load(ae.get(ID)).getInt());
+
+		Integer i = ae.getInt();
+		i = i++;
+		ae.setString("some").save();
+		assertEquals(3, (int) ae.load(ae.get(ID)).getInt());
+	}
+
+	private static interface AutoboxedEntity extends Entity<AutoboxedEntity> {
+		@Final
+		public Integer getInt();
+
+		public AutoboxedEntity setInt(Integer i);
+
+		public String getString();
+
+		public AutoboxedEntity setString(String s);
 	}
 
 	private static interface TransientEntity extends Entity {
@@ -509,6 +558,11 @@ public class _DeEncoding extends MongoBase {
 	private <T extends Entity> MongoCollection<T> getCollection(Class<T> clazz) {
 		return db.getCollection(getCollectionName(clazz), clazz,
 				EntityCodecProvider.createMongoCollectionOptions(db, clazz));
+	}
+
+	private interface FinalEntity extends Entity<FinalEntity> {
+		@Id
+		public String getFinal();
 	}
 
 }

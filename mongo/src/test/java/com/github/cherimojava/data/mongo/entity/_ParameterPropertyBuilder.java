@@ -20,15 +20,18 @@ import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
 import java.util.List;
 
+import javax.validation.Validation;
+import javax.validation.Validator;
+
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
+import com.github.cherimojava.data.mongo.entity.annotation.Final;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 
@@ -129,12 +132,57 @@ public class _ParameterPropertyBuilder extends TestBase {
 		}
 	}
 
+	@Test
+	public void isFinal() throws NoSuchMethodException {
+		assertTrue(Builder.buildFrom(Ids.class.getDeclaredMethod("getId"), validator).isFinal());
+		assertTrue(Builder.buildFrom(Ids.class.getDeclaredMethod("getEIDE"), validator).isFinal());
+		assertFalse(Builder.buildFrom(NestedEntity.class.getDeclaredMethod("getString"), validator).isFinal());
+	}
+
+	// TODO could maybe be extended to lists or so
+	@Test
+	public void validFinalTypes() throws NoSuchMethodException {
+		assertTrue(Builder.buildFrom(FinalTypes.class.getDeclaredMethod("getInt"), validator).isFinal());
+		assertTrue(Builder.buildFrom(FinalTypes.class.getDeclaredMethod("getByte"), validator).isFinal());
+		assertTrue(Builder.buildFrom(FinalTypes.class.getDeclaredMethod("getOid"), validator).isFinal());
+		try {
+			Builder.buildFrom(FinalTypes.class.getDeclaredMethod("getObject"), validator);
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("on primitive types and bson ObjectId"));
+		}
+		// TODO add test if autoboxed primitive allows modification, which leaks into entity
+	}
+
+	private static interface FinalTypes extends Entity {
+		@Final
+		public Integer getInt();
+
+		public void setInt(Integer i);
+
+		@Final
+		public byte getByte();
+
+		public void setByte(byte b);
+
+		@Final
+		public ObjectId getOid();
+
+		public void setOid(ObjectId id);
+
+		@Final
+		public Object getObject();
+
+		public void setObject(Object o);
+	}
+
 	private static interface Ids extends Entity {
 		@Id
 		public String getEIDE();
 
 		public Ids setEIDE(String id);
 
+		@Final
 		public String getId();
 
 		public Ids setId(String id);

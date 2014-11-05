@@ -19,15 +19,17 @@ import java.lang.annotation.*;
 
 /**
  * Simple Marker Annotation denoting the id field if it's not named Id. Cannot be combined with a property which is
- * annotated <b>@Named("_id")</b>.
+ * annotated <b>@Named("_id")</b>. Once the id is stored it can't be changed later on
  *
  * @author philnate
  * @since 1.0.0
+ * @see Final
  *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
+@Final
 public @interface Id {
 	// TODO inherit from final, so that an exception trying to update this is thrown early
 }

@@ -19,9 +19,7 @@ import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
-import javax.validation.metadata.BeanDescriptor;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -31,14 +29,22 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+import javax.validation.metadata.BeanDescriptor;
+
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
+import com.github.cherimojava.data.mongo.entity.annotation.Final;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -60,6 +66,7 @@ public final class ParameterProperty {
 	private final Computer computer;
 	private final ReferenceType reference;
 	private final Map<MethodType, Boolean> typeReturnMap;
+	private final boolean finl;
 
 	ParameterProperty(Builder builder) {
 		checkNotNull(builder.type, "type cannot be null");
@@ -76,6 +83,7 @@ public final class ParameterProperty {
 		validator = builder.validator;
 		declaringClass = builder.declaringClass;
 		tranzient = builder.tranzient;
+		finl = builder.finl;
 		computer = builder.computer;
 		reference = builder.reference;
 	}
@@ -135,6 +143,16 @@ public final class ParameterProperty {
 	 */
 	public boolean isComputed() {
 		return computer != null;
+	}
+
+	/**
+	 * returns if this property is final or not. Meaning that after the value was peristed once it's not meant to be
+	 * changed again
+	 * 
+	 * @return
+	 */
+	public boolean isFinal() {
+		return finl;
 	}
 
 	/**
@@ -216,6 +234,7 @@ public final class ParameterProperty {
 		private Validator validator;
 		private Class<? extends Entity> declaringClass;
 		private boolean tranzient;
+		private boolean finl;
 		private Computer computer;
 		private ReferenceType reference;
 		private Map<MethodType, Boolean> typeReturnMap = Maps.newHashMap();
@@ -275,6 +294,11 @@ public final class ParameterProperty {
 			return this;
 		}
 
+		Builder setFinal(boolean finl) {
+			this.finl = finl;
+			return this;
+		}
+
 		ParameterProperty build() {
 			return new ParameterProperty(this);
 		}
@@ -292,6 +316,7 @@ public final class ParameterProperty {
 			BeanDescriptor bdesc = validator.getConstraintsForClass(declaringClass);
 			Computer computer = null;
 			Computed c = m.getAnnotation(Computed.class);
+			Class returnType = m.getReturnType();
 			Builder builder = new Builder();
 			if (c != null) {
 				try {
@@ -310,20 +335,38 @@ public final class ParameterProperty {
 					// only if we have an adder enabled Property type check for this
 					builder.setFluent(MethodType.ADDER, isAssignableFromClass(getAdderFromGetter(m)));
 				} catch (IllegalArgumentException e) {
-					LOG.debug("No Adder method declared for {} in Entity {}", m.getName(),
+					LOG.trace("No Adder method declared for {} in Entity {}", m.getName(),
 							m.getDeclaringClass().getName());
 				}
 			}
-			builder.setType(m.getReturnType()).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
+			// check if something marks this property as final (no modification after initial save
+			boolean finl = m.isAnnotationPresent(Final.class);
+			if (!finl) {
+				for (Annotation a : Lists.newArrayList(m.getAnnotations())) {
+					if (a.annotationType().isAnnotationPresent(Final.class)) {
+						finl = true;
+						break;
+					}
+				}
+			}
+			if (finl) {
+				// check that final is only on primitives
+				checkArgument(ClassUtils.isPrimitiveOrWrapper(returnType) ||
+						String.class.equals(returnType)
+								|| ObjectId.class.equals(returnType),
+						"Final is only supported on primitive types and bson ObjectId but was %s", returnType);
+			}
+
+			builder.setType(returnType).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
 					EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
 					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
 					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
-					computer);
+					computer).setFinal(finl);
 			if (Collection.class.isAssignableFrom(m.getReturnType())) {
 				checkArgument(m.getGenericReturnType().getClass() != Class.class, "Collections need to be generic");
 				Type type = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
 				if (TypeVariable.class.isAssignableFrom(type.getClass())) {
-                    //right now I dont know how to provide actual type at runtime...
+					// right now I dont know how to provide actual type at runtime...
 					builder.setGenericType(Entity.class);
 				} else {
 					builder.setGenericType((Class) type);

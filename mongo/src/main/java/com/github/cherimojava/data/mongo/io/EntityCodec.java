@@ -143,7 +143,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 
 	private <E extends Entity> E decodeEntity(BsonReader reader, Class<E> clazz) {
 		E e = factory.create(clazz);
-		EntityUtils.persist(e);
 		EntityProperties properties = EntityFactory.getProperties(clazz);
 		reader.readStartDocument();
 		BsonType type;
@@ -213,6 +212,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 			}
 		}
 		reader.readEndDocument();
+		EntityUtils.persist(e);// persist after all properties are set
 		return e;
 	}
 

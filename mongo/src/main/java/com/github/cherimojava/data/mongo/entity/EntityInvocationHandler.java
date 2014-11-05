@@ -202,6 +202,16 @@ class EntityInvocationHandler implements InvocationHandler {
 	}
 
 	/**
+	 * verifies that the given property isn't final and if it's that the entity wasn't saved yet.
+	 * @param pp
+	 */
+	private void checkNotFinal(ParameterProperty pp) {
+		if (pp.isFinal()) {
+			checkState(!persisted, "Entity was already saved, can't modify value of @Final property later on");
+		}
+	}
+
+	/**
 	 * check if the given propertyName exists as Mongo property
 	 *
 	 * @param propertyName
@@ -252,6 +262,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	private void _put(ParameterProperty pp, Object value) {
 		checkNotSealed();
+		checkNotFinal(pp);
 		pp.validate(value);
 		if (value != data.put(pp.getMongoName(), value)) {
 			changed = true;

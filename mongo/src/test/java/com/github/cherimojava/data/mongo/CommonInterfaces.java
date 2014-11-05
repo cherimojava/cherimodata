@@ -79,7 +79,7 @@ public class CommonInterfaces {
 		public void setMap(Map<String, String> map);
 	}
 
-	public static interface ExplicitIdEntity extends Entity {
+	public static interface ExplicitIdEntity extends Entity<ExplicitIdEntity> {
 		@Id
 		public String getName();
 
