@@ -36,6 +36,7 @@ import javax.validation.metadata.BeanDescriptor;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -353,8 +354,8 @@ public final class ParameterProperty {
 				// check that final is only on primitives
 				checkArgument(ClassUtils.isPrimitiveOrWrapper(returnType) ||
 						String.class.equals(returnType)
-								|| ObjectId.class.equals(returnType),
-						"Final is only supported on primitive types and bson ObjectId but was %s", returnType);
+								|| ObjectId.class.equals(returnType)|| DateTime.class.equals(returnType),
+						"Final is only supported on primitive types, jodatime DateTime and bson ObjectId but was %s", returnType);
 			}
 
 			builder.setType(returnType).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
