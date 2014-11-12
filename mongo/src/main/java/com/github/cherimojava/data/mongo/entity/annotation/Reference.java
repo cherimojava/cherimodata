@@ -37,4 +37,13 @@ public @interface Reference {
 	 * entity
 	 */
 	public boolean lazy() default false;
+
+	// TODO implement this
+	/**
+	 * MongoDB name of attributes to keep directly with the reference. This allows that not the whole record needs to be
+	 * read in order to answer this request. Can only be used with {@link #lazy()} true. Should be only used for fields
+	 * which change very infrequently, as there's no auto update.
+	 * 
+	 */
+	public String[] includeFields() default {};
 }

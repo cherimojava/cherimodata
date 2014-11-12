@@ -352,10 +352,10 @@ public final class ParameterProperty {
 			}
 			if (finl) {
 				// check that final is only on primitives
-				checkArgument(ClassUtils.isPrimitiveOrWrapper(returnType) ||
-						String.class.equals(returnType)
-								|| ObjectId.class.equals(returnType)|| DateTime.class.equals(returnType),
-						"Final is only supported on primitive types, jodatime DateTime and bson ObjectId but was %s", returnType);
+				checkArgument(ClassUtils.isPrimitiveOrWrapper(returnType) || String.class.equals(returnType)
+						|| ObjectId.class.equals(returnType) || DateTime.class.equals(returnType),
+						"Final is only supported for primitive types, jodatime DateTime and bson ObjectId but was %s",
+						returnType);
 			}
 
 			builder.setType(returnType).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(

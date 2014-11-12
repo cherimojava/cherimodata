@@ -149,7 +149,7 @@ public class _ParameterPropertyBuilder extends TestBase {
 			Builder.buildFrom(FinalTypes.class.getDeclaredMethod("getObject"), validator);
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), containsString("on primitive types and bson ObjectId"));
+			assertThat(e.getMessage(), containsString("Final is only supported for"));
 		}
 		// TODO add test if autoboxed primitive allows modification, which leaks into entity
 	}
