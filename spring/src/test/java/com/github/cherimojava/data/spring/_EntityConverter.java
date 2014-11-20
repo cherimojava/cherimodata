@@ -16,6 +16,7 @@
 package com.github.cherimojava.data.spring;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import org.junit.Before;
@@ -129,7 +131,11 @@ public class _EntityConverter extends TestBase {
 						post("/l").contentType(MediaType.APPLICATION_JSON).content(
 								"[{\"string\":\"ping\"},{\"string\":\"pong\"}]").accept(MediaType.APPLICATION_JSON)).andExpect(
 						status().isOk()).andReturn().getResponse().getContentAsString());
+	}
 
+	@Test
+	public void testOnlyJson() {
+		assertFalse(new EntityConverter(null).canRead(Type.class, Class.class, MediaType.APPLICATION_ATOM_XML));
 	}
 
 	private static interface Level1 extends Entity {

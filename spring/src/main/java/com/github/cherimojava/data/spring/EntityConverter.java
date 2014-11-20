@@ -139,6 +139,4 @@ public class EntityConverter extends AbstractHttpMessageConverter<Object> implem
 		return MediaType.APPLICATION_JSON.equals(mediaType)
 				&& (Entity.class.isAssignableFrom(clazz) || Collection.class.isAssignableFrom(clazz));
 	}
-
-	// TODO add tests for canRead
 }
