@@ -28,9 +28,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.mongodb.DBRef;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
+import org.bson.Document;
 import org.bson.json.JsonReader;
 import org.bson.json.JsonWriter;
 import org.bson.types.ObjectId;
@@ -39,7 +41,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mongodb.Document;
 
 import com.github.cherimojava.data.mongo.MongoBase;
 import com.github.cherimojava.data.mongo.entity.Entity;
@@ -51,8 +52,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.collect.Lists;
 import com.mongodb.Block;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.FindOptions;
-import com.mongodb.client.model.UpdateOneOptions;
+import com.mongodb.client.model.UpdateOptions;
 
 //TODO primitive types not working yet
 
@@ -68,7 +68,7 @@ public class _DeEncoding extends MongoBase {
 
 	@After
 	public void mongoCleanUp() {
-		db.tools().drop();
+		db.dropDatabase();
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class _DeEncoding extends MongoBase {
 		pe.setInteger(12);
 		pe.save();
 
-		Document doc = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new FindOptions().limit(1)).iterator().next();
+		Document doc = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document()).limit(1).iterator().next();
 		assertJson(sameJSONAs("{ \"Integer\" : 12, \"string\" : \"some string\" }").allowingExtraUnexpectedFields(),
 				doc);
 
@@ -139,8 +139,7 @@ public class _DeEncoding extends MongoBase {
 		cpe.setInteger(1);
 		cpe.save();
 
-		Document doc = db.getCollection(getCollectionName(ComputedPropertyEntity.class)).find(
-				new FindOptions().limit(1)).iterator().next();
+		Document doc = db.getCollection(getCollectionName(ComputedPropertyEntity.class)).find(new Document()).limit(1).iterator().next();
 		assertJson(
 				sameJSONAs("{ \"string\":\"some\", \"Integer\":1, \"computed\":\"some1\"}").allowingExtraUnexpectedFields(),
 				doc);
@@ -153,7 +152,7 @@ public class _DeEncoding extends MongoBase {
 		ee.setName("some");
 		ee.save();
 
-		Document doc = db.getCollection(getCollectionName(ExplicitIdEntity.class)).find(new FindOptions().limit(1)).iterator().next();
+		Document doc = db.getCollection(getCollectionName(ExplicitIdEntity.class)).find(new Document()).limit(1).iterator().next();
 		assertJson(sameJSONAs("{ \"_id\" : \"some\" }").allowingExtraUnexpectedFields(), doc);
 
 		ExplicitIdEntity read = factory.load(ExplicitIdEntity.class, doc.get("_id"));
@@ -168,8 +167,8 @@ public class _DeEncoding extends MongoBase {
 
 		te.save();
 
-		Document doc = db.getCollection(getCollectionName(TransientEntity.class)).find(
-				new FindOptions().criteria(new Document("_id", "some"))).iterator().next();
+		Document doc = db.getCollection(getCollectionName(TransientEntity.class)).find(new Document("_id", "some")).limit(
+				1).iterator().next();
 		assertJson(sameJSONAs("{ \"_id\" : \"some\" }"), doc);
 
 		TransientEntity read = factory.load(TransientEntity.class, doc.get("_id"));
@@ -182,7 +181,7 @@ public class _DeEncoding extends MongoBase {
 		String _id = "different";
 		getCollection(TransientEntity.class).updateOne(new Document(Entity.ID, _id),
 				new BsonDocument("$set", new BsonDocument("transient", new BsonString("ignored"))),
-				new UpdateOneOptions().upsert(true));
+				new UpdateOptions().upsert(true));
 
 		TransientEntity read = factory.load(TransientEntity.class, _id);
 		assertEquals("different", read.getIdentity());
@@ -232,14 +231,13 @@ public class _DeEncoding extends MongoBase {
 
 		re.save();
 		Document reRead = db.getCollection(getCollectionName(ReferencingEntity.class)).find(
-				new FindOptions().criteria(new Document(ID, re.get(ID)))).iterator().next();
-		System.out.println(reRead);
-		ObjectId dbRef = (ObjectId) ((Document) reRead.get("PE")).get("$id");
+				new Document(ID, re.get(ID))).limit(1).iterator().next();
+		ObjectId dbRef = (ObjectId) ((DBRef) reRead.get("PE")).getId();
 		assertNotNull(dbRef);
 		assertNotNull(pe.get(ID));
 		assertEquals(pe.get(ID), dbRef);
-		Document peRead = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(
-				new FindOptions().criteria(new Document(ID, pe.get(ID)))).iterator().next();
+		Document peRead = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document(ID, pe.get(ID))).limit(
+				1).iterator().next();
 
 		assertEquals(pe.get(ID), peRead.get(ID));
 		assertEquals(pe.getString(), peRead.get("string"));

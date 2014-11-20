@@ -29,16 +29,15 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWrapper;
-import org.mongodb.Document;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.io.EntityCodec;
 import com.google.common.collect.Maps;
-import com.mongodb.MongoCursor;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.FindOptions;
-import com.mongodb.client.model.UpdateOneOptions;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -203,6 +202,7 @@ class EntityInvocationHandler implements InvocationHandler {
 
 	/**
 	 * verifies that the given property isn't final and if it's that the entity wasn't saved yet.
+	 * 
 	 * @param pp
 	 */
 	private void checkNotFinal(ParameterProperty pp) {
@@ -367,8 +367,7 @@ class EntityInvocationHandler implements InvocationHandler {
 		// wrapper.remove(Entity.ID);
 		UpdateResult res = coll.updateOne(
 				EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID,
-						EntityCodec._obtainId(handler.proxy)), new BsonDocument("$set", wrapper),
-				new UpdateOneOptions());
+						EntityCodec._obtainId(handler.proxy)), new BsonDocument("$set", wrapper), new UpdateOptions());
 		if (res.getMatchedCount() == 0) {
 			// TODO this seems too nasty, there must be a better way.for now live with it
 			coll.insertOne((T) handler.proxy);
@@ -403,8 +402,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T extends Entity> T find(MongoCollection<T> collection, Object id) {
-		try (MongoCursor<? extends Entity> curs = collection.find(
-				new FindOptions().limit(1).criteria(new Document(Entity.ID, id))).iterator()) {
+		try (MongoCursor<? extends Entity> curs = collection.find(new Document(Entity.ID, id)).limit(1).iterator()) {
 			return (T) ((curs.hasNext()) ? curs.next() : null);
 		}
 	}

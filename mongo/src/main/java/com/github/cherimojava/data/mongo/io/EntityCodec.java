@@ -25,12 +25,12 @@ import java.util.Collection;
 
 import org.bson.*;
 import org.bson.codecs.Codec;
+import org.bson.codecs.CollectibleCodec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.json.JsonWriter;
 import org.bson.types.ObjectId;
-import org.mongodb.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +38,6 @@ import com.github.cherimojava.data.mongo.entity.*;
 import com.google.common.base.Throwables;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.FindOptions;
-import com.mongodb.codecs.CollectibleCodec;
-import com.mongodb.codecs.EntityTypeMap;
 
 /**
  * Codec which transforms Entity instances from/to JSON
@@ -170,10 +167,10 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					reader.readString("$ref");
 					e.set(name,
 							EntityCodec.getCollectionFor(db, seProperties).find(
-									new FindOptions().criteria(new Document(
+									new Document(
 											ID,
 											seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId("$id")
-													: reader.readString("$id")))).iterator().next());
+													: reader.readString("$id"))).iterator().next());
 					reader.readEndDocument();
 				} else {
 					e.set(name, decodeEntity(reader, seProperties.getEntityClass()));

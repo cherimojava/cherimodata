@@ -17,8 +17,6 @@ package com.github.cherimojava.data.mongo.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.mongodb.operation.Index.Builder;
-import static com.mongodb.operation.Index.builder;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.lang.reflect.Modifier;
@@ -27,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.bson.Document;
 import org.bson.json.JsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +38,11 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.operation.OrderBy;
 
 /**
@@ -85,7 +84,7 @@ public class EntityFactory {
 						LOG.debug("Entity class {} has indexes, ensuring that MongoDB is setup",
 								properties.getEntityClass());
 						for (Index index : c.indexes()) {
-							Builder indxBuilder = builder();
+							CreateIndexOptions indxBuilder = new CreateIndexOptions();
 							if (index.unique()) {
 								indxBuilder.unique(true);
 							}
@@ -93,17 +92,17 @@ public class EntityFactory {
 								indxBuilder.name(index.name());
 							}
 
+							Document indxFields = new Document();
 							for (IndexField field : index.value()) {
 								checkNotNull(properties.getProperty(field.field()),
 										"Index field '%s' for index '%s' does not exist for %s", field.field(),
 										index.name(), clazz);
-								indxBuilder.addKey(field.field(),
-										(field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC : OrderBy.DESC);
+								indxFields.put(field.field(), (field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC
+										: OrderBy.DESC);
 							}
-							com.mongodb.operation.Index indx = indxBuilder.build();
-							LOG.debug("Creating index {} for Entity class {}", indx.getName(),
+							LOG.debug("Creating index {} for Entity class {}", indxBuilder.getName(),
 									properties.getEntityClass());
-							coll.tools().createIndexes(Lists.newArrayList(indx));
+							coll.createIndex(null, indxBuilder);
 						}
 					}
 					return coll;

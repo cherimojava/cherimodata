@@ -17,16 +17,16 @@ package com.github.cherimojava.data.mongo;
 
 import static org.junit.Assert.assertThat;
 
+import java.io.StringWriter;
+
 import org.bson.BsonReader;
+import org.bson.Document;
 import org.hamcrest.Matcher;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
-import org.mongodb.Document;
-
-import java.io.StringWriter;
 
 /**
  * Base Class for Simple Tests not requiring MongoDB access
@@ -45,32 +45,34 @@ public abstract class TestBase {
 	 * @return
 	 */
 	public void assertJson(Matcher<? super String> expected, Document actual) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        for (String key: actual.keySet()) {
-            sb.append(key).append("=").append(actual.get(key)).append(",");
-        }
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		for (String key : actual.keySet()) {
+			sb.append(key).append("=").append(actual.get(key)).append(",");
+		}
 		assertThat(sb.append("}").toString(), expected);
 	}
 
-    /*public void assertJson(Matcher<? super String> expected, Document actual) {
-        assertThat("{"+actual.entrySet().toString()+"}", expected);
-    }*/
+	/*
+	 * public void assertJson(Matcher<? super String> expected, Document actual) {
+	 * assertThat("{"+actual.entrySet().toString()+"}", expected); }
+	 */
 
-    public void assertJson(Matcher<? super String> expected, StringWriter actual) {
-        assertThat(actual.toString(), expected);
-    }
+	public void assertJson(Matcher<? super String> expected, StringWriter actual) {
+		assertThat(actual.toString(), expected);
+	}
 
-    /**
-     * little helper to verify the content of a Entity with some given JSON string
-     * @param expected
-     * @param actual
-     * @param <E>
-     */
-    public  <E extends Entity> void assertJson(Matcher<? super String> expected, E actual )
-    {
-        assertThat(actual.toString(),expected);
-    }
+	/**
+	 * little helper to verify the content of a Entity with some given JSON string
+	 * 
+	 * @param expected
+	 * @param actual
+	 * @param <E>
+	 */
+	public <E extends Entity> void assertJson(Matcher<? super String> expected, E actual) {
+		assertThat(actual.toString(), expected);
+	}
+
 	/**
 	 * small util method easing decoding of stuff
 	 *
