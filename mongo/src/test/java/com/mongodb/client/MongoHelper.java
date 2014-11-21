@@ -25,8 +25,4 @@ public class MongoHelper {
 	public static MongoDatabase getMongoDatabase(MongoClient client, String dbname) {
 		return client.getDatabase(dbname);
 	}
-
-	public static CollectionAdministration getCollectionAdministration(MongoDatabase db, String collection) {
-		return db.getCollection(collection).tools();
-	}
 }
