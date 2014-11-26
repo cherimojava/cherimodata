@@ -371,4 +371,13 @@ public class _EntityInvocationHandler extends TestBase {
 		ne.setPE((PrimitiveEntity) pe.setInteger(4));
 		assertJson(sameJSONAs("{\"string\": \"value\", \"PE\":{\"Integer\":4}}"), ne);
 	}
+
+	@Test
+	public void noPersistFlagOnToString() {
+		ExplicitIdEntity eie = factory.create(ExplicitIdEntity.class);
+		eie.setName("one");
+		eie.setName("two");
+		eie.toString();
+		eie.setName("final");
+	}
 }

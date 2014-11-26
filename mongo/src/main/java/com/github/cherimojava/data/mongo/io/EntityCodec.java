@@ -251,11 +251,23 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 		encode(bsonWriter, value, true);
 	}
 
+	/**
+	 * actual method encoding an entity
+	 * 
+	 * @param writer
+	 *            writer to write to
+	 * @param value
+	 *            value to write
+	 * @param toDB
+	 *            is this just a toString() call or a real persisting action
+	 */
 	private void encodeEntity(BsonWriter writer, T value, boolean toDB) {
 		EntityProperties properties = EntityFactory.getProperties(value.entityClass());
 
-		// mark this entity as persisted
-		EntityUtils.persist(value);
+		if (toDB) {
+			// mark this entity as persisted, but only if the caller is toString (this screws up debugging)
+			EntityUtils.persist(value);
+		}
 
 		Object id = value.get(Entity.ID);
 		if (id != null && !properties.hasExplicitId()) {
