@@ -28,14 +28,14 @@ import org.junit.Test;
 public class _DateTimeCodec {
 
 	@Test
-    public void dateTimeDeEncoding() throws IOException {
-        DateTimeCodec codec = new DateTimeCodec();
-        DateTime now = DateTime.now();
+	public void dateTimeDeEncoding() throws IOException {
+		DateTimeCodec codec = new DateTimeCodec();
+		DateTime now = DateTime.now();
 
-        try (StringWriter swriter = new StringWriter();JsonWriter writer = new JsonWriter(swriter)) {
-            codec.encode(writer, now, null);
-            JsonReader reader = new JsonReader(swriter.toString());
-            assertTrue(now.equals(codec.decode(reader, null)));
-        }
-    }
+		try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
+			codec.encode(writer, now, null);
+			JsonReader reader = new JsonReader(swriter.toString());
+			assertTrue(now.equals(codec.decode(reader, null)));
+		}
+	}
 }

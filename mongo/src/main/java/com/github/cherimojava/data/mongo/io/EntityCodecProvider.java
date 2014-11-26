@@ -59,9 +59,6 @@ public class EntityCodecProvider implements CodecProvider {
 		if (codecs.containsKey(clazz)) {
 			return (Codec<T>) codecs.get(clazz);
 		}
-		// TODO coming from decoding site, we only get Entity as class, how to get properties from this...
-		// solution could be that instead we provide the class we have to go to in the decoding context and keep the
-		// decoder free of this information
 
 		if (Entity.class.isAssignableFrom(clazz)) {
 			// there are two possible class types we can get. Some are the real interfaces and the other classes are
