@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.UUID;
 
+import de.flapdoodle.embed.process.store.Downloader;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.extensions.dynamicsuite.ClassPath;
@@ -66,7 +67,7 @@ public class Suite implements TestClassFilter {
 	private static IRuntimeConfig runtimeConfig() {
 		FixedPath path = new FixedPath("bin/");
 		return new RuntimeConfigBuilder().defaults(Command.MongoD).artifactStore(
-				new ArtifactStoreBuilder().executableNaming(new UserTempNaming()).tempDir(path).download(
+				new ArtifactStoreBuilder().downloader(new Downloader()).executableNaming(new UserTempNaming()).tempDir(path).download(
 						new DownloadConfigBuilder().defaultsForCommand(Command.MongoD).artifactStorePath(path))).build();
 	}
 
