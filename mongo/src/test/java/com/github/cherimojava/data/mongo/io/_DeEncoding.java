@@ -232,7 +232,33 @@ public class _DeEncoding extends MongoBase {
 		re.save();
 		Document reRead = db.getCollection(getCollectionName(ReferencingEntity.class)).find(
 				new Document(ID, re.get(ID))).limit(1).iterator().next();
-		ObjectId dbRef = (ObjectId) ((DBRef) reRead.get("PE")).getId();
+		ObjectId dbRef = (ObjectId) reRead.get("PE");
+		assertNotNull(dbRef);
+		assertNotNull(pe.get(ID));
+		assertEquals(pe.get(ID), dbRef);
+		Document peRead = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document(ID, pe.get(ID))).limit(
+				1).iterator().next();
+
+		assertEquals(pe.get(ID), peRead.get(ID));
+		assertEquals(pe.getString(), peRead.get("string"));
+
+		ReferencingEntity read = factory.load(ReferencingEntity.class, re.get(ID));
+		assertEquals(re, read);
+	}
+
+	@Test
+	public void testDBRefDeEncoding() {
+		ReferencingEntity re = factory.create(ReferencingEntity.class);
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+
+		pe.setString("nestedString");
+		re.setDBRef(pe);
+		re.setString("some");
+
+		re.save();
+		Document reRead = db.getCollection(getCollectionName(ReferencingEntity.class)).find(
+				new Document(ID, re.get(ID))).limit(1).iterator().next();
+		ObjectId dbRef = (ObjectId) ((DBRef)reRead.get("dBRef")).getId();
 		assertNotNull(dbRef);
 		assertNotNull(pe.get(ID));
 		assertEquals(pe.get(ID), dbRef);

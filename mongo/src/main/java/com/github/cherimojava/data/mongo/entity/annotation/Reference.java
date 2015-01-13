@@ -46,4 +46,12 @@ public @interface Reference {
 	 * 
 	 */
 	public String[] includeFields() default {};
+
+	/**
+	 * Defines if the entity should be stored as full mongodb DBRef or just the simple id. Default only the Id will be
+	 * included
+	 * 
+	 * @return
+	 */
+	public boolean asDBRef() default false;
 }

@@ -123,6 +123,13 @@ public class _ParameterPropertyBuilder extends TestBase {
 	}
 
 	@Test
+	public void referenceDBRefDetection() throws NoSuchMethodException {
+		assertTrue(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getDBRef"),validator).isDBRef());
+		assertFalse(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getPE"), validator).isDBRef());
+		assertTrue(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getPE"), validator).isReference());
+	}
+
+	@Test
 	public void referenceOnlyOnEntities() throws NoSuchMethodException {
 		try {
 			Builder.buildFrom(InvalidReference.class.getDeclaredMethod("getInvalidProp"), validator);

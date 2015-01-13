@@ -15,10 +15,21 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.AddEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ComputedPropertyEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ReferencingEntity;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -341,6 +352,20 @@ public class _EntityInvocationHandler extends TestBase {
 	}
 
 	@Test
+	public void toStringExternalDBReferences() {
+		ReferencingEntity re = factory.create(ReferencingEntity.class);
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		pe.setInteger(1);
+		ObjectId id = new ObjectId();
+		pe.set("_id", id);
+		re.setDBRef(pe.setString("some"));
+		re.setInteger(5);
+		assertJson(
+				sameJSONAs("{ \"dBRef\" : { \"$ref\" : \"primitiveEntitys\" , \"$id\" : { \"$oid\" : \""
+						+ id.toHexString() + "\" } }, \"Integer\" : 5 }"), re);
+	}
+
+	@Test
 	public void toStringExternalReferences() {
 		ReferencingEntity re = factory.create(ReferencingEntity.class);
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
@@ -349,9 +374,7 @@ public class _EntityInvocationHandler extends TestBase {
 		pe.set("_id", id);
 		re.setPE(pe.setString("some"));
 		re.setInteger(5);
-		assertJson(
-				sameJSONAs("{ \"PE\" : { \"$ref\" : \"primitiveEntitys\" , \"$id\" : { \"$oid\" : \""
-						+ id.toHexString() + "\" } }, \"Integer\" : 5 }"), re);
+		assertJson(sameJSONAs("{ \"PE\" : { \"$oid\" : \"" + id.toHexString() + "\"  }, \"Integer\" : 5 }"), re);
 	}
 
 	@Test

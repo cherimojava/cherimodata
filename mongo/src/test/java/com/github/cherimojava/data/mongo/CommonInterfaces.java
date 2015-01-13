@@ -102,6 +102,11 @@ public class CommonInterfaces {
 		public PrimitiveEntity getPE();
 
 		public ReferencingEntity setPE(PrimitiveEntity pe);
+
+		@Reference(asDBRef = true)
+		public PrimitiveEntity getDBRef();
+
+		public ReferencingEntity setDBRef(PrimitiveEntity pe);
 	}
 
 	public static interface LazyLoadingEntity extends PrimitiveEntity {

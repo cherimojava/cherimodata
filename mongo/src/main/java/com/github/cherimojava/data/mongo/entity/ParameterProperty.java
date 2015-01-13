@@ -15,7 +15,9 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getAdderFromGetter;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getSetterFromGetter;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.isAssignableFromClass;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -65,7 +67,8 @@ public final class ParameterProperty {
 	private final Class<? extends Entity> declaringClass;
 	private final boolean tranzient;
 	private final Computer computer;
-	private final ReferenceType reference;
+	private final ReferenceLoadingTime referenceLoadingTime;
+	private final ReferenceType referenceType;
 	private final Map<MethodType, Boolean> typeReturnMap;
 	private final boolean finl;
 
@@ -86,7 +89,8 @@ public final class ParameterProperty {
 		tranzient = builder.tranzient;
 		finl = builder.finl;
 		computer = builder.computer;
-		reference = builder.reference;
+		referenceLoadingTime = builder.referenceLoadingTime;
+		referenceType = builder.referenceType;
 	}
 
 	/**
@@ -163,7 +167,17 @@ public final class ParameterProperty {
 	 * @return if this property is a reference to a different entity
 	 */
 	public boolean isReference() {
-		return ReferenceType.NONE != reference;
+		return ReferenceType.NONE != referenceType;
+	}
+
+	/**
+	 * Returns if this property is supposed to be stored as Mongo style DBRef. Is true only when the property is a
+	 * reference and value DBRef is true
+	 * 
+	 * @return
+	 */
+	public boolean isDBRef() {
+		return ReferenceType.DBREF == referenceType;
 	}
 
 	/**
@@ -172,7 +186,7 @@ public final class ParameterProperty {
 	 * @return if this property is loaded on first access to it
 	 */
 	public boolean isLazyLoaded() {
-		return ReferenceType.LAZY == reference;
+		return ReferenceLoadingTime.LAZY == referenceLoadingTime;
 	}
 
 	/**
@@ -237,7 +251,8 @@ public final class ParameterProperty {
 		private boolean tranzient;
 		private boolean finl;
 		private Computer computer;
-		private ReferenceType reference;
+		private ReferenceLoadingTime referenceLoadingTime;
+		private ReferenceType referenceType =ReferenceType.NONE;
 		private Map<MethodType, Boolean> typeReturnMap = Maps.newHashMap();
 
 		Builder setTransient(boolean tranzient) {
@@ -290,8 +305,13 @@ public final class ParameterProperty {
 			return this;
 		}
 
-		Builder setReferenceType(ReferenceType reference) {
-			this.reference = reference;
+		Builder setReferenceLoadingTime(ReferenceLoadingTime reference) {
+			this.referenceLoadingTime = reference;
+			return this;
+		}
+
+		Builder setReferenceType(ReferenceType type) {
+			this.referenceType = type;
 			return this;
 		}
 
@@ -376,11 +396,10 @@ public final class ParameterProperty {
 			if (m.isAnnotationPresent(Reference.class)) {
 				checkArgument(Entity.class.isAssignableFrom(m.getReturnType()),
 						"Reference annotation can only be used for Entity types but was {}", m.getReturnType());
-				if (m.getAnnotation(Reference.class).lazy()) {
-					builder.setReferenceType(ReferenceType.LAZY);
-				} else {
-					builder.setReferenceType(ReferenceType.IMMEDIATE);
-				}
+				builder.setReferenceLoadingTime(m.getAnnotation(Reference.class).lazy() ? ReferenceLoadingTime.LAZY
+						: ReferenceLoadingTime.IMMEDIATE);
+				builder.setReferenceType(m.getAnnotation(Reference.class).asDBRef() ? ReferenceType.DBREF
+						: ReferenceType.SIMPLE);
 			} else {
 				builder.setReferenceType(ReferenceType.NONE);
 			}
@@ -389,12 +408,20 @@ public final class ParameterProperty {
 	}
 
 	/**
-	 * Enumeration about Reference Types. This is information is needed for Referenced Entities
+	 * Enumeration about Reference LoadingTimes. This is information is needed for Referenced Entities loading
 	 */
-	private static enum ReferenceType {
-		NONE, // value is no reference
+	private static enum ReferenceLoadingTime {
 		IMMEDIATE, // value is reference but immediately loaded
 		LAZY// value is lazy loaded reference
+	}
+
+	/**
+	 * type of references the framework can handle
+	 */
+	public static enum ReferenceType {
+		NONE, // no reference
+		SIMPLE, // only the id is stored
+		DBREF, // Mongo DBRef style
 	}
 
 	/**

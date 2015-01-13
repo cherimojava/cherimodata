@@ -23,7 +23,13 @@ import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-import org.bson.*;
+import org.bson.BsonObjectId;
+import org.bson.BsonReader;
+import org.bson.BsonString;
+import org.bson.BsonType;
+import org.bson.BsonValue;
+import org.bson.BsonWriter;
+import org.bson.Document;
 import org.bson.codecs.Codec;
 import org.bson.codecs.CollectibleCodec;
 import org.bson.codecs.DecoderContext;
@@ -34,7 +40,11 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.cherimojava.data.mongo.entity.*;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.github.cherimojava.data.mongo.entity.EntityProperties;
+import com.github.cherimojava.data.mongo.entity.EntityUtils;
+import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 import com.google.common.base.Throwables;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -153,24 +163,15 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					reader.skipValue();
 					continue;
 				}
-				Class<? extends Entity> cls = null;
-				try {
-					cls = (Class<? extends Entity>) clazz.getMethod("get" + EntityUtils.capitalize(name), null).getReturnType();
-				} catch (NoSuchMethodException e1) {
-					e1.printStackTrace();
-				}
-				EntityProperties seProperties = EntityFactory.getProperties(cls);
+
+				EntityProperties seProperties = getEntityProperties(clazz, name);
 				if (pp.isReference()) {
 					// Entity is only stored as reference, so we can only read the id from it
 					reader.readStartDocument();
 					// read the references collection, but we know where the reference belongs to, so discard
 					reader.readString("$ref");
-					e.set(name,
-							EntityCodec.getCollectionFor(db, seProperties).find(
-									new Document(
-											ID,
-											seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId("$id")
-													: reader.readString("$id"))).iterator().next());
+					reader.readName("$id");
+					e.set(name, getSubEntity(seProperties, pp, reader));
 					reader.readEndDocument();
 				} else {
 					e.set(name, decodeEntity(reader, seProperties.getEntityClass()));
@@ -182,6 +183,12 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					LOG.debug("Found property named {}, but this property isn't known for Entity {}", propertyName,
 							clazz.getSimpleName());
 					reader.skipValue();
+					continue;
+				}
+				if (pp.isReference() && !pp.isDBRef()) {
+					// later one should never be true
+					EntityProperties seProperties = getEntityProperties(clazz, propertyName);
+					e.set(propertyName, getSubEntity(seProperties, pp, reader));
 					continue;
 				}
 				if (pp.isTransient() || pp.isComputed()) {
@@ -290,25 +297,26 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					continue;
 				}
 				if (pp.isReference()) {
-					writer.writeStartDocument(propertyName);
 					EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getType());
 					Entity subEntity = (Entity) value.get(propertyName);
 					Object eid = EntityCodec._obtainId(subEntity);
 					// this is just for compatibility with other tools, due to our Schema information we know where this
 					// comes from
-					writer.writeString("$ref", seProperties.getCollectionName());
-					writer.writeName("$id");
-					if (eid.getClass() == ObjectId.class) {
-						writer.writeObjectId((ObjectId) eid);
+					if (pp.isDBRef()) {
+						// if this is meant to be stored as Mongo DBRef we need to add parts
+						writer.writeStartDocument(propertyName);
+						writer.writeString("$ref", seProperties.getCollectionName());
+						writer.writeName("$id");
+						writeId(eid, writer);
+						writer.writeEndDocument();
 					} else {
-						writer.writeString(eid.toString());
+						writer.writeName(propertyName);
+						writeId(eid, writer);
 					}
+
 					if (toDB) {
 						subEntity.save();
-						// ((MongoCollection<Entity>) EntityCodec.getCollectionFor(db, seProperties)).updateOne(
-						// new Document(Entity.ID, subEntity.get(Entity.ID)), subEntity);
 					}
-					writer.writeEndDocument();
 					continue;
 				}
 
@@ -328,6 +336,31 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 				}
 			}
 		}
+	}
+
+	private static void writeId(Object id, BsonWriter writer) {
+		if (id.getClass() == ObjectId.class) {
+			writer.writeObjectId((ObjectId) id);
+		} else {
+			writer.writeString(id.toString());
+		}
+	}
+
+	private static EntityProperties getEntityProperties(Class clazz, String name) {
+		try {
+			return EntityFactory.getProperties((Class<? extends Entity>) clazz.getMethod(
+					"get" + EntityUtils.capitalize(name), null).getReturnType());
+
+		} catch (NoSuchMethodException e1) {
+			LOG.error("failed to read 'get{}()' on class {}. Should not happen", EntityUtils.capitalize(name), clazz);
+		}
+		return null;
+	}
+
+	private Entity getSubEntity(EntityProperties seProperties, ParameterProperty pp, BsonReader reader) {
+		return EntityCodec.getCollectionFor(db, seProperties).find(
+				new Document(ID, seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId()
+						: reader.readString())).iterator().next();
 	}
 
 	private void encode(BsonWriter writer, T value, boolean toDB) {
