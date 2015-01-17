@@ -25,10 +25,15 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import org.bson.codecs.configuration.CodecRegistry;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -48,16 +53,24 @@ import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCollectionOptions;
 import com.mongodb.client.MongoDatabase;
 
 public class _EntityConverter extends TestBase {
 	@Mock
 	EntityFactory mock;
 
+	@Mock
+	MongoCollection coll;
+
+	@Mock
+	MongoDatabase db;
+
 	@Before
 	public void setupMock() {
 		MockitoAnnotations.initMocks(this);
+		when(db.getCollection(anyString())).thenReturn(coll);
+		when(coll.withDefaultClass(any(Class.class))).thenReturn(coll);
+		when(coll.withCodecRegistry(any(CodecRegistry.class))).thenReturn(coll);
 	}
 
 	@Test
@@ -91,9 +104,6 @@ public class _EntityConverter extends TestBase {
 	@Test
 	public void readInternal() throws IOException {
 		HttpInputMessage him = mock(HttpInputMessage.class);
-		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
-				mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		InputStream is = new ByteArrayInputStream("{ \"string\" : \"SomeString\" }".getBytes());
 		when(him.getBody()).thenReturn(is);
@@ -104,9 +114,6 @@ public class _EntityConverter extends TestBase {
 
 	@Test
 	public void integrationSingleEntity() throws Exception {
-		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
-				mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
 				new EntityConverter(factory)).build();
@@ -119,9 +126,6 @@ public class _EntityConverter extends TestBase {
 
 	@Test
 	public void integrationEntityList() throws Exception {
-		MongoDatabase db = mock(MongoDatabase.class);
-		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(
-				mock(MongoCollection.class));
 		EntityFactory factory = new EntityFactory(db);
 		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
 				new EntityConverter(factory)).build();

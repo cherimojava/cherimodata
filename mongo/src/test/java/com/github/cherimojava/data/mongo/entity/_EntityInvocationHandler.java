@@ -53,7 +53,6 @@ import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCollectionOptions;
 import com.mongodb.client.MongoDatabase;
 
 public class _EntityInvocationHandler extends TestBase {
@@ -72,7 +71,7 @@ public class _EntityInvocationHandler extends TestBase {
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
 		collection = mock(MongoCollection.class, Mockito.RETURNS_DEEP_STUBS);
-		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(collection);
+		when(db.getCollection(anyString())).thenReturn(collection);
 	}
 
 	@Test

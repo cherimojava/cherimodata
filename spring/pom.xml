@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver-core</artifactId>
+            <artifactId>mongodb-driver-core</artifactId>
         </dependency>
         <!-- only temporary needed to be declared-->
         <dependency>

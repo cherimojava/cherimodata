@@ -15,12 +15,13 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 
 import org.bson.codecs.IntegerCodec;
-import org.bson.codecs.ListCodec;
 import org.junit.Before;
 import org.junit.Test;
 

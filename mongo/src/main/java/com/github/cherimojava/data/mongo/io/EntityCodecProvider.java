@@ -22,14 +22,27 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
-import org.bson.codecs.*;
+import org.bson.codecs.BinaryCodec;
+import org.bson.codecs.BooleanCodec;
+import org.bson.codecs.BsonTypeClassMap;
+import org.bson.codecs.CodeCodec;
+import org.bson.codecs.Codec;
+import org.bson.codecs.DateCodec;
+import org.bson.codecs.DocumentCodec;
+import org.bson.codecs.DoubleCodec;
+import org.bson.codecs.IntegerCodec;
+import org.bson.codecs.LongCodec;
+import org.bson.codecs.MaxKeyCodec;
+import org.bson.codecs.MinKeyCodec;
+import org.bson.codecs.ObjectIdCodec;
+import org.bson.codecs.StringCodec;
+import org.bson.codecs.SymbolCodec;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.configuration.RootCodecRegistry;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
-import com.mongodb.client.MongoCollectionOptions;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -113,14 +126,14 @@ public class EntityCodecProvider implements CodecProvider {
 		return new RootCodecRegistry(Arrays.<CodecProvider> asList(new EntityCodecProvider(db, clazz)));
 	}
 
-	/**
-	 * creates current default MongoCollectionOptions containing only the codecRegistry to use
-	 * 
-	 * @param db
-	 * @param clazz
-	 * @return
-	 */
-	public static MongoCollectionOptions createMongoCollectionOptions(MongoDatabase db, Class<? extends Entity> clazz) {
-		return MongoCollectionOptions.builder().codecRegistry(createCodecRegistry(db, clazz)).build();
-	}
+//	/**
+//	 * creates current default MongoCollectionOptions containing only the codecRegistry to use
+//	 *
+//	 * @param db
+//	 * @param clazz
+//	 * @return
+//	 */
+//	public static OperationOptions createCollectionOptions(MongoDatabase db, Class<? extends Entity> clazz) {
+//		return OperationOptions.builder().codecRegistry(createCodecRegistry(db, clazz)).build();
+//	}
 }

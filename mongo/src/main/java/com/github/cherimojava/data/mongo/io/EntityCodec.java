@@ -79,8 +79,9 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 * @return
 	 */
 	public static MongoCollection<? extends Entity> getCollectionFor(MongoDatabase db, EntityProperties properties) {
-		return db.getCollection(properties.getCollectionName(), properties.getEntityClass(),
-				EntityCodecProvider.createMongoCollectionOptions(db, properties.getEntityClass()));
+		return db.getCollection(properties.getCollectionName()).withDefaultClass(properties.getEntityClass()).withCodecRegistry(EntityCodecProvider.createCodecRegistry(db,properties.getEntityClass()));
+//		return db.getCollection(properties.getCollectionName(), properties.getEntityClass(),
+//				EntityCodecProvider.createCollectionOptions(db, properties.getEntityClass()));
 	}
 
 	/*

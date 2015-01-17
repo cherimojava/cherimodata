@@ -17,7 +17,9 @@ package com.github.cherimojava.data.mongo.entity;
 
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.getDefaultClass;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
 import java.lang.reflect.InvocationHandler;
@@ -362,8 +364,7 @@ class EntityInvocationHandler implements InvocationHandler {
 			cpp.validate(handler.data.get(cpp.getMongoName()));
 		}
 		BsonDocumentWrapper wrapper = new BsonDocumentWrapper<>(handler.proxy,
-				(org.bson.codecs.Encoder<Entity>) coll.getOptions().getCodecRegistry().get(
-						handler.properties.getEntityClass()));
+				(org.bson.codecs.Encoder<Entity>) coll.getCodecRegistry().get(handler.properties.getEntityClass()));
 		// wrapper.remove(Entity.ID);
 		UpdateResult res = coll.updateOne(
 				EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID,

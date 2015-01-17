@@ -15,12 +15,24 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.CollectionEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ComputedPropertyEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.LazyLoadingEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ReferencingEntity;
 import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 import java.io.StringWriter;
@@ -28,7 +40,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.mongodb.DBRef;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
@@ -51,6 +62,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.collect.Lists;
 import com.mongodb.Block;
+import com.mongodb.DBRef;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 
@@ -258,7 +270,7 @@ public class _DeEncoding extends MongoBase {
 		re.save();
 		Document reRead = db.getCollection(getCollectionName(ReferencingEntity.class)).find(
 				new Document(ID, re.get(ID))).limit(1).iterator().next();
-		ObjectId dbRef = (ObjectId) ((DBRef)reRead.get("dBRef")).getId();
+		ObjectId dbRef = (ObjectId) ((DBRef) reRead.get("dBRef")).getId();
 		assertNotNull(dbRef);
 		assertNotNull(pe.get(ID));
 		assertEquals(pe.get(ID), dbRef);
@@ -580,8 +592,8 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	private <T extends Entity> MongoCollection<T> getCollection(Class<T> clazz) {
-		return db.getCollection(getCollectionName(clazz), clazz,
-				EntityCodecProvider.createMongoCollectionOptions(db, clazz));
+		return db.getCollection(getCollectionName(clazz)).withDefaultClass(clazz).withCodecRegistry(
+				EntityCodecProvider.createCodecRegistry(db, clazz));
 	}
 
 	private interface FinalEntity extends Entity<FinalEntity> {

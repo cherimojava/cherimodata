@@ -19,13 +19,16 @@ import java.util.List;
 
 import org.bson.BsonReader;
 import org.bson.BsonWriter;
-import org.bson.codecs.*;
+import org.bson.codecs.BsonTypeClassMap;
+import org.bson.codecs.Codec;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import com.google.common.collect.Lists;
 
 /**
- * codec to handle Arrays, based on {@link org.mongodb.codecs.ListCodec}
+ * codec to handle Arrays, based on {@link com.github.cherimojava.data.mongo.io.ListCodec}
  *
  * @author philnate
  * @since 1.0.0

@@ -16,7 +16,9 @@
 package com.github.cherimojava.data.mongo.entity;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -27,12 +29,14 @@ import java.util.List;
 
 import javax.inject.Named;
 
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.bson.Document;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
@@ -40,13 +44,13 @@ import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCollectionOptions;
 import com.mongodb.client.MongoDatabase;
 
 public class _EntityFactory extends TestBase {
 
 	@Mock
 	MongoDatabase db;
+
 	@Mock
 	MongoCollection<Document> coll;
 
@@ -55,7 +59,9 @@ public class _EntityFactory extends TestBase {
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.initMocks(this);
-		when(db.getCollection(anyString(), any(Class.class), any(MongoCollectionOptions.class))).thenReturn(coll);
+		when(db.getCollection(anyString())).thenReturn(coll);
+		when(coll.withCodecRegistry(any(CodecRegistry.class))).thenReturn(coll);
+		when(coll.withDefaultClass(any(Class.class))).thenReturn(coll);
 		factory = new EntityFactory(db);
 	}
 
@@ -127,7 +133,7 @@ public class _EntityFactory extends TestBase {
 	@Test
 	public void fromJSON() {
 		CommonInterfaces.PrimitiveEntity pe = factory.readEntity(CommonInterfaces.PrimitiveEntity.class,
-                "{\"string\": \"something\",\"Integer\":3}");
+				"{\"string\": \"something\",\"Integer\":3}");
 		assertEquals(pe.getString(), "something");
 		assertEquals((int) pe.getInteger(), 3);
 	}
