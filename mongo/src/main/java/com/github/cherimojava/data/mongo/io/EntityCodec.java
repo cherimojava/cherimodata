@@ -79,9 +79,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 * @return
 	 */
 	public static MongoCollection<? extends Entity> getCollectionFor(MongoDatabase db, EntityProperties properties) {
-		return db.getCollection(properties.getCollectionName()).withDefaultClass(properties.getEntityClass()).withCodecRegistry(EntityCodecProvider.createCodecRegistry(db,properties.getEntityClass()));
-//		return db.getCollection(properties.getCollectionName(), properties.getEntityClass(),
-//				EntityCodecProvider.createCollectionOptions(db, properties.getEntityClass()));
+		return db.getCollection(properties.getCollectionName()).withDefaultClass(properties.getEntityClass()).withCodecRegistry(
+				EntityCodecProvider.createCodecRegistry(db, properties.getEntityClass()));
 	}
 
 	/*
@@ -359,9 +358,14 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	private Entity getSubEntity(EntityProperties seProperties, ParameterProperty pp, BsonReader reader) {
-		return EntityCodec.getCollectionFor(db, seProperties).find(
-				new Document(ID, seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId()
-						: reader.readString())).iterator().next();
+		Object id = seProperties.getProperty("_id").getType() == ObjectId.class ? reader.readObjectId()
+				: reader.readString();
+		boolean objectId = seProperties.getProperty("_id").getType() == ObjectId.class;
+		if (pp.isLazyLoaded()) {
+			return factory.createLazy(seProperties.getEntityClass(),id);
+		} else {
+			return EntityCodec.getCollectionFor(db, seProperties).find(new Document(ID, id)).iterator().next();
+		}
 	}
 
 	private void encode(BsonWriter writer, T value, boolean toDB) {

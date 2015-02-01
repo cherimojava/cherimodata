@@ -165,6 +165,12 @@ public class EntityFactory {
 		return instantiate(clazz, handler);
 	}
 
+	public <T extends Entity> T createLazy(Class<T> clazz, Object id) {
+		EntityInvocationHandler handler = new EntityInvocationHandler(defFactory.create(clazz), getCollection(clazz),id);
+		T t = instantiate(clazz, handler);
+		return t;
+	}
+
 	/**
 	 * allows to load an Entity which is identified by the given id, or null if no such entity was found.
 	 *

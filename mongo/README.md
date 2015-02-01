@@ -50,7 +50,7 @@ implicit id will be used. Can't be used more than once per Entity
 * All Java Validation annotations like @Size, @NotNull, @DecimalMin, @DecimalMax, @Future, etc.
 * @Transient, tells that this field isn't persisted
 * @Computed tells that this property is being computed. Once must not declare a setter for those fields
-* @Reference only on Entity type properties. Tells that the Entity supplied with this property will not be inlined. By default other Entities will be inlined
+* @Reference only on Entity type properties. Tells that the Entity supplied with this property will not be inlined. Without this annotation entity based classes will be inlined. By default referenced entity will be lazy loaded
 * @Final denotes that this property after first written can't be changed ongoing. Only working for primitives and their Object representives, java.lang.String, org.bson.types.ObjectId and org.jodatime.DateTime
 
 ### Property MongoDB name mapping
@@ -62,6 +62,5 @@ The Java to MongoDB name resolution follows these rules:
 
 ## TODO
 
-* On the fly loading for subdocuments.
 * Transactional Support as described in MongoDBs 2PC document
 * Search functionality based on method names

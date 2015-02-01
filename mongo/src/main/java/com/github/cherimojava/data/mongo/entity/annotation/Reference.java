@@ -30,13 +30,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Reference {
-	// TODO implement lazy loading
 	/**
 	 * Toggles if this property will be resolved to the actual entity on load time of the parent entity or on the first
-	 * access to this property. Default is false, which means that this property is loaded together with it's parent
-	 * entity
+	 * access to this property. Default is true, which means that entity is loaded once data is requested not included
+	 * in the parent entity
 	 */
-	public boolean lazy() default false;
+	public boolean lazy() default true;
 
 	// TODO implement this
 	/**

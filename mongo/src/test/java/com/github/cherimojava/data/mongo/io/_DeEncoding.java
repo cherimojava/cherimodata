@@ -33,6 +33,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 import java.io.StringWriter;
@@ -44,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.json.JsonReader;
 import org.bson.json.JsonWriter;
 import org.bson.types.ObjectId;
@@ -64,6 +68,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.Block;
 import com.mongodb.DBRef;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOptions;
 
 //TODO primitive types not working yet
@@ -255,7 +260,29 @@ public class _DeEncoding extends MongoBase {
 		assertEquals(pe.getString(), peRead.get("string"));
 
 		ReferencingEntity read = factory.load(ReferencingEntity.class, re.get(ID));
+		assertEquals("nestedString", read.getPE().getString());// This property is lazy loaded
 		assertEquals(re, read);
+
+		// direct equals should trigger lazy loading too
+		read = factory.load(ReferencingEntity.class, re.get(ID));
+		assertEquals(re, read);
+	}
+
+	@Test
+	public void dataLoadedLazy() {
+		ReferencingEntity re = factory.create(ReferencingEntity.class);
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+
+		pe.setString("nestedString");
+		re.setPE(pe);
+		re.setString("some");
+
+		re.save();
+
+		String changedString ="StringNested";
+		ReferencingEntity load= (ReferencingEntity) re.load(re.get(ID));
+		db.getCollection(EntityFactory.getProperties(PrimitiveEntity.class).getCollectionName()).updateOne(new Document("_id",pe.get(ID)),new Document("$set",new Document("string",changedString)));
+		assertEquals(changedString,load.getPE().getString());
 	}
 
 	@Test

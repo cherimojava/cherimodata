@@ -85,6 +85,11 @@ class EntityInvocationHandler implements InvocationHandler {
 	boolean persisted = false;
 
 	/**
+	 * tells if this entity is lazy loaded or not.
+	 */
+	private boolean lazy = false;
+
+	/**
 	 * holds the actual data of the Entity
 	 */
 	Map<String, Object> data;
@@ -116,6 +121,30 @@ class EntityInvocationHandler implements InvocationHandler {
 	}
 
 	/**
+	 * creates a new handler and marks it as lazy. Only setting the id. Everything else will be loaded once an
+	 * interaction with this object happens
+	 * 
+	 * @param properties
+	 * @param collection
+	 * @param id
+	 */
+	public EntityInvocationHandler(EntityProperties properties, MongoCollection collection, Object id) {
+		this(properties, collection);
+		lazy = true;
+		_put(properties.getProperty(Entity.ID), id);
+	}
+
+	/**
+	 * actual method which is invoked once the lazy entity is about to be filled with life
+	 */
+	private void lazyLoad() {
+		if (lazy) {
+			data = ((EntityInvocationHandler) Proxy.getInvocationHandler(find(collection, data.get(ID)))).data;
+			lazy = false;
+		}
+	}
+
+	/**
 	 * Method which is actually invoked if a proxy method is being called. Used as dispatcher to actual methods doing
 	 * the work
 	 */
@@ -123,6 +152,9 @@ class EntityInvocationHandler implements InvocationHandler {
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		String methodName = method.getName();
 		ParameterProperty pp;
+
+		// check if something needs to be loaded
+		lazyLoad();
 
 		switch (methodName) {
 		case "get":
@@ -323,7 +355,9 @@ class EntityInvocationHandler implements InvocationHandler {
 			// this is not the same entity class, so false
 			return false;
 		}
-
+		// make sure both have all lazy dependencies resolved
+		lazyLoad();
+		handler.lazyLoad();
 		return data.equals(handler.data);
 	}
 
