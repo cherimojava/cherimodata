@@ -107,7 +107,18 @@ public class CommonInterfaces {
 		public PrimitiveEntity getDBRef();
 
 		public ReferencingEntity setDBRef(PrimitiveEntity pe);
-	}
+
+		@Reference
+		public List<PrimitiveEntity> getListedEntities();
+
+		public ReferencingEntity setListedEntities(List<PrimitiveEntity> list);
+
+        @Reference(asDBRef = true)
+        public List<PrimitiveEntity> getListedDBRefEntities();
+
+        public ReferencingEntity setListedDBRefEntities(List<PrimitiveEntity> list);
+
+    }
 
 	public static interface LazyLoadingEntity extends PrimitiveEntity {
 		@Reference(lazy = true)
@@ -205,4 +216,15 @@ public class CommonInterfaces {
 
 		public void setString(List<String> s);
 	}
+
+    public static interface EntityList extends Entity<EntityList> {
+        @Id
+        public String getId();
+
+        public EntityList setId(String id);
+
+        public List<PrimitiveEntity> getList();
+
+        public EntityList setList(List<PrimitiveEntity> list);
+    }
 }

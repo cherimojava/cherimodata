@@ -15,6 +15,14 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getGetterFromAdder;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getGetterFromSetter;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getPojoNameFromMethod;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.isAssignableFromClass;
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -34,10 +42,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.lang.String.format;
 
 /**
  * Factory for creating EntityProperties out of a given Interface extending Entity
@@ -192,8 +196,9 @@ class EntityPropertyFactory {
 		checkArgument(getter.getParameterTypes().length == 0, "Get methods can't have parameters, but had %s",
 				Lists.newArrayList(getter.getParameterTypes()));
 		if (getter.isAnnotationPresent(Reference.class)) {
-			checkArgument(Entity.class.isAssignableFrom(getter.getReturnType()),
-					"Cant declare reference on non entity type");
+            if (!EntityUtils.isValidReferenceClass(getter)) {
+                throw new IllegalArgumentException("Cant declare reference on non entity type or list of entities");
+            }
 		}
 	}
 }

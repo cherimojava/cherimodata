@@ -394,7 +394,7 @@ public final class ParameterProperty {
 				}
 			}
 			if (m.isAnnotationPresent(Reference.class)) {
-				checkArgument(Entity.class.isAssignableFrom(m.getReturnType()),
+				checkArgument(EntityUtils.isValidReferenceClass(m),
 						"Reference annotation can only be used for Entity types but was {}", m.getReturnType());
 				builder.setReferenceLoadingTime(m.getAnnotation(Reference.class).lazy() ? ReferenceLoadingTime.LAZY
 						: ReferenceLoadingTime.IMMEDIATE);

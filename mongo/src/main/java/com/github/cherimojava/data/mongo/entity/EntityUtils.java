@@ -17,10 +17,13 @@ package com.github.cherimojava.data.mongo.entity;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isAllUpperCase;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
 import java.util.Locale;
 
 import javax.inject.Named;
@@ -230,5 +233,14 @@ public class EntityUtils {
 	 */
 	public static boolean isPersisted(Entity e) {
 		return EntityInvocationHandler.getHandler(e).persisted;
+	}
+
+    /**
+     * returns true if this getter methods return type is either an entity or a list of entities. Otherwise false
+     * @param getter
+     * @return true if return type is entity or list of entities
+     */
+	public static boolean isValidReferenceClass(Method getter) {
+		return (Entity.class.isAssignableFrom(getter.getReturnType()) || (Collection.class.isAssignableFrom(getter.getReturnType()) && Entity.class.isAssignableFrom((Class) ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0])));
 	}
 }

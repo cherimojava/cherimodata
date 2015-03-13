@@ -17,6 +17,7 @@ package com.github.cherimojava.data.mongo.io;
 
 import static com.github.cherimojava.data.mongo.CommonInterfaces.CollectionEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ComputedPropertyEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.EntityList;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.LazyLoadingEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
@@ -33,9 +34,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 import java.io.StringWriter;
@@ -47,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.json.JsonReader;
 import org.bson.json.JsonWriter;
 import org.bson.types.ObjectId;
@@ -68,7 +65,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.Block;
 import com.mongodb.DBRef;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOptions;
 
 //TODO primitive types not working yet
@@ -279,10 +275,11 @@ public class _DeEncoding extends MongoBase {
 
 		re.save();
 
-		String changedString ="StringNested";
-		ReferencingEntity load= (ReferencingEntity) re.load(re.get(ID));
-		db.getCollection(EntityFactory.getProperties(PrimitiveEntity.class).getCollectionName()).updateOne(new Document("_id",pe.get(ID)),new Document("$set",new Document("string",changedString)));
-		assertEquals(changedString,load.getPE().getString());
+		String changedString = "StringNested";
+		ReferencingEntity load = (ReferencingEntity) re.load(re.get(ID));
+		db.getCollection(EntityFactory.getProperties(PrimitiveEntity.class).getCollectionName()).updateOne(
+				new Document("_id", pe.get(ID)), new Document("$set", new Document("string", changedString)));
+		assertEquals(changedString, load.getPE().getString());
 	}
 
 	@Test
@@ -548,6 +545,83 @@ public class _DeEncoding extends MongoBase {
 		e.setTime(DateTime.now()).setDate(new Date()).setId("1");
 		e.save();
 		assertEquals(e.toString(), factory.load(DateTimeEntity.class, "1").toString());
+	}
+
+	@Test
+	public void collectionEncodingEntity() {
+		EntityList list = factory.create(EntityList.class);
+		list.setId("1");
+		List<PrimitiveEntity> entities = Lists.newArrayList();
+		entities.add(factory.create(PrimitiveEntity.class).setString("one"));
+		entities.add(factory.create(PrimitiveEntity.class).setString("two"));
+
+		list.setList(entities);
+		list.save();
+
+		assertEquals(list.toString(), factory.load(EntityList.class, "1").toString());
+	}
+
+	@Test
+	public void referenceListEntityEncoding() {
+		ReferencingEntity reference = factory.create(ReferencingEntity.class);
+		reference.set(ID, "1");
+		reference.setString("happy");
+		List<PrimitiveEntity> entities = Lists.newArrayList();
+		PrimitiveEntity pone = factory.create(PrimitiveEntity.class).setString("one");
+		PrimitiveEntity ptwo = factory.create(PrimitiveEntity.class).setString("two");
+
+		entities.add(pone);
+		entities.add(ptwo);
+
+		// check what happens if nothing is set
+		reference.save();
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+
+        // check what happens if null is set
+        reference.setListedEntities(Lists.<PrimitiveEntity>newArrayList());
+        reference.save();
+        assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+
+		// set some list
+		reference.setListedEntities(entities);
+		reference.save();
+
+		// and that the objects are stored separately too
+		assertEquals(pone.toString(), factory.load(PrimitiveEntity.class, pone.get(ID)).toString());
+		assertEquals(ptwo.toString(), factory.load(PrimitiveEntity.class, ptwo.get(ID)).toString());
+		// check that the parent entity is correct
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+	}
+
+	@Test
+	public void referenceListDBRefEntityEncoding() {
+		ReferencingEntity reference = factory.create(ReferencingEntity.class);
+		reference.set(ID, "1");
+		reference.setString("happy");
+		List<PrimitiveEntity> entities = Lists.newArrayList();
+		PrimitiveEntity pone = factory.create(PrimitiveEntity.class).setString("one");
+		PrimitiveEntity ptwo = factory.create(PrimitiveEntity.class).setString("two");
+
+		entities.add(pone);
+		entities.add(ptwo);
+
+		// check what happens if nothing is set
+		reference.save();
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+
+        // check what happens if null is set
+        reference.setListedDBRefEntities(Lists.<PrimitiveEntity>newArrayList());
+        reference.save();
+        assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+
+		// set some list
+		reference.setListedDBRefEntities(entities);
+		reference.save();
+		// and that the objects are stored separately too
+		assertEquals(pone.toString(), factory.load(PrimitiveEntity.class, pone.get(ID)).toString());
+		assertEquals(ptwo.toString(), factory.load(PrimitiveEntity.class, ptwo.get(ID)).toString());
+		// check that the parent entity is correct
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
 	}
 
 	@Test
