@@ -30,7 +30,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -348,6 +347,16 @@ public class _EntityInvocationHandler extends TestBase {
 		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
 		pe.setInteger(1);
 		assertJson(sameJSONAs("{ \"Integer\" : 1}"), pe);
+	}
+
+	@Test
+	public void validationMsg() {
+		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+		try {
+			pe.save();
+		} catch (ConstraintViolationException e) {
+			assertThat(e.getMessage(), containsString("may not be null"));
+		}
 	}
 
 	@Test

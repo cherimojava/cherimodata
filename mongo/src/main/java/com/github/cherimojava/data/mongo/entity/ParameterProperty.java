@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.metadata.BeanDescriptor;
@@ -226,9 +227,15 @@ public final class ParameterProperty {
 	 */
 	public void validate(Object value) {
 		if (hasConstraints()) {
-			Set violations = validator.validateValue(declaringClass, pojoName, value, Entity.Special.class);
+			Set<? extends ConstraintViolation<? extends Entity>> violations = validator.validateValue(declaringClass,
+					pojoName, value, Entity.Special.class);
 			if (!violations.isEmpty()) {
-				throw new ConstraintViolationException(violations);
+				StringBuilder msg = new StringBuilder().append("Found errors while validating property ").append(
+						declaringClass.getCanonicalName()).append("#").append(pojoName).append(":\n");
+				for (ConstraintViolation violation : violations) {
+					msg.append("*").append(violation.getMessage()).append("\n");
+				}
+				throw new ConstraintViolationException(msg.toString(), violations);
 			}
 		}
 	}
@@ -252,7 +259,7 @@ public final class ParameterProperty {
 		private boolean finl;
 		private Computer computer;
 		private ReferenceLoadingTime referenceLoadingTime;
-		private ReferenceType referenceType =ReferenceType.NONE;
+		private ReferenceType referenceType = ReferenceType.NONE;
 		private Map<MethodType, Boolean> typeReturnMap = Maps.newHashMap();
 
 		Builder setTransient(boolean tranzient) {
