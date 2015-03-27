@@ -90,6 +90,11 @@ class EntityInvocationHandler implements InvocationHandler {
 	private boolean lazy = false;
 
 	/**
+	 * will be true if the entity is in the process of being saved, false otherwise
+	 */
+	private volatile boolean saving = false;
+
+	/**
 	 * holds the actual data of the Entity
 	 */
 	Map<String, Object> data;
@@ -165,7 +170,8 @@ class EntityInvocationHandler implements InvocationHandler {
 		case "save":
 			checkState(collection != null,
 					"Entity was created without MongoDB reference. You have to save the entity through an EntityFactory");
-			if (changed) {
+			if (changed && !saving) {
+				saving = true;// mark that we're about to save to break potential cycles
 				// TODO create for accessable Id some way to get it validated through validator
 				if (properties.hasExplicitId()) {
 					// TODO we can release this if it's of type ObjectId
@@ -174,6 +180,8 @@ class EntityInvocationHandler implements InvocationHandler {
 				save(this, collection);
 				// change state only after successful saving to Mongo
 				changed = false;
+				saving = false;// we're done with saving next one, can write object. Which isn't coming from within this
+								// instance
 				return true;
 			} else {
 				LOG.info("Did not save Entity with id {} of class {} as no changes where made.", data.get(ID),
@@ -238,6 +246,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 * verifies that the given property isn't final and if it's that the entity wasn't saved yet.
 	 * 
 	 * @param pp
+	 *            parameterproperty to check for final
 	 */
 	private void checkNotFinal(ParameterProperty pp) {
 		if (pp.isFinal()) {
@@ -399,7 +408,6 @@ class EntityInvocationHandler implements InvocationHandler {
 		}
 		BsonDocumentWrapper wrapper = new BsonDocumentWrapper<>(handler.proxy,
 				(org.bson.codecs.Encoder<Entity>) coll.getCodecRegistry().get(handler.properties.getEntityClass()));
-		// wrapper.remove(Entity.ID);
 		UpdateResult res = coll.updateOne(
 				EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID,
 						EntityCodec._obtainId(handler.proxy)), new BsonDocument("$set", wrapper), new UpdateOptions());
@@ -419,7 +427,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 *            MongoCollection in which this entity is saved
 	 */
 	static <T extends Entity> void drop(EntityInvocationHandler handler, MongoCollection<T> coll) {
-		coll.findOneAndDelete(new Document(ID, ((T) handler.proxy).get(ID)));
+		coll.findOneAndDelete(new Document(ID, (handler.proxy).get(ID)));
 	}
 
 	/**
@@ -457,6 +465,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	 * sets the proxy this handler backs, needed for internal work
 	 *
 	 * @param proxy
+	 *            this handler is for, allows internal component to get access to outside view of itself
 	 */
 	void setProxy(Entity proxy) {
 		checkArgument(this.proxy == null, "Proxy for Handler can be only set once");

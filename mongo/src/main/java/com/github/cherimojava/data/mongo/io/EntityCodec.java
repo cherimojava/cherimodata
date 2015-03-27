@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 
 import org.bson.BsonObjectId;
 import org.bson.BsonReader;
@@ -46,6 +47,7 @@ import com.github.cherimojava.data.mongo.entity.EntityProperties;
 import com.github.cherimojava.data.mongo.entity.EntityUtils;
 import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -186,7 +188,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					reader.skipValue();
 					continue;
 				}
-				if (pp.isReference()/* && !pp.isDBRef() */) {
+				if (pp.isReference()) {
 					// later one should never be true
 					if (!pp.isCollection()) {
 						EntityProperties seProperties = getEntityProperties(clazz, propertyName);
@@ -200,11 +202,11 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 								reader.readStartDocument();
 								reader.readString("$ref");
 								reader.readName();
-                                coll.add((E) getSubEntity(seProperties, pp, reader));
-                                reader.readEndDocument();
+								coll.add((E) getSubEntity(seProperties, pp, reader));
+								reader.readEndDocument();
 							} else {
-                                coll.add((E) getSubEntity(seProperties, pp, reader));
-                            }
+								coll.add((E) getSubEntity(seProperties, pp, reader));
+							}
 						}
 						e.set(propertyName, coll);
 						reader.readEndArray();
@@ -277,9 +279,9 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 		return clazz;
 	}
 
-	public void encodeInternal(BsonWriter bsonWriter, T value, EncoderContext ctx) {
+	private void encodeInternal(BsonWriter bsonWriter, T value, EncoderContext ctx) {
 		// right now the context doesn't contain anything we care about, ignore it
-		encode(bsonWriter, value, true);
+		encode(bsonWriter, value, true, Lists.<T> newArrayList());
 	}
 
 	/**
@@ -292,18 +294,24 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 * @param toDB
 	 *            is this just a toString() call or a real persisting action
 	 */
-	private void encodeEntity(BsonWriter writer, T value, boolean toDB) {
+	private void encodeEntity(BsonWriter writer, T value, boolean toDB, List<T> cycleBreaker) {
 		EntityProperties properties = EntityFactory.getProperties(value.entityClass());
 
+		if (cycleBreaker.contains(value)) {
+			LOG.debug("detected cycle for type {} with id {}.", properties.getEntityClass().getCanonicalName(),
+					value.get(Entity.ID));
+			return;// we already visited this entity
+		}
+		cycleBreaker.add(value);// add the entity so we can check what we already visited
+
 		if (toDB) {
-			// mark this entity as persisted, but only if the caller is toString (this screws up debugging)
+			// mark this entity as persisted, but only if the caller isnt toString (this screws up debugging)
 			EntityUtils.persist(value);
 		}
 
 		Object id = value.get(Entity.ID);
 		if (id != null && !properties.hasExplicitId()) {
 			// this is needed to write the object id, which at this time should be set in case it wasn't before
-			// TODO shouldn't this be always true?
 			// only write out the id if it's not explicitly declared
 			writer.writeName(Entity.ID);
 			Codec codec = codecRegistry.get(id.getClass());
@@ -370,7 +378,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 				if (Entity.class.isAssignableFrom(method.getReturnType())) {
 					// we got some entity, so we need to recurse
 					writer.writeName(propertyName);
-					encode(writer, (T) value.get(propertyName), toDB);
+					encode(writer, (T) value.get(propertyName), toDB, cycleBreaker);
 				} else if (method.getReturnType().isEnum()) {
 					// enum handling
 					writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
@@ -383,6 +391,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 				}
 			}
 		}
+		cycleBreaker.remove(value);
 	}
 
 	private static void writeId(Object id, BsonWriter writer) {
@@ -399,9 +408,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					"get" + EntityUtils.capitalize(name)).getReturnType());
 
 		} catch (NoSuchMethodException e1) {
-			LOG.error("failed to read 'get{}()' on class {}. Should not happen", EntityUtils.capitalize(name), clazz);
+			throw new IllegalStateException(format("failed to read 'get%s()' on class %s. Should not happen", EntityUtils.capitalize(name), clazz));
 		}
-		return null;
 	}
 
 	private Entity getSubEntity(EntityProperties seProperties, ParameterProperty pp, BsonReader reader) {
@@ -414,9 +422,9 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 		}
 	}
 
-	private void encode(BsonWriter writer, T value, boolean toDB) {
+	private void encode(BsonWriter writer, T value, boolean toDB, List<T> cycleBreaker) {
 		writer.writeStartDocument();
-		encodeEntity(writer, value, toDB);
+		encodeEntity(writer, value, toDB, cycleBreaker);
 		writer.writeEndDocument();
 	}
 
@@ -426,7 +434,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 
 	public String asString(T value) {
 		try (StringWriter swriter = new StringWriter(); JsonWriter writer = new JsonWriter(swriter)) {
-			encode(writer, value, false);
+			encode(writer, value, false, Lists.<T> newArrayList());
 			return swriter.toString();
 		} catch (IOException e) {
 			Throwables.propagate(e);

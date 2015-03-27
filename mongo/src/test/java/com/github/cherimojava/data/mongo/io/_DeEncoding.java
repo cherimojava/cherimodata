@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
@@ -130,7 +131,7 @@ public class _DeEncoding extends MongoBase {
 	public void noDuplicateIdWritten() {
 		ExplicitIdEntity eid = factory.readEntity(ExplicitIdEntity.class, "{\"_id\":\"explicit\"}");
 		assertEquals("explicit", eid.getName());
-		EntityCodec<ExplicitIdEntity> codec = new EntityCodec<>(db, factory.getProperties(ExplicitIdEntity.class));
+		EntityCodec<ExplicitIdEntity> codec = new EntityCodec<>(db, EntityFactory.getProperties(ExplicitIdEntity.class));
 
 		StringWriter swriter = new StringWriter();
 		JsonWriter writer = new JsonWriter(swriter);
@@ -386,7 +387,6 @@ public class _DeEncoding extends MongoBase {
 	public void finalIsFinalAfterLoad() {
 		ExplicitIdEntity e = factory.create(ExplicitIdEntity.class);
 		e.setName("t").save();
-		ExplicitIdEntity loaded = e.load("t");
 		try {
 			e.setName("different");
 			fail("should throw an exception");
@@ -577,10 +577,10 @@ public class _DeEncoding extends MongoBase {
 		reference.save();
 		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
 
-        // check what happens if null is set
-        reference.setListedEntities(Lists.<PrimitiveEntity>newArrayList());
-        reference.save();
-        assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		// check what happens if null is set
+		reference.setListedEntities(Lists.<PrimitiveEntity> newArrayList());
+		reference.save();
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
 
 		// set some list
 		reference.setListedEntities(entities);
@@ -609,10 +609,10 @@ public class _DeEncoding extends MongoBase {
 		reference.save();
 		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
 
-        // check what happens if null is set
-        reference.setListedDBRefEntities(Lists.<PrimitiveEntity>newArrayList());
-        reference.save();
-        assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		// check what happens if null is set
+		reference.setListedDBRefEntities(Lists.<PrimitiveEntity> newArrayList());
+		reference.save();
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
 
 		// set some list
 		reference.setListedDBRefEntities(entities);
@@ -635,6 +635,44 @@ public class _DeEncoding extends MongoBase {
 		i = i++;
 		ae.setString("some").save();
 		assertEquals(3, (int) ae.load(ae.get(ID)).getInt());
+	}
+
+	/**
+	 * test that a recursion within entities detected and broken up (no change after first save)
+	 */
+	@Test
+	public void cycleBreakerInternalReference() {
+		RecursiveEntity outer = factory.create(RecursiveEntity.class);
+		outer.setId("outer");
+		RecursiveEntity inner = factory.create(RecursiveEntity.class);
+		inner.setId("inner");
+		outer.setInner(inner.setInner(outer));
+
+		outer.save();// will die here without cycle detection
+		assertEquals(outer.toString(), factory.load(RecursiveEntity.class, "outer").toString());
+	}
+
+	@Test
+	public void cycleBreakerExternalReference() {
+		ThingOne one = factory.create(ThingOne.class);
+		ThingTwo two = factory.create(ThingTwo.class);
+		one.setOther(two.setOther(one));
+
+		one.save();// should work
+	}
+
+	private static interface ThingOne extends Entity<ThingOne> {
+		@Reference
+		public ThingTwo getOther();
+
+		public ThingOne setOther(ThingTwo two);
+	}
+
+	private static interface ThingTwo extends Entity<ThingTwo> {
+		@Reference
+		public ThingOne getOther();
+
+		public ThingTwo setOther(ThingOne two);
 	}
 
 	private static interface AutoboxedEntity extends Entity<AutoboxedEntity> {
@@ -697,9 +735,14 @@ public class _DeEncoding extends MongoBase {
 				EntityCodecProvider.createCodecRegistry(db, clazz));
 	}
 
-	private interface FinalEntity extends Entity<FinalEntity> {
-		@Id
-		public String getFinal();
+	private interface RecursiveEntity extends Entity<RecursiveEntity> {
+		public RecursiveEntity getInner();
+
+		public RecursiveEntity setInner(RecursiveEntity inner);
+
+		public String getId();
+
+		public RecursiveEntity setId(String id);
 	}
 
 }
