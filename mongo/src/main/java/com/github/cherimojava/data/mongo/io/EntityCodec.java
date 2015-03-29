@@ -347,10 +347,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 							writer.writeName(propertyName);
 							writeId(eid, writer);
 						}
-
-						if (toDB) {
-							subEntity.save();
-						}
 					} else {
 						EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getGenericType());
 						writer.writeStartArray(propertyName);
@@ -364,9 +360,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 								writer.writeEndDocument();
 							} else {
 								writeId(eid, writer);
-							}
-							if (toDB) {
-								subEntity.save();
 							}
 						}
 

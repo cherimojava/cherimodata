@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
@@ -61,6 +60,7 @@ import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityUtils;
 import com.github.cherimojava.data.mongo.entity.annotation.Final;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.collect.Lists;
 import com.mongodb.Block;
@@ -250,6 +250,12 @@ public class _DeEncoding extends MongoBase {
 		assertNotNull(dbRef);
 		assertNotNull(pe.get(ID));
 		assertEquals(pe.get(ID), dbRef);
+
+		// make sure object needs to be saved separately
+		assertFalse(db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document(ID, pe.get(ID))).limit(
+				1).iterator().hasNext());
+		pe.save();
+		// After explicit saving it should be available
 		Document peRead = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document(ID, pe.get(ID))).limit(
 				1).iterator().next();
 
@@ -275,6 +281,7 @@ public class _DeEncoding extends MongoBase {
 		re.setString("some");
 
 		re.save();
+		pe.save();
 
 		String changedString = "StringNested";
 		ReferencingEntity load = (ReferencingEntity) re.load(re.get(ID));
@@ -299,6 +306,10 @@ public class _DeEncoding extends MongoBase {
 		assertNotNull(dbRef);
 		assertNotNull(pe.get(ID));
 		assertEquals(pe.get(ID), dbRef);
+		// make sure only available after explicit saving
+		assertFalse(db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document(ID, pe.get(ID))).limit(
+				1).iterator().hasNext());
+		pe.save();
 		Document peRead = db.getCollection(getCollectionName(PrimitiveEntity.class)).find(new Document(ID, pe.get(ID))).limit(
 				1).iterator().next();
 
@@ -586,6 +597,11 @@ public class _DeEncoding extends MongoBase {
 		reference.setListedEntities(entities);
 		reference.save();
 
+		// only persisted after explicit call
+		assertNull(factory.load(PrimitiveEntity.class, pone.get(ID)));
+		assertNull(factory.load(PrimitiveEntity.class, ptwo.get(ID)));
+		pone.save();
+		ptwo.save();
 		// and that the objects are stored separately too
 		assertEquals(pone.toString(), factory.load(PrimitiveEntity.class, pone.get(ID)).toString());
 		assertEquals(ptwo.toString(), factory.load(PrimitiveEntity.class, ptwo.get(ID)).toString());
@@ -617,6 +633,12 @@ public class _DeEncoding extends MongoBase {
 		// set some list
 		reference.setListedDBRefEntities(entities);
 		reference.save();
+
+		// make sure objects are only stored if they're explicitly saved
+		assertNull(factory.load(PrimitiveEntity.class, pone.get(ID)));
+		assertNull(factory.load(PrimitiveEntity.class, ptwo.get(ID)));
+		pone.save();
+		ptwo.save();
 		// and that the objects are stored separately too
 		assertEquals(pone.toString(), factory.load(PrimitiveEntity.class, pone.get(ID)).toString());
 		assertEquals(ptwo.toString(), factory.load(PrimitiveEntity.class, ptwo.get(ID)).toString());
