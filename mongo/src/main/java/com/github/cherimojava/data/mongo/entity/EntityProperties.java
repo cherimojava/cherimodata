@@ -15,6 +15,9 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getMongoNameFromMethod;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.getMongoNameFromMethod;
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Contains information about a Entity class, like it's collection name, properties etc
@@ -68,6 +68,8 @@ public final class EntityProperties {
 	 */
 	private final boolean explicitId;
 
+	private final ParameterProperty id;
+
 	private EntityProperties(Builder builder) {
 		this.clazz = builder.clazz;
 		this.collectionName = builder.collectionName;
@@ -77,12 +79,14 @@ public final class EntityProperties {
 		ImmutableMap.Builder<String, ParameterProperty> mongo = new ImmutableMap.Builder<>();
 		ImmutableList.Builder<ParameterProperty> valProps = new ImmutableList.Builder<>();
 
+		ParameterProperty idP = null;
 		for (Method m : builder.properties) {
 			ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, builder.validator);
 			pojo.put(pp.getPojoName(), pp);
 			mongo.put(pp.getMongoName(), pp);
 			if (Entity.ID.equals(pp.getMongoName())) {
 				explicitId = true;
+				idP = pp;
 			}
 			if (pp.hasConstraints()) {
 				valProps.add(pp);
@@ -92,16 +96,17 @@ public final class EntityProperties {
 		// check if we have an explicit id, if we don't, create a property for it
 		// TODO add to the validator or so, the capability to validate implicit id too
 		if (!explicitId) {
-			ParameterProperty id = new ParameterProperty.Builder().setMongoName(Entity.ID).setPojoName(Entity.ID).setType(
-					ObjectId.class).setTransient(false).hasConstraints(false).setValidator(builder.validator).build();
-			pojo.put(Entity.ID, id);
-			mongo.put(Entity.ID, id);
+			idP = new ParameterProperty.Builder().setMongoName(Entity.ID).setPojoName(Entity.ID).setType(ObjectId.class).setTransient(
+					false).hasConstraints(false).setValidator(builder.validator).build();
+			pojo.put(Entity.ID, idP);
+			mongo.put(Entity.ID, idP);
 		}
 
 		this.pojoNames = pojo.build();
 		this.mongoNames = mongo.build();
 		this.validationProperties = valProps.build();
 		this.explicitId = explicitId;
+		id = idP;
 	}
 
 	/**
@@ -152,6 +157,10 @@ public final class EntityProperties {
 	 */
 	public boolean hasExplicitId() {
 		return explicitId;
+	}
+
+	public ParameterProperty getIdProperty() {
+		return id;
 	}
 
 	static class Builder {

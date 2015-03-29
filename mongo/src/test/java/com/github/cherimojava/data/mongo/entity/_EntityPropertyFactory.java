@@ -161,6 +161,13 @@ public class _EntityPropertyFactory extends TestBase {
 	}
 
 	@Test
+	public void idAvailable() {
+		assertEquals(Entity.ID, factory.create(PrimitiveEntity.class).getIdProperty().getPojoName());
+		assertEquals("name", factory.create(ExplicitIdEntity.class).getIdProperty().getPojoName());
+		assertEquals("id",factory.create(ImplicitIdEntity.class).getIdProperty().getPojoName());
+	}
+
+	@Test
 	public void noSetForComputedProperty() throws NoSuchMethodException {
 		try {
 			factory.validateSetter(InvalidEntity.class.getDeclaredMethod("setComputed", String.class));

@@ -58,7 +58,7 @@ public class EntityCodecProvider implements CodecProvider {
 	private final MongoDatabase db;
 
 	/**
-	 * Constructs a new instance with default {@link com.mongodb.codecs.BsonTypeClassMap}
+	 * Constructs a new instance with default {@link org.bson.codecs.BsonTypeClassMap}
 	 */
 	public EntityCodecProvider(MongoDatabase db, Class<? extends Entity> clazz) {
 		mapping = new EntityTypeMap(clazz);
@@ -125,15 +125,4 @@ public class EntityCodecProvider implements CodecProvider {
 	public static CodecRegistry createCodecRegistry(MongoDatabase db, Class<? extends Entity> clazz) {
 		return new RootCodecRegistry(Arrays.<CodecProvider> asList(new EntityCodecProvider(db, clazz)));
 	}
-
-//	/**
-//	 * creates current default MongoCollectionOptions containing only the codecRegistry to use
-//	 *
-//	 * @param db
-//	 * @param clazz
-//	 * @return
-//	 */
-//	public static OperationOptions createCollectionOptions(MongoDatabase db, Class<? extends Entity> clazz) {
-//		return OperationOptions.builder().codecRegistry(createCodecRegistry(db, clazz)).build();
-//	}
 }
