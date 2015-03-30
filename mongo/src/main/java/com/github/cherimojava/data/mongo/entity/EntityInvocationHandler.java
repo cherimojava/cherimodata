@@ -25,6 +25,7 @@ import static java.lang.String.format;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -32,6 +33,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWrapper;
 import org.bson.Document;
+import org.bson.codecs.ValueCodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.configuration.RootCodecRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +55,10 @@ import com.mongodb.client.result.UpdateResult;
 class EntityInvocationHandler implements InvocationHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(EntityInvocationHandler.class);
+
+	// TODO should be its own class
+	/* registry containing information about codecs for encoding ids */
+	private static CodecRegistry idRegistry = new RootCodecRegistry(Arrays.asList(new ValueCodecProvider()));
 
 	/**
 	 * holds the properties backing this entity class
@@ -158,18 +166,22 @@ class EntityInvocationHandler implements InvocationHandler {
 		String methodName = method.getName();
 		ParameterProperty pp;
 
-		// check if something needs to be loaded
-		lazyLoad();
-
 		switch (methodName) {
 		case "get":
-			return _get(checkPropertyExists((String) args[0]));// we know that this is a string param
+			pp = checkPropertyExists((String) args[0]);
+			if (!ID.equals(pp.getMongoName())) {
+				// lazy loading isn't needed for the ID itself
+				lazyLoad();
+			}
+			return _get(pp);// we know that this is a string param
 		case "set":
+			lazyLoad();
 			_put(checkPropertyExists((String) args[0]), args[1]);
 			return proxy;
 		case "save":
 			checkState(collection != null,
 					"Entity was created without MongoDB reference. You have to save the entity through an EntityFactory");
+			lazyLoad();
 			if (changed && !saving) {
 				saving = true;// mark that we're about to save to break potential cycles
 				// TODO create for accessable Id some way to get it validated through validator
@@ -194,6 +206,7 @@ class EntityInvocationHandler implements InvocationHandler {
 			drop(this, collection);
 			return null;
 		case "equals":
+			lazyLoad();
 			return _equals(args[0]);
 		case "seal":
 			sealed = true;
@@ -201,8 +214,10 @@ class EntityInvocationHandler implements InvocationHandler {
 		case "entityClass":
 			return properties.getEntityClass();
 		case "toString":
+			lazyLoad();
 			return _toString();
 		case "hashCode":
+			lazyLoad();
 			return _hashCode();
 		case "load":
 			checkState(collection != null,
@@ -210,12 +225,12 @@ class EntityInvocationHandler implements InvocationHandler {
 			return find(collection, args[0]);
 		}
 
+		lazyLoad();
+		pp = properties.getProperty(method);
 		if (methodName.startsWith("get")) {
-			return _get(properties.getProperty(method));
+			return _get(pp);
 		}
 		if (methodName.startsWith("set")) {
-			pp = properties.getProperty(method);
-
 			_put(pp, args[0]);
 			// if we want this to be fluent we need to return this
 			if (pp.isFluent(ParameterProperty.MethodType.SETTER)) {
@@ -224,7 +239,6 @@ class EntityInvocationHandler implements InvocationHandler {
 		}
 		if (methodName.startsWith("add")) {
 			// for now we know that there's only one parameter
-			pp = properties.getProperty(method);
 			_add(pp, args[0]);
 			// if we want this to be fluent we need to return this
 			if (pp.isFluent(ParameterProperty.MethodType.ADDER)) {
@@ -409,8 +423,8 @@ class EntityInvocationHandler implements InvocationHandler {
 		BsonDocumentWrapper wrapper = new BsonDocumentWrapper<>(handler.proxy,
 				(org.bson.codecs.Encoder<Entity>) coll.getCodecRegistry().get(handler.properties.getEntityClass()));
 		UpdateResult res = coll.updateOne(
-				EntityFactory.instantiate(handler.properties.getEntityClass()).set(Entity.ID,
-						EntityCodec._obtainId(handler.proxy)), new BsonDocument("$set", wrapper), new UpdateOptions());
+				new BsonDocument("_id", BsonDocumentWrapper.asBsonDocument(EntityCodec._obtainId(handler.proxy),
+						idRegistry)), new BsonDocument("$set", wrapper), new UpdateOptions());
 		if (res.getMatchedCount() == 0) {
 			// TODO this seems too nasty, there must be a better way.for now live with it
 			coll.insertOne((T) handler.proxy);

@@ -288,6 +288,13 @@ public class _DeEncoding extends MongoBase {
 		db.getCollection(EntityFactory.getProperties(PrimitiveEntity.class).getCollectionName()).updateOne(
 				new Document("_id", pe.get(ID)), new Document("$set", new Document("string", changedString)));
 		assertEquals(changedString, load.getPE().getString());
+
+		changedString="nestedString";
+		load = (ReferencingEntity) re.load(re.get(ID));
+		assertNotNull(load.get(Entity.ID));
+		db.getCollection(EntityFactory.getProperties(PrimitiveEntity.class).getCollectionName()).updateOne(
+				new Document("_id", pe.get(ID)), new Document("$set", new Document("string", changedString)));
+		assertEquals(changedString, load.getPE().getString());
 	}
 
 	@Test
@@ -404,23 +411,6 @@ public class _DeEncoding extends MongoBase {
 		} catch (IllegalStateException ise) {
 			assertThat(ise.getMessage(), containsString("@Final property"));
 		}
-	}
-
-	@Test
-	@Ignore
-	public void lazyLoadEntity() {
-		// right now we can check that it's not loaded by checking to String which then shouldn't show the lazy loaded
-		// content, but this might be not what we want
-		LazyLoadingEntity lle = factory.create(LazyLoadingEntity.class);
-		lle.setString("myString");
-		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-		pe.setString("some");
-		lle.setPE(pe);
-
-		lle.save();
-
-		LazyLoadingEntity read = factory.load(LazyLoadingEntity.class, lle.get(ID));
-		assertFalse(read.toString(), read.toString().contains("some"));
 	}
 
 	@Test
