@@ -61,7 +61,7 @@ public class MongoBase extends TestBase {
 
 	@After
 	public final void collectionCleanup() {
-		db.dropDatabase();
+		db.drop();
 		client.close();
 	}
 }

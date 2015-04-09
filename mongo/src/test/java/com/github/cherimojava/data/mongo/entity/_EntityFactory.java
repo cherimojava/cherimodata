@@ -34,7 +34,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -61,7 +60,7 @@ public class _EntityFactory extends TestBase {
 		MockitoAnnotations.initMocks(this);
 		when(db.getCollection(anyString())).thenReturn(coll);
 		when(coll.withCodecRegistry(any(CodecRegistry.class))).thenReturn(coll);
-		when(coll.withDefaultClass(any(Class.class))).thenReturn(coll);
+		when(coll.withDocumentClass(any(Class.class))).thenReturn(coll);
 		factory = new EntityFactory(db);
 	}
 

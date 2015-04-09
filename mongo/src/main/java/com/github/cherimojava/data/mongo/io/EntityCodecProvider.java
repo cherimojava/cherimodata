@@ -16,7 +16,6 @@
 package com.github.cherimojava.data.mongo.io;
 
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +37,8 @@ import org.bson.codecs.ObjectIdCodec;
 import org.bson.codecs.StringCodec;
 import org.bson.codecs.SymbolCodec;
 import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.configuration.RootCodecRegistry;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
@@ -123,6 +122,6 @@ public class EntityCodecProvider implements CodecProvider {
 	 * @return
 	 */
 	public static CodecRegistry createCodecRegistry(MongoDatabase db, Class<? extends Entity> clazz) {
-		return new RootCodecRegistry(Arrays.<CodecProvider> asList(new EntityCodecProvider(db, clazz)));
+		return CodecRegistries.fromProviders(new EntityCodecProvider(db, clazz));
 	}
 }

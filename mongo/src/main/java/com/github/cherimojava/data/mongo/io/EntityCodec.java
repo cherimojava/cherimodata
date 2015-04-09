@@ -82,7 +82,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 * @return
 	 */
 	public static MongoCollection<? extends Entity> getCollectionFor(MongoDatabase db, EntityProperties properties) {
-		return db.getCollection(properties.getCollectionName()).withDefaultClass(properties.getEntityClass()).withCodecRegistry(
+		return db.getCollection(properties.getCollectionName()).withDocumentClass(properties.getEntityClass()).withCodecRegistry(
 				EntityCodecProvider.createCodecRegistry(db, properties.getEntityClass()));
 	}
 
@@ -91,8 +91,9 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	 */
 
 	@Override
-	public void generateIdIfAbsentFromDocument(T document) {
+	public T generateIdIfAbsentFromDocument(T document) {
 		_obtainId(document);
+		return document;
 	}
 
 	@Override

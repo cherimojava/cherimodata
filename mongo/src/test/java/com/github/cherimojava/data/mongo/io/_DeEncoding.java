@@ -19,7 +19,6 @@ import static com.github.cherimojava.data.mongo.CommonInterfaces.CollectionEntit
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ComputedPropertyEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.EntityList;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
-import static com.github.cherimojava.data.mongo.CommonInterfaces.LazyLoadingEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ReferencingEntity;
@@ -51,7 +50,6 @@ import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.MongoBase;
@@ -82,7 +80,7 @@ public class _DeEncoding extends MongoBase {
 
 	@After
 	public void mongoCleanUp() {
-		db.dropDatabase();
+		db.drop();
 	}
 
 	/**
@@ -289,7 +287,7 @@ public class _DeEncoding extends MongoBase {
 				new Document("_id", pe.get(ID)), new Document("$set", new Document("string", changedString)));
 		assertEquals(changedString, load.getPE().getString());
 
-		changedString="nestedString";
+		changedString = "nestedString";
 		load = (ReferencingEntity) re.load(re.get(ID));
 		assertNotNull(load.get(Entity.ID));
 		db.getCollection(EntityFactory.getProperties(PrimitiveEntity.class).getCollectionName()).updateOne(
@@ -743,7 +741,7 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	private <T extends Entity> MongoCollection<T> getCollection(Class<T> clazz) {
-		return db.getCollection(getCollectionName(clazz)).withDefaultClass(clazz).withCodecRegistry(
+		return db.getCollection(getCollectionName(clazz)).withDocumentClass(clazz).withCodecRegistry(
 				EntityCodecProvider.createCodecRegistry(db, clazz));
 	}
 

@@ -21,7 +21,12 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -42,7 +47,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.operation.OrderBy;
 
 /**
@@ -84,12 +89,12 @@ public class EntityFactory {
 						LOG.debug("Entity class {} has indexes, ensuring that MongoDB is setup",
 								properties.getEntityClass());
 						for (Index index : c.indexes()) {
-							CreateIndexOptions indxBuilder = new CreateIndexOptions();
+							IndexOptions options = new IndexOptions();
 							if (index.unique()) {
-								indxBuilder.unique(true);
+								options.unique(true);
 							}
 							if (isNotEmpty(index.name())) {
-								indxBuilder.name(index.name());
+								options.name(index.name());
 							}
 
 							Document indxFields = new Document();
@@ -100,9 +105,9 @@ public class EntityFactory {
 								indxFields.put(field.field(), (field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC
 										: OrderBy.DESC);
 							}
-							LOG.debug("Creating index {} for Entity class {}", indxBuilder.getName(),
+							LOG.debug("Creating index {} for Entity class {}", options.getName(),
 									properties.getEntityClass());
-							coll.createIndex(null, indxBuilder);
+							coll.createIndex(indxFields, options);
 						}
 					}
 					return coll;
@@ -166,7 +171,8 @@ public class EntityFactory {
 	}
 
 	public <T extends Entity> T createLazy(Class<T> clazz, Object id) {
-		EntityInvocationHandler handler = new EntityInvocationHandler(defFactory.create(clazz), getCollection(clazz),id);
+		EntityInvocationHandler handler = new EntityInvocationHandler(defFactory.create(clazz), getCollection(clazz),
+				id);
 		T t = instantiate(clazz, handler);
 		return t;
 	}

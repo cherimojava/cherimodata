@@ -25,7 +25,6 @@ import static java.lang.String.format;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -34,8 +33,8 @@ import org.bson.BsonDocument;
 import org.bson.BsonDocumentWrapper;
 import org.bson.Document;
 import org.bson.codecs.ValueCodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.configuration.RootCodecRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +57,7 @@ class EntityInvocationHandler implements InvocationHandler {
 
 	// TODO should be its own class
 	/* registry containing information about codecs for encoding ids */
-	private static CodecRegistry idRegistry = new RootCodecRegistry(Arrays.asList(new ValueCodecProvider()));
+	private static CodecRegistry idRegistry = CodecRegistries.fromProviders(new ValueCodecProvider());
 
 	/**
 	 * holds the properties backing this entity class
