@@ -69,7 +69,7 @@ public class _EntityConverter extends TestBase {
 	public void setupMock() {
 		MockitoAnnotations.initMocks(this);
 		when(db.getCollection(anyString())).thenReturn(coll);
-		when(coll.withDefaultClass(any(Class.class))).thenReturn(coll);
+		when(coll.withDocumentClass(any(Class.class))).thenReturn(coll);
 		when(coll.withCodecRegistry(any(CodecRegistry.class))).thenReturn(coll);
 	}
 
