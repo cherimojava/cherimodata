@@ -15,6 +15,7 @@
  */
 package com.github.cherimojava.data.mongo.io;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import org.bson.BsonReader;
@@ -33,7 +34,7 @@ import com.google.common.collect.Lists;
  * @author philnate
  * @since 1.0.0
  */
-public class ArrayCodec implements Codec<Object[]> {
+public class ArrayCodec<T> implements Codec<T[]> {
 	private final ListCodec listCodec;
 
 	public ArrayCodec(CodecRegistry registry, BsonTypeClassMap bsonTypeClassMap) {
@@ -41,9 +42,12 @@ public class ArrayCodec implements Codec<Object[]> {
 	}
 
 	@Override
-	public Object[] decode(BsonReader reader, DecoderContext decoderContext) {
+	public T[] decode(BsonReader reader, DecoderContext decoderContext) {
 		List list = listCodec.decode(reader, decoderContext);
-		return list.toArray();
+		if (list!=null && !list.isEmpty()) {
+			return (T[]) list.toArray((T[])java.lang.reflect.Array.newInstance(list.get(0).getClass(),list.size()));
+		}
+		return null;//if we have nothing in the list, it shouldn't matter if we actually return anything, right?
 	}
 
 	@Override
@@ -52,7 +56,7 @@ public class ArrayCodec implements Codec<Object[]> {
 	}
 
 	@Override
-	public Class<Object[]> getEncoderClass() {
-		return Object[].class;
+	public Class<T[]> getEncoderClass() {
+		return null;
 	}
 }

@@ -126,7 +126,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	/**
-	 * returns the document id of the given document. If there's currently no id defined one will be created
+	 * returns the document id of the given document. If there's currently no id defined one will be created of type {@link ObjectId}
 	 *
 	 * @param document
 	 *            document to obtain document id from
@@ -145,7 +145,6 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	/*
 	 * Decoder Stuff
 	 */
-	private static final EntityTypeMap typeMap = new EntityTypeMap();
 
 	@Override
 	public T decode(BsonReader reader, DecoderContext ctx) {
@@ -233,7 +232,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 						e.set(propertyName, decodeArray(reader, pp));
 					} else {
 						e.set(propertyName,
-								codecRegistry.get(typeMap.get(reader.getCurrentBsonType())).decode(reader, null));
+								codecRegistry.get(pp.getType()).decode(reader, null));
 					}
 				}
 			}

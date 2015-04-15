@@ -26,6 +26,7 @@ import static com.github.cherimojava.data.mongo.entity.Entity.ID;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.core.AllOf.allOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -562,8 +563,9 @@ public class _DeEncoding extends MongoBase {
 
 	@Test
 	public void referenceListEntityEncoding() {
+		ObjectId id = new ObjectId();
 		ReferencingEntity reference = factory.create(ReferencingEntity.class);
-		reference.set(ID, "1");
+		reference.set(ID, id);
 		reference.setString("happy");
 		List<PrimitiveEntity> entities = Lists.newArrayList();
 		PrimitiveEntity pone = factory.create(PrimitiveEntity.class).setString("one");
@@ -574,12 +576,12 @@ public class _DeEncoding extends MongoBase {
 
 		// check what happens if nothing is set
 		reference.save();
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class,id).toString());
 
 		// check what happens if null is set
 		reference.setListedEntities(Lists.<PrimitiveEntity> newArrayList());
 		reference.save();
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, id).toString());
 
 		// set some list
 		reference.setListedEntities(entities);
@@ -594,13 +596,14 @@ public class _DeEncoding extends MongoBase {
 		assertEquals(pone.toString(), factory.load(PrimitiveEntity.class, pone.get(ID)).toString());
 		assertEquals(ptwo.toString(), factory.load(PrimitiveEntity.class, ptwo.get(ID)).toString());
 		// check that the parent entity is correct
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, id).toString());
 	}
 
 	@Test
 	public void referenceListDBRefEntityEncoding() {
+		ObjectId id = new ObjectId();
 		ReferencingEntity reference = factory.create(ReferencingEntity.class);
-		reference.set(ID, "1");
+		reference.set(ID, id);
 		reference.setString("happy");
 		List<PrimitiveEntity> entities = Lists.newArrayList();
 		PrimitiveEntity pone = factory.create(PrimitiveEntity.class).setString("one");
@@ -611,12 +614,12 @@ public class _DeEncoding extends MongoBase {
 
 		// check what happens if nothing is set
 		reference.save();
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, id).toString());
 
 		// check what happens if null is set
 		reference.setListedDBRefEntities(Lists.<PrimitiveEntity> newArrayList());
 		reference.save();
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, id).toString());
 
 		// set some list
 		reference.setListedDBRefEntities(entities);
@@ -631,7 +634,7 @@ public class _DeEncoding extends MongoBase {
 		assertEquals(pone.toString(), factory.load(PrimitiveEntity.class, pone.get(ID)).toString());
 		assertEquals(ptwo.toString(), factory.load(PrimitiveEntity.class, ptwo.get(ID)).toString());
 		// check that the parent entity is correct
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, "1").toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, id).toString());
 	}
 
 	@Test
@@ -660,6 +663,16 @@ public class _DeEncoding extends MongoBase {
 
 		outer.save();// will die here without cycle detection
 		assertEquals(outer.toString(), factory.load(RecursiveEntity.class, "outer").toString());
+	}
+
+	@Test
+	public void implicitIdTypeVerification() {
+		try {
+			factory.create(ReferencingEntity.class).set(ID,"one");
+			fail("should throw an exception");
+		} catch (ClassCastException e) {
+			assertThat(e.getMessage(),allOf(containsString("ObjectId"), containsString("String")));
+		}
 	}
 
 	@Test

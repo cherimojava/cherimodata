@@ -17,38 +17,45 @@ package com.github.cherimojava.data.mongo.io;
 
 import java.util.Map;
 
-import org.bson.codecs.BsonTypeClassMap;
 import org.bson.BsonType;
+import org.bson.codecs.BsonTypeClassMap;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.google.common.collect.Maps;
 
 /**
  * BsonTypeClassMap adjusted to our Entity needs
+ * 
+ * @author philnate
  */
 public class EntityTypeMap extends BsonTypeClassMap {
 	private static final Map<BsonType, Class<?>> replacements;
 
 	static {
+		// right now all we need to replace is the DocumentType with our Entity class
 		replacements = Maps.newHashMap();
 		replacements.put(BsonType.DOCUMENT, Entity.class);
 	}
 
+	/**
+	 * replaces Document mapping with generic EntityType
+	 */
 	public EntityTypeMap() {
 		super(replacements);
 	}
 
-    public EntityTypeMap(Class<? extends Entity> clazz) {
-        super(replacement(clazz));
-    }
+	/**
+	 * replaces the document mapping with the actual EntityType
+	 * 
+	 * @param clazz
+	 */
+	public EntityTypeMap(Class<? extends Entity> clazz) {
+		super(replacement(clazz));
+	}
 
-    private static Map<BsonType,Class<?>>  replacement(Class<? extends Entity> clazz) {
-        Map<BsonType,Class<?>> repl= Maps.newHashMap(replacements);
-        repl.put(BsonType.DOCUMENT,clazz);
-        return repl;
-    }
-
-	public Class<?> get(final BsonType bsonType) {
-		return super.get(bsonType);
+	private static Map<BsonType, Class<?>> replacement(Class<? extends Entity> clazz) {
+		Map<BsonType, Class<?>> repl = Maps.newHashMap(replacements);
+		repl.put(BsonType.DOCUMENT, clazz);
+		return repl;
 	}
 }

@@ -20,6 +20,7 @@ import static com.github.cherimojava.data.mongo.entity.EntityUtils.getSetterFrom
 import static com.github.cherimojava.data.mongo.entity.EntityUtils.isAssignableFromClass;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -226,6 +227,9 @@ public final class ParameterProperty {
 	 *            property value to check for validity
 	 */
 	public void validate(Object value) {
+		if (value!=null && !type.isAssignableFrom(value.getClass())) {
+			throw new ClassCastException(format("Can't cast from '%s' to '%s'",value.getClass().getCanonicalName(),type.getCanonicalName()));
+		}
 		if (hasConstraints()) {
 			Set<? extends ConstraintViolation<? extends Entity>> violations = validator.validateValue(declaringClass,
 					pojoName, value, Entity.Special.class);
