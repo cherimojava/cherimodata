@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
@@ -673,6 +674,13 @@ public class _DeEncoding extends MongoBase {
 		} catch (ClassCastException e) {
 			assertThat(e.getMessage(),allOf(containsString("ObjectId"), containsString("String")));
 		}
+	}
+
+	@Test
+	public void primitivesWorking() {
+		CommonInterfaces.PrimitiveTypeEntity pte =factory.create(CommonInterfaces.PrimitiveTypeEntity.class);
+		pte.setInt(1).save();
+		assertEquals(1,factory.load(CommonInterfaces.PrimitiveTypeEntity.class,1).getInt());
 	}
 
 	@Test

@@ -51,6 +51,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Transient;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Primitives;
 
 /**
  * Contains information for a parameter like it's mongodb name, if it's transient, etc. This class is immutable, use
@@ -227,8 +228,11 @@ public final class ParameterProperty {
 	 *            property value to check for validity
 	 */
 	public void validate(Object value) {
-		if (value!=null && !type.isAssignableFrom(value.getClass())) {
-			throw new ClassCastException(format("Can't cast from '%s' to '%s'",value.getClass().getCanonicalName(),type.getCanonicalName()));
+		if (value != null) {
+			if (!type.isAssignableFrom(value.getClass())) {
+				throw new ClassCastException(format("Can't cast from '%s' to '%s'",
+						value.getClass().getCanonicalName(), type.getCanonicalName()));
+			}
 		}
 		if (hasConstraints()) {
 			Set<? extends ConstraintViolation<? extends Entity>> violations = validator.validateValue(declaringClass,
@@ -389,8 +393,8 @@ public final class ParameterProperty {
 						returnType);
 			}
 
-			builder.setType(returnType).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(
-					EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
+			builder.setType(returnType.isPrimitive() ? Primitives.wrap(returnType) : returnType).setPojoName(
+					EntityUtils.getPojoNameFromMethod(m)).setMongoName(EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
 					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
 					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
 					computer).setFinal(finl);

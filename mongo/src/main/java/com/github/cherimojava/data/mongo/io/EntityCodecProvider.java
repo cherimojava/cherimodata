@@ -42,6 +42,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
+import com.google.common.primitives.Primitives;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -67,7 +68,10 @@ public class EntityCodecProvider implements CodecProvider {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Codec<T> get(final Class<T> clazz, final CodecRegistry registry) {
+	public <T> Codec<T> get(Class<T> clazz, final CodecRegistry registry) {
+		if (clazz.isPrimitive()) {
+			clazz = Primitives.wrap(clazz);
+		}
 		if (codecs.containsKey(clazz)) {
 			return (Codec<T>) codecs.get(clazz);
 		}

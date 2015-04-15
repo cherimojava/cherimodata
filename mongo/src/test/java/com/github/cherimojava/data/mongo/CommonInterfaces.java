@@ -49,6 +49,17 @@ public class CommonInterfaces {
 	}
 
 	/**
+	 * interface with primitive types
+	 */
+	public static interface PrimitiveTypeEntity extends Entity<PrimitiveTypeEntity> {
+
+		public Entity setInt(int i);
+
+		@Id
+		public int getInt();
+	}
+
+	/**
 	 * containing primitive and Entity properties
 	 */
 	@Named("Nested")
