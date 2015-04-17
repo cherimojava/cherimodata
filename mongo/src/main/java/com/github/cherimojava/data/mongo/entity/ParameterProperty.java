@@ -352,7 +352,7 @@ public final class ParameterProperty {
 			BeanDescriptor bdesc = validator.getConstraintsForClass(declaringClass);
 			Computer computer = null;
 			Computed c = m.getAnnotation(Computed.class);
-			Class returnType = m.getReturnType();
+			Class<?> returnType = m.getReturnType();
 			Builder builder = new Builder();
 			if (c != null) {
 				try {
