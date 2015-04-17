@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
+import org.bson.codecs.AtomicBooleanCodec;
+import org.bson.codecs.AtomicIntegerCodec;
+import org.bson.codecs.AtomicLongCodec;
 import org.bson.codecs.BinaryCodec;
 import org.bson.codecs.BooleanCodec;
 import org.bson.codecs.BsonTypeClassMap;
@@ -112,6 +115,9 @@ public class EntityCodecProvider implements CodecProvider {
 		addCodec(new StringCodec());
 		addCodec(new SymbolCodec());
 		addCodec(new DateTimeCodec());
+		addCodec(new AtomicIntegerCodec());
+		addCodec(new AtomicBooleanCodec());
+		addCodec(new AtomicLongCodec());
 	}
 
 	private <T> void addCodec(final Codec<T> codec) {
