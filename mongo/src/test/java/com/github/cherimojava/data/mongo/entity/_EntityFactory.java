@@ -21,27 +21,20 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Named;
-
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
-import com.github.cherimojava.data.mongo.entity.annotation.Collection;
-import com.github.cherimojava.data.mongo.entity.annotation.Index;
-import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -107,29 +100,6 @@ public class _EntityFactory extends TestBase {
 	}
 
 	@Test
-	@Ignore
-	public void indexCreation() {
-		factory.create(IndexedEntity.class);
-
-		verify(db).getCollection("collection");
-		// TODO change to argument captor?
-		// verify(coll).ensureIndex((DBObject) JSON.parse("{\"string\":1}"),
-		// (DBObject) JSON.parse("{ \"name\" : \"single\"}"));
-		// verify(coll).ensureIndex((DBObject) JSON.parse("{\"string\":-1,\"anotherString\":1}"),
-		// (DBObject) JSON.parse("{ \"unique\" : true}"));
-	}
-
-	@Test
-	public void referencedIndexFieldDoesNotExist() {
-		try {
-			factory.create(InvalidIndexedEntity.class);
-			fail("should throw an exception");
-		} catch (NullPointerException e) {
-			assertThat(e.getMessage(), containsString("Index field"));
-		}
-	}
-
-	@Test
 	public void fromJSON() {
 		CommonInterfaces.PrimitiveEntity pe = factory.readEntity(CommonInterfaces.PrimitiveEntity.class,
 				"{\"string\": \"something\",\"Integer\":3}");
@@ -145,27 +115,6 @@ public class _EntityFactory extends TestBase {
 		assertEquals((int) list.get(0).getInteger(), 1);
 		assertEquals(list.get(1).getString(), "two");
 		assertEquals((int) list.get(1).getInteger(), 2);
-	}
-
-	@Collection(indexes = {
-			@Index(name = "single", value = { @IndexField(field = "string", order = IndexField.Ordering.ASC) }),
-			@Index(value = { @IndexField(field = "string", order = IndexField.Ordering.DESC),
-					@IndexField(field = "anotherString", order = IndexField.Ordering.ASC) }, unique = true) })
-	@Named("collection")
-	private interface IndexedEntity extends Entity<IndexedEntity> {
-		public String getString();
-
-		public IndexedEntity setString(String s);
-
-		public String getAnotherString();
-
-		public IndexedEntity setAnotherString(String s);
-
-	}
-
-	@Named("collection")
-	@Collection(indexes = { @Index(name = "single", value = { @IndexField(field = "string", order = IndexField.Ordering.ASC) }) })
-	private interface InvalidIndexedEntity extends Entity<InvalidIndexedEntity> {
 	}
 
 	private class NoPubList extends ArrayList {

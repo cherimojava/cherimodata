@@ -102,8 +102,8 @@ public class EntityFactory {
 								checkNotNull(properties.getProperty(field.field()),
 										"Index field '%s' for index '%s' does not exist for %s", field.field(),
 										index.name(), clazz);
-								indxFields.put(field.field(), (field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC
-										: OrderBy.DESC);
+								indxFields.put(field.field(), (field.order() == IndexField.Ordering.ASC) ? OrderBy.ASC.getIntRepresentation()
+										: OrderBy.DESC.getIntRepresentation());
 							}
 							LOG.debug("Creating index {} for Entity class {}", options.getName(),
 									properties.getEntityClass());
