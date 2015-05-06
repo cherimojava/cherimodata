@@ -529,18 +529,6 @@ public class _DeEncoding extends MongoBase {
 	}
 
 	@Test
-	public void saveOnlyIfNeeded() {
-		PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
-		assertFalse(pe.save());
-		assertTrue(pe.setString("some").save());
-		assertFalse(pe.save()); // no further changes
-		assertFalse(pe.setString("some").save()); // nothing changed
-		assertTrue(pe.set("Integer", 2).save());
-		assertFalse(pe.set("Integer", 2).save());// nothing changed
-		assertFalse(pe.save());// nothing changed
-	}
-
-	@Test
 	public void dateTimeDeEncoding() {
 		DateTimeEntity e = factory.create(DateTimeEntity.class);
 		e.setTime(DateTime.now()).setDate(new Date()).setId("1");

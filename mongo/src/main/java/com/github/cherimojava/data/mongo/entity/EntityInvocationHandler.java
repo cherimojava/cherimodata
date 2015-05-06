@@ -71,11 +71,6 @@ class EntityInvocationHandler implements InvocationHandler {
 	private final MongoCollection collection;
 
 	/**
-	 * tells if this entity was changed after the last time it was saved/created. Thus needing to be saved or not
-	 */
-	private boolean changed = false;
-
-	/**
 	 * reference to the Proxy, which we're baking
 	 */
 	private Entity proxy;
@@ -181,7 +176,7 @@ class EntityInvocationHandler implements InvocationHandler {
 			checkState(collection != null,
 					"Entity was created without MongoDB reference. You have to save the entity through an EntityFactory");
 			lazyLoad();
-			if (changed && !saving) {
+			if (!saving) {
 				saving = true;// mark that we're about to save to break potential cycles
 				// TODO create for accessable Id some way to get it validated through validator
 				if (properties.hasExplicitId()) {
@@ -190,12 +185,11 @@ class EntityInvocationHandler implements InvocationHandler {
 				}
 				save(this, collection);
 				// change state only after successful saving to Mongo
-				changed = false;
 				saving = false;// we're done with saving next one, can write object. Which isn't coming from within this
 								// instance
 				return true;
 			} else {
-				LOG.info("Did not save Entity with id {} of class {} as no changes where made.", data.get(ID),
+				LOG.info("Did not save Entity with id {} of class {} as it's cyclic called.", data.get(ID),
 						properties.getEntityClass());
 				return false;
 			}
@@ -305,9 +299,7 @@ class EntityInvocationHandler implements InvocationHandler {
 	}
 
 	/**
-	 * Does put operation, Verifies that Entity isn't sealed and that given value matches property constraints. Sets
-	 * changed to true if the given value is different from the one currently set for the property. Comparision is
-	 * limited to identity
+	 * Does put operation, Verifies that Entity isn't sealed and that given value matches property constraints.
 	 *
 	 * @param pp
 	 *            property to set
@@ -320,9 +312,7 @@ class EntityInvocationHandler implements InvocationHandler {
 		checkNotSealed();
 		checkNotFinal(pp);
 		pp.validate(value);
-		if (value != data.put(pp.getMongoName(), value)) {
-			changed = true;
-		}
+		data.put(pp.getMongoName(), value);
 	}
 
 	/**
