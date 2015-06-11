@@ -120,9 +120,9 @@ public class EntityFactory {
 	 * @param clazz
 	 * @return
 	 */
-	public MongoCollection<? extends Entity> getCollection(Class<? extends Entity> clazz) {
+	public <T extends Entity> MongoCollection<T>  getCollection(Class<T> clazz) {
 		try {
-			return preparedEntites.get(clazz);
+			return (MongoCollection<T>) preparedEntites.get(clazz);
 		} catch (UncheckedExecutionException | ExecutionException e) {
 			throw Throwables.propagate(e.getCause());
 		}
