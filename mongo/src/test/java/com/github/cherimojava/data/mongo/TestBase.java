@@ -53,11 +53,6 @@ public abstract class TestBase {
 		assertThat(sb.append("}").toString(), expected);
 	}
 
-	/*
-	 * public void assertJson(Matcher<? super String> expected, Document actual) {
-	 * assertThat("{"+actual.entrySet().toString()+"}", expected); }
-	 */
-
 	public void assertJson(Matcher<? super String> expected, StringWriter actual) {
 		assertThat(actual.toString(), expected);
 	}

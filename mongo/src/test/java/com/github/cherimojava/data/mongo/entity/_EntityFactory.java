@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +43,7 @@ public class _EntityFactory extends TestBase {
 	MongoDatabase db;
 
 	@Mock
-	MongoCollection<Document> coll;
+	MongoCollection coll;
 
 	EntityFactory factory;
 

@@ -362,8 +362,6 @@ public final class ParameterProperty {
 				}
 			} else {
 				// only if this is not a computed property we have a setter for it
-				// TODO right now we're failing if there's no setter, but would it make sense to allow that there's no
-				// setter defined?
 				builder.setFluent(MethodType.SETTER, isAssignableFromClass(getSetterFromGetter(m)));
 			}
 			if (Collection.class.isAssignableFrom(m.getReturnType())) {

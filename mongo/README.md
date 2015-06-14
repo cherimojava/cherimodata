@@ -30,7 +30,8 @@ Per property you need a setter and getter method, fulfilling:
 
 * Set method named set&lt;PROPERTY&gt;, with exactly one param
 * Get method named get&lt;PROPERTY&gt;, with exactly no param, return value type must match Setter param
-* You can't have methods named _h or _v, as these are reserved names
+* Add method named add&lt;PROPERTY&gt;, with exactly one param or vararg param mathching the Setter param
+* You can't have methods/properties starting with \_ as this is reserved to internal properties
 
 ## Possible Annotations
 Annotations need to be placed on Getter methods, and not on setter to keep it consistent with JSR-301 validation

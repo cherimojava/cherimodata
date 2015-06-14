@@ -25,7 +25,9 @@ import org.bson.json.JsonWriter;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-public class _DateTimeCodec {
+import com.github.cherimojava.data.mongo.TestBase;
+
+public class _DateTimeCodec extends TestBase {
 
 	@Test
 	public void dateTimeDeEncoding() throws IOException {
