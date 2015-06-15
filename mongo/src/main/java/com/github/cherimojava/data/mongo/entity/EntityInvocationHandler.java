@@ -25,6 +25,7 @@ import static java.lang.String.format;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -284,7 +285,6 @@ class EntityInvocationHandler implements InvocationHandler {
 			try {
 				if (getDefaultClass(pp.getType()) != null) {
 					Collection coll = (Collection) getDefaultClass(pp.getType()).newInstance();
-					coll.add(value);
 					data.put(pp.getMongoName(), coll);
 				} else {
 					throw new IllegalStateException(format(
@@ -293,9 +293,14 @@ class EntityInvocationHandler implements InvocationHandler {
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new IllegalStateException("The impossible happened. Could not instantiate Class", e);
 			}
-		} else {
-			((Collection) data.get(pp.getMongoName())).add(value);
 		}
+        if (!value.getClass().isArray()) {
+            ((Collection) data.get(pp.getMongoName())).add(value);
+        } else {
+            for (Object val:(Object[])value) {
+                ((Collection) data.get(pp.getMongoName())).add(val);
+            }
+        }
 	}
 
 	/**

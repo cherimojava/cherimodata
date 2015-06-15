@@ -369,7 +369,7 @@ public final class ParameterProperty {
 					// only if we have an adder enabled Property type check for this
 					builder.setFluent(MethodType.ADDER, isAssignableFromClass(getAdderFromGetter(m)));
 				} catch (IllegalArgumentException e) {
-					LOG.trace("No Adder method declared for {} in Entity {}", m.getName(),
+					LOG.info("No Adder method declared for {} in Entity {}", m.getName(),
 							m.getDeclaringClass().getName());
 				}
 			}
@@ -391,8 +391,9 @@ public final class ParameterProperty {
 						returnType);
 			}
 
-            String mongoName = EntityUtils.getMongoNameFromMethod(m);
-            checkArgument(!mongoName.startsWith("_") || Entity.ID.equals(mongoName),"Property can't start with '_' as this is reserved, but got '%s'",mongoName);
+			String mongoName = EntityUtils.getMongoNameFromMethod(m);
+			checkArgument(!mongoName.startsWith("_") || Entity.ID.equals(mongoName),
+					"Property can't start with '_' as this is reserved, but got '%s'", mongoName);
 
 			builder.setType(returnType.isPrimitive() ? Primitives.wrap(returnType) : returnType).setPojoName(
 					EntityUtils.getPojoNameFromMethod(m)).setMongoName(mongoName).hasConstraints(

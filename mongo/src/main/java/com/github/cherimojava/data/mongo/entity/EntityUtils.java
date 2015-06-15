@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.StringUtils.isAllUpperCase;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -182,7 +183,15 @@ public class EntityUtils {
 			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("get", "add"),
 					(Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0]);
 		} catch (Exception e) {
-			throw new IllegalArgumentException(format("Method %s has no corresponding adder method", m.getName()));
+			try {
+                //if we had no hit, try if there's a vararg adder
+				return m.getDeclaringClass().getMethod(
+						m.getName().replaceFirst("get", "add"),
+						Array.newInstance(
+								(Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0], 0).getClass());
+			} catch (Exception e1) {
+				throw new IllegalArgumentException(format("Method %s has no corresponding adder method", m.getName()));
+			}
 		}
 	}
 
@@ -235,11 +244,12 @@ public class EntityUtils {
 		return EntityInvocationHandler.getHandler(e).persisted;
 	}
 
-    /**
-     * returns true if this getter methods return type is either an entity or a list of entities. Otherwise false
-     * @param getter
-     * @return true if return type is entity or list of entities
-     */
+	/**
+	 * returns true if this getter methods return type is either an entity or a list of entities. Otherwise false
+	 * 
+	 * @param getter
+	 * @return true if return type is entity or list of entities
+	 */
 	public static boolean isValidReferenceClass(Method getter) {
 		return (Entity.class.isAssignableFrom(getter.getReturnType()) || (Collection.class.isAssignableFrom(getter.getReturnType()) && Entity.class.isAssignableFrom((Class) ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0])));
 	}

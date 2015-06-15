@@ -145,9 +145,9 @@ class EntityPropertiesFactory {
 		checkArgument(Collection.class.isAssignableFrom(getter.getReturnType()),
 				"Adder method only allowed for properties extending collection, but was %s.", getter.getReturnType());
 		Type getterType = ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0];
-		Type adderType = adder.getParameterTypes()[0];
-		checkArgument(getterType.equals(adderType),
-				"Collection has a generic type of %s, but adder has parameter of type %s", getterType, adderType);
+		Class adderType = adder.getParameterTypes()[0];
+		checkArgument(getterType.equals(adderType) || getterType.equals(adderType.getComponentType()),
+				"Collection has a generic type of %s, but adder has parameter of type %s or is no matching vararg method", getterType, adderType);
 	}
 
 	/**

@@ -23,6 +23,7 @@ import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity
 import static com.github.cherimojava.data.mongo.CommonInterfaces.ReferencingEntity;
 import static com.github.cherimojava.data.mongo.entity.EntityFactory.instantiate;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -53,6 +54,7 @@ import com.github.cherimojava.data.mongo.TestBase;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import sun.invoke.util.VerifyAccess;
 
 public class _EntityInvocationHandler extends TestBase {
 
@@ -411,4 +413,23 @@ public class _EntityInvocationHandler extends TestBase {
 		eie.toString();
 		eie.setName("final");
 	}
+
+    @Test
+    public void varArgAdd() {
+        VarArgEntity vae =factory.create(VarArgEntity.class);
+        vae.addStrings("one");
+        vae.addStrings("two","three");
+        assertEquals(3,vae.getStrings().size());
+        assertThat(vae.getStrings(), contains("one", "two", "three"));
+    }
+
+    private static interface VarArgEntity extends Entity {
+
+        public List<String> getStrings();
+
+        public VarArgEntity setStrings(List<String> strings);
+
+        public VarArgEntity addStrings(String... string);
+
+    }
 }
