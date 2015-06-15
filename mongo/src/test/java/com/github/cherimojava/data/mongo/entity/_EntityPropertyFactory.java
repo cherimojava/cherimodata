@@ -40,11 +40,11 @@ import com.github.cherimojava.data.mongo.TestBase;
 
 public class _EntityPropertyFactory extends TestBase {
 
-	EntityPropertyFactory factory;
+	EntityPropertiesFactory factory;
 
 	@Before
 	public void init() {
-		factory = new EntityPropertyFactory();
+		factory = new EntityPropertiesFactory();
 	}
 
 	@Test

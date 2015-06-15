@@ -66,7 +66,7 @@ public class _EntityInvocationHandler extends TestBase {
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
-		handler = new EntityInvocationHandler(new EntityPropertyFactory().create(PrimitiveEntity.class));
+		handler = new EntityInvocationHandler(new EntityPropertiesFactory().create(PrimitiveEntity.class));
 		pe = instantiate(PrimitiveEntity.class, handler);
 		factory = new EntityFactory(db);
 		collection = mock(MongoCollection.class, Mockito.RETURNS_DEEP_STUBS);

@@ -133,7 +133,7 @@ public class EntityFactory {
 	 */
 	private static Map<Class, Class> interfaceImpls;
 
-	private static final EntityPropertyFactory defFactory = new EntityPropertyFactory();
+	private static final EntityPropertiesFactory defFactory = new EntityPropertiesFactory();
 
 	static {
 		interfaceImpls = Maps.newConcurrentMap();

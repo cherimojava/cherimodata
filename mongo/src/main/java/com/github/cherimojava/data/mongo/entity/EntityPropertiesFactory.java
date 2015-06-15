@@ -49,7 +49,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
  * @author philnate
  * @since 1.0.0
  */
-class EntityPropertyFactory {
+class EntityPropertiesFactory {
 	/**
 	 * list of methods allowed although not conforming to Entity convention
 	 */
