@@ -36,6 +36,8 @@ import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class _EntityFactory extends TestBase {
 
@@ -58,6 +60,7 @@ public class _EntityFactory extends TestBase {
 
 	@Test
 	public void defaultClassesOnlyForInterfaces() {
+        LoggerFactory.getLogger("test").warn("oooops");
 		factory.setDefaultClass(List.class, ArrayList.class);
 		try {
 			factory.setDefaultClass(ArrayList.class, ArrayList.class);
