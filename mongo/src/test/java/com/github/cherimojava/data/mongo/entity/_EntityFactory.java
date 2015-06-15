@@ -60,7 +60,6 @@ public class _EntityFactory extends TestBase {
 
 	@Test
 	public void defaultClassesOnlyForInterfaces() {
-        LoggerFactory.getLogger("test").warn("oooops");
 		factory.setDefaultClass(List.class, ArrayList.class);
 		try {
 			factory.setDefaultClass(ArrayList.class, ArrayList.class);
