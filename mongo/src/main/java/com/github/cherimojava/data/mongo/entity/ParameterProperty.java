@@ -391,8 +391,11 @@ public final class ParameterProperty {
 						returnType);
 			}
 
+            String mongoName = EntityUtils.getMongoNameFromMethod(m);
+            checkArgument(!mongoName.startsWith("_") || Entity.ID.equals(mongoName),"Property can't start with '_' as this is reserved, but got '%s'",mongoName);
+
 			builder.setType(returnType.isPrimitive() ? Primitives.wrap(returnType) : returnType).setPojoName(
-					EntityUtils.getPojoNameFromMethod(m)).setMongoName(EntityUtils.getMongoNameFromMethod(m)).hasConstraints(
+					EntityUtils.getPojoNameFromMethod(m)).setMongoName(mongoName).hasConstraints(
 					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
 					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
 					computer).setFinal(finl);

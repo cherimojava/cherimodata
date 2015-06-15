@@ -15,16 +15,28 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static com.github.cherimojava.data.mongo.CommonInterfaces.AdderTest;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ExplicitIdEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.FluentEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ImplicitIdEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.InvalidEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import javax.inject.Named;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.TestBase;
-
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
 
 public class _EntityPropertyFactory extends TestBase {
 
@@ -164,7 +176,7 @@ public class _EntityPropertyFactory extends TestBase {
 	public void idAvailable() {
 		assertEquals(Entity.ID, factory.create(PrimitiveEntity.class).getIdProperty().getPojoName());
 		assertEquals("name", factory.create(ExplicitIdEntity.class).getIdProperty().getPojoName());
-		assertEquals("id",factory.create(ImplicitIdEntity.class).getIdProperty().getPojoName());
+		assertEquals("id", factory.create(ImplicitIdEntity.class).getIdProperty().getPojoName());
 	}
 
 	@Test
@@ -227,6 +239,40 @@ public class _EntityPropertyFactory extends TestBase {
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("Adder method must define exactly one parameter matching"));
 		}
+	}
+
+	@Test
+	public void UnderlineMethodNameForbidden() {
+        try {
+            factory.create(UnderlineMethodEntity.class);
+            fail("should throw an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(),containsString("Property can't start with '_' as this is reserved, but"));
+        }
+	}
+
+
+    @Test
+    public void UnderlineNamedMethodForbidden() {
+        try {
+            factory.create(UnderlineNameMethodEntity.class);
+            fail("should throw an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(),containsString("Property can't start with '_' as this is reserved, but"));
+        }
+    }
+
+    private static interface UnderlineNameMethodEntity extends Entity {
+        @Named("_bs")
+        public String getM();
+
+        public UnderlineNameMethodEntity setM(String s);
+    }
+
+	private static interface UnderlineMethodEntity extends Entity {
+		public String get_M();
+
+		public UnderlineMethodEntity set_M(String s);
 	}
 
 	private static interface InheritedEntity extends PrimitiveEntity {

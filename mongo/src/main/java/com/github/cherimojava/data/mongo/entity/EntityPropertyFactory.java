@@ -196,9 +196,9 @@ class EntityPropertyFactory {
 		checkArgument(getter.getParameterTypes().length == 0, "Get methods can't have parameters, but had %s",
 				Lists.newArrayList(getter.getParameterTypes()));
 		if (getter.isAnnotationPresent(Reference.class)) {
-            if (!EntityUtils.isValidReferenceClass(getter)) {
-                throw new IllegalArgumentException("Cant declare reference on non entity type or list of entities");
-            }
+			if (!EntityUtils.isValidReferenceClass(getter)) {
+				throw new IllegalArgumentException("Cant declare reference on non entity type or list of entities");
+			}
 		}
 	}
 }
