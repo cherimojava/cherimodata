@@ -54,7 +54,6 @@ import com.github.cherimojava.data.mongo.TestBase;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import sun.invoke.util.VerifyAccess;
 
 public class _EntityInvocationHandler extends TestBase {
 
@@ -414,22 +413,22 @@ public class _EntityInvocationHandler extends TestBase {
 		eie.setName("final");
 	}
 
-    @Test
-    public void varArgAdd() {
-        VarArgEntity vae =factory.create(VarArgEntity.class);
-        vae.addStrings("one");
-        vae.addStrings("two","three");
-        assertEquals(3,vae.getStrings().size());
-        assertThat(vae.getStrings(), contains("one", "two", "three"));
-    }
+	@Test
+	public void varArgAdd() {
+		VarArgEntity vae = factory.create(VarArgEntity.class);
+		vae.addStrings("one");
+		vae.addStrings("two", "three");
+		assertEquals(3, vae.getStrings().size());
+		assertThat(vae.getStrings(), contains("one", "two", "three"));
+	}
 
-    private static interface VarArgEntity extends Entity {
+	private static interface VarArgEntity extends Entity {
 
-        public List<String> getStrings();
+		public List<String> getStrings();
 
-        public VarArgEntity setStrings(List<String> strings);
+		public VarArgEntity setStrings(List<String> strings);
 
-        public VarArgEntity addStrings(String... string);
+		public VarArgEntity addStrings(String... string);
 
-    }
+	}
 }
