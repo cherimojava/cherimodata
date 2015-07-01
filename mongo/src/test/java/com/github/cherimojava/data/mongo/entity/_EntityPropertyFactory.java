@@ -22,6 +22,7 @@ import static com.github.cherimojava.data.mongo.CommonInterfaces.ImplicitIdEntit
 import static com.github.cherimojava.data.mongo.CommonInterfaces.InvalidEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,12 +34,12 @@ import static org.junit.Assert.fail;
 
 import javax.inject.Named;
 
-import com.github.cherimojava.data.mongo.CommonInterfaces;
-import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
+import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 
 public class _EntityPropertyFactory extends TestBase {
 
@@ -245,51 +246,55 @@ public class _EntityPropertyFactory extends TestBase {
 
 	@Test
 	public void underlineMethodNameForbidden() {
-        try {
-            factory.create(UnderlineMethodEntity.class);
-            fail("should throw an exception");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(),containsString("Property can't start with '_' as this is reserved, but"));
-        }
+		try {
+			factory.create(UnderlineMethodEntity.class);
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Property can't start with '_' as this is reserved, but"));
+		}
 	}
 
-    @Test
-    public void isWithParams() {
-        try {
-            factory.create(IsWithParamEntity.class);
-            fail("should throw an exception");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(),containsString("Is method must not define any parameters"));
-        }
-    }
+	@Test
+	public void isWithParams() {
+		try {
+			factory.create(IsWithParamEntity.class);
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Is method must not define any parameters"));
+		}
+	}
 
-    @Test
-    public void isComputed() {
-        try {
-            factory.create(IsComputedEntity.class);
-            fail("should throw an exception");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(),containsString("computed property param cannot have a setter method declared"));
-        }
-    }
+	@Test
+	public void isComputed() {
+		try {
+			factory.create(IsComputedEntity.class);
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			// Due to the randomness of the methods being walked, it can happen that either the setter or the isser is
+			// being validated first and failing
+			assertThat(
+					e.getMessage(),
+					anyOf(containsString("computed property param cannot have a setter method declared"),
+							containsString("You can only declare setter methods if there's a matching getter. Found setParam without getter")));
+		}
+	}
 
+	@Test
+	public void UnderlineNamedMethodForbidden() {
+		try {
+			factory.create(UnderlineNameMethodEntity.class);
+			fail("should throw an exception");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("Property can't start with '_' as this is reserved, but"));
+		}
+	}
 
-    @Test
-    public void UnderlineNamedMethodForbidden() {
-        try {
-            factory.create(UnderlineNameMethodEntity.class);
-            fail("should throw an exception");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(),containsString("Property can't start with '_' as this is reserved, but"));
-        }
-    }
+	private static interface UnderlineNameMethodEntity extends Entity {
+		@Named("_bs")
+		public String getM();
 
-    private static interface UnderlineNameMethodEntity extends Entity {
-        @Named("_bs")
-        public String getM();
-
-        public UnderlineNameMethodEntity setM(String s);
-    }
+		public UnderlineNameMethodEntity setM(String s);
+	}
 
 	private static interface UnderlineMethodEntity extends Entity {
 		public String get_M();
@@ -303,18 +308,18 @@ public class _EntityPropertyFactory extends TestBase {
 		public void setAnotherString(String s);
 	}
 
-    private static interface IsWithParamEntity extends Entity {
-        public boolean isParam(String b);
+	private static interface IsWithParamEntity extends Entity {
+		public boolean isParam(String b);
 
-        public IsWithParamEntity setParam(boolean param);
-    }
+		public IsWithParamEntity setParam(boolean param);
+	}
 
-    private static interface IsComputedEntity extends Entity {
-        @Computed(CommonInterfaces.StringComputer.class)
-        public boolean isParam();
+	private static interface IsComputedEntity extends Entity {
+		@Computed(CommonInterfaces.StringComputer.class)
+		public boolean isParam();
 
-        public IsComputedEntity setParam(boolean param);
-    }
+		public IsComputedEntity setParam(boolean param);
+	}
 
 	private static interface MultipleGetterForProperty extends Entity {
 		public String getString();
