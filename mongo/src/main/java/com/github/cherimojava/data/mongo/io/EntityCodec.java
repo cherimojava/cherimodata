@@ -126,7 +126,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 	}
 
 	/**
-	 * returns the document id of the given document. If there's currently no id defined one will be created of type {@link ObjectId}
+	 * returns the document id of the given document. If there's currently no id defined one will be created of type
+	 * {@link ObjectId}
 	 *
 	 * @param document
 	 *            document to obtain document id from
@@ -231,8 +232,7 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					if (pp.isCollection() && Entity.class.isAssignableFrom(pp.getGenericType())) {
 						e.set(propertyName, decodeArray(reader, pp));
 					} else {
-						e.set(propertyName,
-								codecRegistry.get(pp.getType()).decode(reader, null));
+						e.set(propertyName, codecRegistry.get(pp.getType()).decode(reader, null));
 					}
 				}
 			}
@@ -320,7 +320,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 
 		for (Method method : value.entityClass().getMethods()) {
 			// TODO we wanna test this inheritance
-			if (method.getName().startsWith("get") && method.getName().length() > 3) {
+			if ((method.getName().startsWith("get") && method.getName().length() > 3)
+					|| (method.getName().startsWith("is") && method.getName().length() > 2)) {
 				ParameterProperty pp = properties.getProperty(method);
 				String propertyName = pp.getMongoName();
 				if (pp.isTransient() || value.get(propertyName) == null) {
@@ -401,7 +402,8 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 					"get" + EntityUtils.capitalize(name)).getReturnType());
 
 		} catch (NoSuchMethodException e1) {
-			throw new IllegalStateException(format("failed to read 'get%s()' on class %s. Should not happen", EntityUtils.capitalize(name), clazz));
+			throw new IllegalStateException(format("failed to read 'get%s()' on class %s. Should not happen",
+					EntityUtils.capitalize(name), clazz));
 		}
 	}
 

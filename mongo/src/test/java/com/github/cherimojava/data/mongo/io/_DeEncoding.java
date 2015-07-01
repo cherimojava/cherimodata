@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.github.cherimojava.data.mongo.CommonInterfaces;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
@@ -54,6 +53,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.MongoBase;
 import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
@@ -67,8 +67,6 @@ import com.mongodb.Block;
 import com.mongodb.DBRef;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
-
-//TODO primitive types not working yet
 
 @SuppressWarnings("unchecked")
 public class _DeEncoding extends MongoBase {
@@ -565,7 +563,7 @@ public class _DeEncoding extends MongoBase {
 
 		// check what happens if nothing is set
 		reference.save();
-		assertEquals(reference.toString(), factory.load(ReferencingEntity.class,id).toString());
+		assertEquals(reference.toString(), factory.load(ReferencingEntity.class, id).toString());
 
 		// check what happens if null is set
 		reference.setListedEntities(Lists.<PrimitiveEntity> newArrayList());
@@ -657,18 +655,18 @@ public class _DeEncoding extends MongoBase {
 	@Test
 	public void implicitIdTypeVerification() {
 		try {
-			factory.create(ReferencingEntity.class).set(ID,"one");
+			factory.create(ReferencingEntity.class).set(ID, "one");
 			fail("should throw an exception");
 		} catch (ClassCastException e) {
-			assertThat(e.getMessage(),allOf(containsString("ObjectId"), containsString("String")));
+			assertThat(e.getMessage(), allOf(containsString("ObjectId"), containsString("String")));
 		}
 	}
 
 	@Test
 	public void primitivesWorking() {
-		CommonInterfaces.PrimitiveTypeEntity pte =factory.create(CommonInterfaces.PrimitiveTypeEntity.class);
+		CommonInterfaces.PrimitiveTypeEntity pte = factory.create(CommonInterfaces.PrimitiveTypeEntity.class);
 		pte.setInt(1).save();
-		assertEquals(1,factory.load(CommonInterfaces.PrimitiveTypeEntity.class,1).getInt());
+		assertEquals(1, factory.load(CommonInterfaces.PrimitiveTypeEntity.class, 1).getInt());
 	}
 
 	@Test
@@ -678,6 +676,13 @@ public class _DeEncoding extends MongoBase {
 		one.setOther(two.setOther(one));
 
 		one.save();// should work
+	}
+
+	@Test
+	public void isMethodWorking() {
+		CommonInterfaces.IsEntity ie = factory.create(CommonInterfaces.IsEntity.class);
+		ie.setBoolean(true).save();
+		assertTrue(factory.load(CommonInterfaces.IsEntity.class, ie.get(Entity.ID)).isBoolean());
 	}
 
 	private static interface ThingOne extends Entity<ThingOne> {
