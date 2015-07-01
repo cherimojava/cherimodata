@@ -25,7 +25,6 @@ import static java.lang.String.format;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -221,7 +220,7 @@ class EntityInvocationHandler implements InvocationHandler {
 
 		lazyLoad();
 		pp = properties.getProperty(method);
-		if (methodName.startsWith("get")) {
+		if (methodName.startsWith("get") || methodName.startsWith("is")) {
 			return _get(pp);
 		}
 		if (methodName.startsWith("set")) {
@@ -294,13 +293,13 @@ class EntityInvocationHandler implements InvocationHandler {
 				throw new IllegalStateException("The impossible happened. Could not instantiate Class", e);
 			}
 		}
-        if (!value.getClass().isArray()) {
-            ((Collection) data.get(pp.getMongoName())).add(value);
-        } else {
-            for (Object val:(Object[])value) {
-                ((Collection) data.get(pp.getMongoName())).add(val);
-            }
-        }
+		if (!value.getClass().isArray()) {
+			((Collection) data.get(pp.getMongoName())).add(value);
+		} else {
+			for (Object val : (Object[]) value) {
+				((Collection) data.get(pp.getMongoName())).add(val);
+			}
+		}
 	}
 
 	/**

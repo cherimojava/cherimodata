@@ -15,6 +15,26 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
+import static com.github.cherimojava.data.mongo.CommonInterfaces.AddEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.AdderTest;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.capitalize;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.decapitalize;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getAdderFromGetter;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getCollectionName;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getGetterFromAdder;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getGetterFromSetter;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getMongoNameFromMethod;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getPojoNameFromMethod;
+import static com.github.cherimojava.data.mongo.entity.EntityUtils.getSetterFromGetter;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.List;
 
 import javax.inject.Named;
@@ -23,11 +43,6 @@ import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
-
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
-import static com.github.cherimojava.data.mongo.entity.EntityUtils.*;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
 
 public class _EntityUtils extends TestBase {
 	/**
@@ -189,7 +204,7 @@ public class _EntityUtils extends TestBase {
 			getGetterFromSetter(IdNameTest.class.getDeclaredMethod("setLame", String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), containsString("has no corresponding getter"));
+			assertThat(e.getMessage(), containsString("has no corresponding get/is"));
 		}
 	}
 

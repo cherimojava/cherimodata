@@ -238,4 +238,10 @@ public class CommonInterfaces {
 
         public EntityList setList(List<PrimitiveEntity> list);
     }
+
+    public static interface IsEntity extends Entity {
+        public boolean isBoolean();
+
+        public IsEntity setBoolean(boolean b);
+    }
 }

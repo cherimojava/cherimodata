@@ -113,7 +113,10 @@ class EntityPropertiesFactory {
 				validateGetter(m);
 				builder.addParameter(m);
 			} else if (m.getName().startsWith("add")) {
-				validateAdder(m);
+                validateAdder(m);
+            } else if (m.getName().startsWith("is")) {
+                validateIsser(m);
+                builder.addParameter(m);
 			} else {
 				throw new IllegalArgumentException(format(
 						"Found method %s, which isn't conform with Entity method convention", m.getName()));
@@ -149,6 +152,10 @@ class EntityPropertiesFactory {
 		checkArgument(getterType.equals(adderType) || getterType.equals(adderType.getComponentType()),
 				"Collection has a generic type of %s, but adder has parameter of type %s or is no matching vararg method", getterType, adderType);
 	}
+
+    void validateIsser(Method isser) {
+        checkArgument(isser.getParameterTypes().length == 0,"Is method must not define any parameters");
+    }
 
 	/**
 	 * validates that a method matches the setter constraints. The constraints are:

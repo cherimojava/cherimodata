@@ -422,6 +422,12 @@ public class _EntityInvocationHandler extends TestBase {
 		assertThat(vae.getStrings(), contains("one", "two", "three"));
 	}
 
+	@Test
+	public void isMethodWorks() {
+		CommonInterfaces.IsEntity ie = factory.create(CommonInterfaces.IsEntity.class);
+		assertTrue(ie.setBoolean(true).isBoolean());
+	}
+
 	private static interface VarArgEntity extends Entity {
 
 		public List<String> getStrings();

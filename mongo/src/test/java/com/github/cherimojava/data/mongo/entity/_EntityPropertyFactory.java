@@ -33,6 +33,8 @@ import static org.junit.Assert.fail;
 
 import javax.inject.Named;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
+import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -242,7 +244,7 @@ public class _EntityPropertyFactory extends TestBase {
 	}
 
 	@Test
-	public void UnderlineMethodNameForbidden() {
+	public void underlineMethodNameForbidden() {
         try {
             factory.create(UnderlineMethodEntity.class);
             fail("should throw an exception");
@@ -250,6 +252,26 @@ public class _EntityPropertyFactory extends TestBase {
             assertThat(e.getMessage(),containsString("Property can't start with '_' as this is reserved, but"));
         }
 	}
+
+    @Test
+    public void isWithParams() {
+        try {
+            factory.create(IsWithParamEntity.class);
+            fail("should throw an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(),containsString("Is method must not define any parameters"));
+        }
+    }
+
+    @Test
+    public void isComputed() {
+        try {
+            factory.create(IsComputedEntity.class);
+            fail("should throw an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(),containsString("computed property param cannot have a setter method declared"));
+        }
+    }
 
 
     @Test
@@ -280,6 +302,19 @@ public class _EntityPropertyFactory extends TestBase {
 
 		public void setAnotherString(String s);
 	}
+
+    private static interface IsWithParamEntity extends Entity {
+        public boolean isParam(String b);
+
+        public IsWithParamEntity setParam(boolean param);
+    }
+
+    private static interface IsComputedEntity extends Entity {
+        @Computed(CommonInterfaces.StringComputer.class)
+        public boolean isParam();
+
+        public IsComputedEntity setParam(boolean param);
+    }
 
 	private static interface MultipleGetterForProperty extends Entity {
 		public String getString();

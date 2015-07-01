@@ -15,16 +15,25 @@
  */
 package com.github.cherimojava.data.mongo.entity;
 
-import static com.github.cherimojava.data.mongo.CommonInterfaces.*;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.FluentEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.LazyLoadingEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
+import static com.github.cherimojava.data.mongo.CommonInterfaces.ReferencingEntity;
 import static com.github.cherimojava.data.mongo.entity.ParameterProperty.Builder;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
@@ -124,7 +133,7 @@ public class _ParameterPropertyBuilder extends TestBase {
 
 	@Test
 	public void referenceDBRefDetection() throws NoSuchMethodException {
-		assertTrue(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getDBRef"),validator).isDBRef());
+		assertTrue(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getDBRef"), validator).isDBRef());
 		assertFalse(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getPE"), validator).isDBRef());
 		assertTrue(Builder.buildFrom(ReferencingEntity.class.getDeclaredMethod("getPE"), validator).isReference());
 	}
@@ -159,6 +168,11 @@ public class _ParameterPropertyBuilder extends TestBase {
 			assertThat(e.getMessage(), containsString("Final is only supported for"));
 		}
 		// TODO add test if autoboxed primitive allows modification, which leaks into entity
+	}
+
+	@Test
+	public void isMethodSupport() {
+		EntityFactory.instantiate(CommonInterfaces.IsEntity.class);
 	}
 
 	private static interface FinalTypes extends Entity {

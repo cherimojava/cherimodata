@@ -32,6 +32,7 @@ import javax.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.google.common.primitives.Primitives;
 
 /**
  * Utility Class holding commonly used functionality to work with Entities
@@ -40,7 +41,7 @@ import com.github.cherimojava.data.mongo.entity.annotation.Id;
  * @since 1.0.0
  */
 public class EntityUtils {
-	// TODO add validation that the given methods are really are what they're supposed to be
+	// TODO add validation that the given methods are really what they're supposed to be
 	/**
 	 * Utility class no Need for Instance
 	 */
@@ -89,9 +90,13 @@ public class EntityUtils {
 	 */
 	static String getPojoNameFromMethod(Method m) {
 		String methodName = m.getName();
-		checkArgument((methodName.startsWith("set") || methodName.startsWith("get") || methodName.startsWith("add"))
-				&& m.getName().length() > 3, "Don't know how to retrieve name from this method, got [%s]", m.getName());
-		return decapitalize(m.getName().substring(3));
+		boolean isMethod = methodName.startsWith("is");
+		checkArgument(
+				((methodName.startsWith("set") || methodName.startsWith("get") || methodName.startsWith("add")) && m.getName().length() > 3)
+						|| (isMethod && m.getName().length() > 2),
+				"Don't know how to retrieve name from this method, got [%s]", m.getName());
+		// depending on what type of method it's extract the name
+		return decapitalize(m.getName().substring(!isMethod ? 3 : 2));
 	}
 
 	/**
@@ -103,8 +108,8 @@ public class EntityUtils {
 	 * @return mongo name for the given getter method (parameter)
 	 */
 	static String getMongoNameFromMethod(Method m) {
-		checkArgument(m.getName().startsWith("get"), "Mongo name can only be retrieved from get methods, but was %s",
-				m.getName());
+		checkArgument(m.getName().startsWith("get") || m.getName().startsWith("is"),
+				"Mongo name can only be retrieved from get/is methods, but was %s", m.getName());
 		checkArgument(!(m.isAnnotationPresent(Named.class) && m.isAnnotationPresent(Id.class)),
 				"You can not annotate a property with @Name and @Id");
 		if (m.isAnnotationPresent(Named.class)) {
@@ -115,7 +120,8 @@ public class EntityUtils {
 		if (m.isAnnotationPresent(Id.class) || "id".equals(getPojoNameFromMethod(m).toLowerCase(Locale.US))) {
 			return Entity.ID;
 		}
-		return decapitalize(m.getName().substring(3));
+		// differentiate between get and is methods
+		return decapitalize(m.getName().substring(m.getName().startsWith("get") ? 3 : 2));
 	}
 
 	/**
@@ -146,7 +152,9 @@ public class EntityUtils {
 	 */
 	static Method getSetterFromGetter(Method m) {
 		try {
-			return m.getDeclaringClass().getMethod(m.getName().replaceFirst("g", "s"), m.getReturnType());
+			return m.getDeclaringClass().getMethod(
+					m.getName().startsWith("get") ? m.getName().replaceFirst("g", "s") : m.getName().replaceFirst("is",
+							"set"), m.getReturnType());
 		} catch (NoSuchMethodException e) {
 			throw new IllegalArgumentException(format("Method %s has no corresponding setter method", m.getName()));
 		}
@@ -184,7 +192,7 @@ public class EntityUtils {
 					(Class) ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0]);
 		} catch (Exception e) {
 			try {
-                //if we had no hit, try if there's a vararg adder
+				// if we had no hit, try if there's a vararg adder
 				return m.getDeclaringClass().getMethod(
 						m.getName().replaceFirst("get", "add"),
 						Array.newInstance(
@@ -212,7 +220,17 @@ public class EntityUtils {
 					m.getName());
 			return getter;
 		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException(format("Method %s has no corresponding getter method", m.getName()));
+			try {
+				// check if there's a is method available
+				Method isser = m.getDeclaringClass().getMethod(m.getName().replaceFirst("set", "is"));
+				// check that both have boolean as type
+				checkArgument(boolean.class.equals(Primitives.unwrap(isser.getReturnType()))
+						&& boolean.class.equals(Primitives.unwrap(m.getParameterTypes()[0])));
+				return isser;
+			} catch (NoSuchMethodException e1) {
+				// if neither get nor is can be found throw an exception
+				throw new IllegalArgumentException(format("Method %s has no corresponding get/is method", m.getName()));
+			}
 		}
 	}
 
