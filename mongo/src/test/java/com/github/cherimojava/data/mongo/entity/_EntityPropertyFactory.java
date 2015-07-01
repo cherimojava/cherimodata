@@ -22,7 +22,6 @@ import static com.github.cherimojava.data.mongo.CommonInterfaces.ImplicitIdEntit
 import static com.github.cherimojava.data.mongo.CommonInterfaces.InvalidEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.NestedEntity;
 import static com.github.cherimojava.data.mongo.CommonInterfaces.PrimitiveEntity;
-import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -255,9 +254,9 @@ public class _EntityPropertyFactory extends TestBase {
 	}
 
 	@Test
-	public void isWithParams() {
+	public void isWithParams() throws NoSuchMethodException {
 		try {
-			factory.create(IsWithParamEntity.class);
+			factory.validateIsser(IsWithParamEntity.class.getDeclaredMethod("isParam", String.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("Is method must not define any parameters"));
@@ -265,17 +264,12 @@ public class _EntityPropertyFactory extends TestBase {
 	}
 
 	@Test
-	public void isComputed() {
+	public void isComputed() throws NoSuchMethodException {
 		try {
-			factory.create(IsComputedEntity.class);
+			factory.validateSetter(IsComputedEntity.class.getDeclaredMethod("setParam", boolean.class));
 			fail("should throw an exception");
 		} catch (IllegalArgumentException e) {
-			// Due to the randomness of the methods being walked, it can happen that either the setter or the isser is
-			// being validated first and failing
-			assertThat(
-					e.getMessage(),
-					anyOf(containsString("computed property param cannot have a setter method declared"),
-							containsString("You can only declare setter methods if there's a matching getter. Found setParam without getter")));
+			assertThat(e.getMessage(), containsString("computed property param cannot have a setter method declared"));
 		}
 	}
 
