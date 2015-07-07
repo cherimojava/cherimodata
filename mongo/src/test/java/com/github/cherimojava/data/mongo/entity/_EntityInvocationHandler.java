@@ -423,6 +423,12 @@ public class _EntityInvocationHandler extends TestBase {
 	}
 
 	@Test
+	public void primitiveDefaultValues() {
+		CommonInterfaces.PrimitiveTypeEntity pte = factory.create(CommonInterfaces.PrimitiveTypeEntity.class);
+		assertEquals(0, pte.getInt());
+	}
+
+	@Test
 	public void isMethodWorks() {
 		CommonInterfaces.IsEntity ie = factory.create(CommonInterfaces.IsEntity.class);
 		assertTrue(ie.setBoolean(true).isBoolean());
@@ -435,6 +441,5 @@ public class _EntityInvocationHandler extends TestBase {
 		public VarArgEntity setStrings(List<String> strings);
 
 		public VarArgEntity addStrings(String... string);
-
 	}
 }

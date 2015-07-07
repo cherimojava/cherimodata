@@ -39,7 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.cherimojava.data.mongo.io.EntityCodec;
+import com.google.common.base.Defaults;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Primitives;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOptions;
@@ -333,7 +335,12 @@ class EntityInvocationHandler implements InvocationHandler {
 			// if this property is computed we need to calculate the value for it
 			return property.getComputer().compute(proxy);
 		} else {
-			return data.get(property.getMongoName());
+			String name = property.getMongoName();
+			// add default value, in case nothing has been set yet
+			if (!data.containsKey(name) && property.isPrimitiveType()) {
+				data.put(name, Defaults.defaultValue(Primitives.unwrap(property.getType())));
+			}
+			return data.get(name);
 		}
 	}
 

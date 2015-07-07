@@ -74,6 +74,7 @@ public final class ParameterProperty {
 	private final ReferenceType referenceType;
 	private final Map<MethodType, Boolean> typeReturnMap;
 	private final boolean finl;
+	private final boolean isPrimitiveType;
 
 	ParameterProperty(Builder builder) {
 		checkNotNull(builder.type, "type cannot be null");
@@ -82,7 +83,8 @@ public final class ParameterProperty {
 		checkArgument(StringUtils.isNotEmpty(builder.mongoName), "mongo name cannot be null or empty string");
 
 		typeReturnMap = Collections.unmodifiableMap(builder.typeReturnMap);
-		type = builder.type;
+		type = Primitives.wrap(builder.type);
+		isPrimitiveType = builder.type.isPrimitive();
 		genericType = builder.genericType;
 		pojoName = builder.pojoName;
 		mongoName = builder.mongoName;
@@ -122,7 +124,8 @@ public final class ParameterProperty {
 	}
 
 	/**
-	 * returns the type of the property this instance represents
+	 * returns the type of the property this instance represents. In case the property is of primitive nature its
+	 * wrapper type will be returned
 	 */
 	public Class<?> getType() {
 		return type;
@@ -221,6 +224,15 @@ public final class ParameterProperty {
 	}
 
 	/**
+	 * returns if the property is of primitive type or not.
+	 * 
+	 * @return true if the original type is primitive otherwise false
+	 */
+	public boolean isPrimitiveType() {
+		return isPrimitiveType;
+	}
+
+	/**
 	 * validates the given value if it matches the defined constraints for this property. Throws
 	 * ConstraintViolationException if the value doesn't comply with the declared Constraints
 	 *
@@ -229,7 +241,7 @@ public final class ParameterProperty {
 	 */
 	public void validate(Object value) {
 		if (value != null) {
-			if (!type.isAssignableFrom(value.getClass())) {
+			if (!type.isAssignableFrom(Primitives.wrap(value.getClass()))) {
 				throw new ClassCastException(format("Can't cast from '%s' to '%s'",
 						value.getClass().getCanonicalName(), type.getCanonicalName()));
 			}
@@ -395,8 +407,8 @@ public final class ParameterProperty {
 			checkArgument(!mongoName.startsWith("_") || Entity.ID.equals(mongoName),
 					"Property can't start with '_' as this is reserved, but got '%s'", mongoName);
 
-			builder.setType(returnType.isPrimitive() ? Primitives.wrap(returnType) : returnType).setPojoName(
-					EntityUtils.getPojoNameFromMethod(m)).setMongoName(mongoName).hasConstraints(
+			builder.setType(/** dont wrap primitives */
+			returnType).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(mongoName).hasConstraints(
 					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
 					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
 					computer).setFinal(finl);

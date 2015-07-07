@@ -33,11 +33,11 @@ import java.util.List;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
-import com.github.cherimojava.data.mongo.CommonInterfaces;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.TestBase;
 import com.github.cherimojava.data.mongo.entity.annotation.Computed;
 import com.github.cherimojava.data.mongo.entity.annotation.Final;
@@ -67,6 +67,10 @@ public class _ParameterPropertyBuilder extends TestBase {
 	public void detectType() throws NoSuchMethodException {
 		assertEquals(String.class, Builder.buildFrom(FluentEntity.class.getMethod("getNotFluent"), validator).getType());
 		assertEquals(List.class, Builder.buildFrom(Ids.class.getMethod("getListEntity"), validator).getType());
+		// internally convert to wrapper types
+		assertEquals(
+				Integer.class,
+				Builder.buildFrom(CommonInterfaces.PrimitiveTypeEntity.class.getDeclaredMethod("getInt"), validator).getType());
 	}
 
 	@Test
