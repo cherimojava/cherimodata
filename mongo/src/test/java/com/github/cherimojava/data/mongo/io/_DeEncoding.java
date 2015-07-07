@@ -678,6 +678,17 @@ public class _DeEncoding extends MongoBase {
 		one.save();// should work
 	}
 
+	/**
+	 * verify that if no explicit id is defined, one will be written.
+	 */
+	@Test
+	public void idImplicitEncoding() {
+		Entity e = factory.create(Entity.class);
+		assertNull(e.get(ID));
+		e.save();
+		assertNotNull(e.get(ID));
+	}
+
 	@Test
 	public void isMethodWorking() {
 		CommonInterfaces.IsEntity ie = factory.create(CommonInterfaces.IsEntity.class);

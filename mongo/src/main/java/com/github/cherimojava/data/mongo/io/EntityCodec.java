@@ -20,7 +20,6 @@ import static java.lang.String.format;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
@@ -309,80 +308,66 @@ public class EntityCodec<T extends Entity> implements CollectibleCodec<T> {
 			EntityUtils.persist(value);
 		}
 
-		Object id = value.get(Entity.ID);
-		if (id != null && !properties.hasExplicitId()) {
-			// this is needed to write the object id, which at this time should be set in case it wasn't before
-			// only write out the id if it's not explicitly declared
-			writer.writeName(Entity.ID);
-			Codec codec = codecRegistry.get(id.getClass());
-			codec.encode(writer, id, null);
-		}
-
-		for (Method method : value.entityClass().getMethods()) {
-			// TODO we wanna test this inheritance
-			if ((method.getName().startsWith("get") && method.getName().length() > 3)
-					|| (method.getName().startsWith("is") && method.getName().length() > 2)) {
-				ParameterProperty pp = properties.getProperty(method);
-				String propertyName = pp.getMongoName();
-				if (pp.isTransient() || value.get(propertyName) == null) {
-					// transient properties aren't encoded
-					// null isn't encoded
-					continue;
-				}
-				if (pp.isReference()) {
-					if (!pp.isCollection()) {
-						EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getType());
-						Entity subEntity = (Entity) value.get(propertyName);
+		for (ParameterProperty pp : properties.getProperties()) {
+			String propertyName = pp.getMongoName();
+			if (pp.isTransient() || value.get(propertyName) == null) {
+				// transient properties aren't encoded
+				// null isn't encoded
+				continue;
+			}
+			if (pp.isReference()) {
+				if (!pp.isCollection()) {
+					EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getType());
+					Entity subEntity = (Entity) value.get(propertyName);
+					Object eid = EntityCodec._obtainId(subEntity);
+					// this is just for compatibility with other tools, due to our Schema information we know where
+					// this
+					// comes from
+					if (pp.isDBRef()) {
+						// if this is meant to be stored as Mongo DBRef we need to add parts
+						writer.writeStartDocument(propertyName);
+						writer.writeString("$ref", seProperties.getCollectionName());
+						writer.writeName("$id");
+						writeId(eid, writer);
+						writer.writeEndDocument();
+					} else {
+						writer.writeName(propertyName);
+						writeId(eid, writer);
+					}
+				} else {
+					EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getGenericType());
+					writer.writeStartArray(propertyName);
+					for (Entity subEntity : (Collection<Entity>) value.get(propertyName)) {
 						Object eid = EntityCodec._obtainId(subEntity);
-						// this is just for compatibility with other tools, due to our Schema information we know where
-						// this
-						// comes from
 						if (pp.isDBRef()) {
-							// if this is meant to be stored as Mongo DBRef we need to add parts
-							writer.writeStartDocument(propertyName);
+							writer.writeStartDocument();
 							writer.writeString("$ref", seProperties.getCollectionName());
 							writer.writeName("$id");
 							writeId(eid, writer);
 							writer.writeEndDocument();
 						} else {
-							writer.writeName(propertyName);
 							writeId(eid, writer);
 						}
-					} else {
-						EntityProperties seProperties = EntityFactory.getProperties((Class<? extends Entity>) pp.getGenericType());
-						writer.writeStartArray(propertyName);
-						for (Entity subEntity : (Collection<Entity>) value.get(propertyName)) {
-							Object eid = EntityCodec._obtainId(subEntity);
-							if (pp.isDBRef()) {
-								writer.writeStartDocument();
-								writer.writeString("$ref", seProperties.getCollectionName());
-								writer.writeName("$id");
-								writeId(eid, writer);
-								writer.writeEndDocument();
-							} else {
-								writeId(eid, writer);
-							}
-						}
-
-						writer.writeEndArray();
 					}
-					continue;
-				}
 
-				if (Entity.class.isAssignableFrom(method.getReturnType())) {
-					// we got some entity, so we need to recurse
-					writer.writeName(propertyName);
-					encode(writer, (T) value.get(propertyName), toDB, cycleBreaker);
-				} else if (method.getReturnType().isEnum()) {
-					// enum handling
-					writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
-				} else {
-					// simple property
-					writer.writeName(propertyName);
-					Object v = value.get(propertyName);
-					Codec codec = codecRegistry.get(v.getClass());
-					codec.encode(writer, v, EncoderContext.builder().build());
+					writer.writeEndArray();
 				}
+				continue;
+			}
+
+			if (Entity.class.isAssignableFrom(pp.getType())) {
+				// we got some entity, so we need to recurse
+				writer.writeName(propertyName);
+				encode(writer, (T) value.get(propertyName), toDB, cycleBreaker);
+			} else if (pp.getType().isEnum()) {
+				// enum handling
+				writer.writeString(propertyName, ((Enum) value.get(propertyName)).name());
+			} else {
+				// simple property
+				writer.writeName(propertyName);
+				Object v = value.get(propertyName);
+				Codec codec = codecRegistry.get(v.getClass());
+				codec.encode(writer, v, EncoderContext.builder().build());
 			}
 		}
 		cycleBreaker.remove(value);

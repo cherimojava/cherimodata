@@ -165,6 +165,7 @@ public class _EntityPropertyFactory extends TestBase {
 		assertNotNull(props.getProperty("Integer"));
 		assertNotNull(props.getProperty("anotherString"));
 		assertNull(props.getProperty("noProperty"));
+		assertEquals(4, props.getProperties().size());
 	}
 
 	@Test

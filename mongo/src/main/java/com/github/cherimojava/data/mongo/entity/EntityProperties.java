@@ -64,6 +64,11 @@ public final class EntityProperties {
 	private final List<ParameterProperty> validationProperties;
 
 	/**
+	 * list of all properties
+	 */
+	private final List<ParameterProperty> properties;
+
+	/**
 	 * tells if we have an explicitly defined Id or not
 	 */
 	private final boolean explicitId;
@@ -78,12 +83,14 @@ public final class EntityProperties {
 		ImmutableMap.Builder<String, ParameterProperty> pojo = new ImmutableMap.Builder<>();
 		ImmutableMap.Builder<String, ParameterProperty> mongo = new ImmutableMap.Builder<>();
 		ImmutableList.Builder<ParameterProperty> valProps = new ImmutableList.Builder<>();
+		ImmutableList.Builder<ParameterProperty> props = new ImmutableList.Builder<>();
 
 		ParameterProperty idP = null;
 		for (Method m : builder.properties) {
 			ParameterProperty pp = ParameterProperty.Builder.buildFrom(m, builder.validator);
 			pojo.put(pp.getPojoName(), pp);
 			mongo.put(pp.getMongoName(), pp);
+			props.add(pp);
 			if (Entity.ID.equals(pp.getMongoName())) {
 				explicitId = true;
 				idP = pp;
@@ -100,11 +107,13 @@ public final class EntityProperties {
 					false).hasConstraints(false).setValidator(builder.validator).build();
 			pojo.put(Entity.ID, idP);
 			mongo.put(Entity.ID, idP);
+			props.add(idP);
 		}
 
 		this.pojoNames = pojo.build();
 		this.mongoNames = mongo.build();
 		this.validationProperties = valProps.build();
+		this.properties = props.build();
 		this.explicitId = explicitId;
 		id = idP;
 	}
@@ -129,6 +138,15 @@ public final class EntityProperties {
 	 */
 	public ParameterProperty getProperty(String name) {
 		return mongoNames.get(name);
+	}
+
+	/**
+	 * returns all properties belonging to this Entity
+	 * 
+	 * @return list of all ParameterProperties for this entity
+	 */
+	public List<ParameterProperty> getProperties() {
+		return properties;
 	}
 
 	/**
