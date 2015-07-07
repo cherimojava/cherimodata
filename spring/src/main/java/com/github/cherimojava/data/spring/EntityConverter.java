@@ -35,11 +35,10 @@ import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.google.common.base.Charsets;
 
 /**
- * Converts a JSON HTTPMessage to and from Entity. If you want to return/read a list of Entities you must wrap them due
- * to Java limitations into a custom Entity which holds a list of entities. To enable this converter you need to add it
- * to your {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter}. This can happen
- * through overriding the appropriate
- * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport} methods like
+ * Converts a JSON HTTPMessage to and from Entity. To enable this converter you need to add it to your
+ * {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter}. This can happen through
+ * overriding the appropriate {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport}
+ * methods like
  * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport#configureMessageConverters} or
  * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport#addDefaultHttpMessageConverters}
  *
