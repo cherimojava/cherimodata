@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -426,7 +427,10 @@ public class _EntityInvocationHandler extends TestBase {
 	public void primitiveDefaultValues() {
 		CommonInterfaces.PrimitiveTypeEntity pte = factory.create(CommonInterfaces.PrimitiveTypeEntity.class);
 		assertEquals(0, pte.getInt());
-	}
+        PrimitiveEntity pe = factory.create(PrimitiveEntity.class);
+        assertNull(pe.getInteger());
+        assertNull(pe.getString());
+    }
 
 	@Test
 	public void isMethodWorks() {
