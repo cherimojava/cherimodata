@@ -25,7 +25,6 @@ import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 import javax.inject.Named;
 
 import org.bson.Document;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.MongoBase;
@@ -34,13 +33,6 @@ import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 
 public class _Indexes extends MongoBase {
-
-	EntityFactory factory;
-
-	@Before
-	public void setup() {
-		factory = new EntityFactory(db);
-	}
 
 	@Test
 	public void indexCreation() {

@@ -18,6 +18,7 @@ package com.github.cherimojava.data.mongo;
 import java.io.IOException;
 import java.util.List;
 
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,6 +40,18 @@ public class MongoBase extends TestBase {
 	protected MongoDatabase db;
 
 	protected MongoClient client;
+
+    protected EntityFactory factory;
+
+    @Before
+    public void mongoDBSetup() {
+        factory = new EntityFactory(db);
+    }
+
+    @After
+    public void mongoCleanUp() {
+        db.drop();
+    }
 
 	@BeforeClass
 	public static void prepare() {

@@ -71,18 +71,6 @@ import com.mongodb.client.model.UpdateOptions;
 @SuppressWarnings("unchecked")
 public class _DeEncoding extends MongoBase {
 
-	EntityFactory factory;
-
-	@Before
-	public void mongoDBSetup() {
-		factory = new EntityFactory(db);
-	}
-
-	@After
-	public void mongoCleanUp() {
-		db.drop();
-	}
-
 	/**
 	 * Tests if de/encoding a simple Entity with only primitive data types work
 	 */
