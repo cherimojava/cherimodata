@@ -40,8 +40,6 @@ public class MongoBase extends TestBase {
 
 	protected MongoClient client;
 
-	protected List<String> collectionCleanUp;
-
 	@BeforeClass
 	public static void prepare() {
 		Suite.startMongo();
@@ -56,7 +54,6 @@ public class MongoBase extends TestBase {
 	public final void dbSetup() throws IOException {
 		client = new MongoClient(new ServerAddress("localhost", Suite.getPort()));
 		db = client.getDatabase(this.getClass().getSimpleName());
-		collectionCleanUp = Lists.newArrayList();
 	}
 
 	@After
