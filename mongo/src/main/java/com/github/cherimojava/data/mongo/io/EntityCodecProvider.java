@@ -20,6 +20,7 @@ import org.bson.codecs.AtomicLongCodec;
 import org.bson.codecs.BinaryCodec;
 import org.bson.codecs.BooleanCodec;
 import org.bson.codecs.BsonTypeClassMap;
+import org.bson.codecs.BsonValueCodecProvider;
 import org.bson.codecs.CodeCodec;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DateCodec;
@@ -140,6 +141,6 @@ public class EntityCodecProvider
      */
     public static CodecRegistry createCodecRegistry( MongoDatabase db, Class<? extends Entity> clazz )
     {
-        return CodecRegistries.fromProviders( new EntityCodecProvider( db, clazz ) );
+        return CodecRegistries.fromProviders( new EntityCodecProvider( db, clazz ), new BsonValueCodecProvider() );
     }
 }
