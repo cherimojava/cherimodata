@@ -1,17 +1,10 @@
 /**
- * Copyright (C) 2013 cherimojava (http://github.com/cherimojava/cherimodata)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2013 cherimojava (http://github.com/cherimojava/cherimodata) Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language governing permissions and limitations
+ * under the License.
  */
 package com.github.cherimojava.data.mongo.entity;
 
@@ -60,404 +53,491 @@ import com.google.common.primitives.Primitives;
  * @author pknobel
  * @since 1.0.0
  */
-public final class ParameterProperty {
-	private final String mongoName;
-	private final String pojoName;
-	private final boolean constraints;
-	private final Class<?> type;
-	private final Class<?> genericType;
-	private final Validator validator;
-	private final Class<? extends Entity> declaringClass;
-	private final boolean tranzient;
-	private final Computer computer;
-	private final ReferenceLoadingTime referenceLoadingTime;
-	private final ReferenceType referenceType;
-	private final Map<MethodType, Boolean> typeReturnMap;
-	private final boolean finl;
-	private final boolean isPrimitiveType;
+public final class ParameterProperty
+{
+    private final String mongoName;
 
-	ParameterProperty(Builder builder) {
-		checkNotNull(builder.type, "type cannot be null");
-		checkNotNull(builder.validator);
-		checkArgument(StringUtils.isNotEmpty(builder.pojoName), "pojo name cannot be null or empty string");
-		checkArgument(StringUtils.isNotEmpty(builder.mongoName), "mongo name cannot be null or empty string");
+    private final String pojoName;
 
-		typeReturnMap = Collections.unmodifiableMap(builder.typeReturnMap);
-		type = Primitives.wrap(builder.type);
-		isPrimitiveType = builder.type.isPrimitive();
-		genericType = builder.genericType;
-		pojoName = builder.pojoName;
-		mongoName = builder.mongoName;
-		constraints = builder.constraints;
-		validator = builder.validator;
-		declaringClass = builder.declaringClass;
-		tranzient = builder.tranzient;
-		finl = builder.finl;
-		computer = builder.computer;
-		referenceLoadingTime = builder.referenceLoadingTime;
-		referenceType = builder.referenceType;
-	}
+    private final boolean constraints;
 
-	/**
-	 * gets the name of this parameter which is used on mongodb side
-	 */
-	public String getMongoName() {
-		return mongoName;
-	}
+    private final Class<?> type;
 
-	/**
-	 * gets the name of this parameter within the pojo, returned name doesn't contain set/get/add or any other prefix
-	 */
-	public String getPojoName() {
-		return pojoName;
-	}
+    private final Class<?> genericType;
 
-	/**
-	 * returns if this method allows for fluent API access or not. Returns null if the specified method isn't existent
-	 * for this property
-	 *
-	 * @param type
-	 *            add or get method to check
-	 */
-	public Boolean isFluent(MethodType type) {
-		return typeReturnMap.get(type);
-	}
+    private final Validator validator;
 
-	/**
-	 * returns the type of the property this instance represents. In case the property is of primitive nature its
-	 * wrapper type will be returned
-	 */
-	public Class<?> getType() {
-		return type;
-	}
+    private final Class<? extends Entity> declaringClass;
 
-	/**
-	 * returns if this ParameterProperty has Constraints, which need to be validated on set/save
-	 */
-	public boolean hasConstraints() {
-		return constraints;
-	}
+    private final boolean tranzient;
 
-	/**
-	 * returns if this property isn't intended to be stored to MongoDB
-	 *
-	 * @return if this property is transient or not
-	 */
-	public boolean isTransient() {
-		return tranzient;
-	}
+    private final Computer computer;
 
-	/**
-	 * returns if this property is computed by a computer
-	 *
-	 * @return if this property is computed
-	 */
-	public boolean isComputed() {
-		return computer != null;
-	}
+    private final ReferenceLoadingTime referenceLoadingTime;
 
-	/**
-	 * returns if this property is final or not. Meaning that after the value was peristed once it's not meant to be
-	 * changed again
-	 * 
-	 * @return
-	 */
-	public boolean isFinal() {
-		return finl;
-	}
+    private final ReferenceType referenceType;
 
-	/**
-	 * Returns if this property is only referenced and the actual property is stored in a separate collection. Only
-	 * valid if the property is a entity subtype
-	 *
-	 * @return if this property is a reference to a different entity
-	 */
-	public boolean isReference() {
-		return ReferenceType.NONE != referenceType;
-	}
+    private final Map<MethodType, Boolean> typeReturnMap;
 
-	/**
-	 * Returns if this property is supposed to be stored as Mongo style DBRef. Is true only when the property is a
-	 * reference and value DBRef is true
-	 * 
-	 * @return
-	 */
-	public boolean isDBRef() {
-		return ReferenceType.DBREF == referenceType;
-	}
+    private final boolean finl;
 
-	/**
-	 * Returns if the given property is representing an Entity reference, which is lazily loaded
-	 *
-	 * @return if this property is loaded on first access to it
-	 */
-	public boolean isLazyLoaded() {
-		return ReferenceLoadingTime.LAZY == referenceLoadingTime;
-	}
+    private final boolean isPrimitiveType;
 
-	/**
-	 * gets the computer for this property
-	 *
-	 * @return computer of this property if the property is computer, null otherwise
-	 */
-	public Computer getComputer() {
-		return computer;
-	}
+    ParameterProperty( Builder builder )
+    {
+        checkNotNull( builder.type, "type cannot be null" );
+        checkNotNull( builder.validator );
+        checkArgument( StringUtils.isNotEmpty( builder.pojoName ), "pojo name cannot be null or empty string" );
+        checkArgument( StringUtils.isNotEmpty( builder.mongoName ), "mongo name cannot be null or empty string" );
 
-	/**
-	 * returns if the property is a collection, meaning the return type needs to be enriched with the actual class the
-	 * return type contains.
-	 *
-	 * @return true if the type is a collection, false otherwise
-	 */
-	public boolean isCollection() {
-		return genericType != null;
-	}
+        typeReturnMap = Collections.unmodifiableMap( builder.typeReturnMap );
+        type = Primitives.wrap( builder.type );
+        isPrimitiveType = builder.type.isPrimitive();
+        genericType = builder.genericType;
+        pojoName = builder.pojoName;
+        mongoName = builder.mongoName;
+        constraints = builder.constraints;
+        validator = builder.validator;
+        declaringClass = builder.declaringClass;
+        tranzient = builder.tranzient;
+        finl = builder.finl;
+        computer = builder.computer;
+        referenceLoadingTime = builder.referenceLoadingTime;
+        referenceType = builder.referenceType;
+    }
 
-	/**
-	 * returns the contained type if {@link #isCollection()} is returning true. Otherwise null is returned
-	 *
-	 * @return
-	 */
-	public Class<?> getGenericType() {
-		return genericType;
-	}
+    /**
+     * gets the name of this parameter which is used on mongodb side
+     */
+    public String getMongoName()
+    {
+        return mongoName;
+    }
 
-	/**
-	 * returns if the property is of primitive type or not.
-	 * 
-	 * @return true if the original type is primitive otherwise false
-	 */
-	public boolean isPrimitiveType() {
-		return isPrimitiveType;
-	}
+    /**
+     * gets the name of this parameter within the pojo, returned name doesn't contain set/get/add or any other prefix
+     */
+    public String getPojoName()
+    {
+        return pojoName;
+    }
 
-	/**
-	 * validates the given value if it matches the defined constraints for this property. Throws
-	 * ConstraintViolationException if the value doesn't comply with the declared Constraints
-	 *
-	 * @param value
-	 *            property value to check for validity
-	 */
-	public void validate(Object value) {
-		if (value != null) {
-			if (!type.isAssignableFrom(Primitives.wrap(value.getClass()))) {
-				throw new ClassCastException(format("Can't cast from '%s' to '%s'",
-						value.getClass().getCanonicalName(), type.getCanonicalName()));
-			}
-		}
-		if (hasConstraints()) {
-			Set<? extends ConstraintViolation<? extends Entity>> violations = validator.validateValue(declaringClass,
-					pojoName, value, Entity.Special.class);
-			if (!violations.isEmpty()) {
-				StringBuilder msg = new StringBuilder().append("Found errors while validating property ").append(
-						declaringClass.getCanonicalName()).append("#").append(pojoName).append(":\n");
-				for (ConstraintViolation violation : violations) {
-					msg.append("*").append(violation.getMessage()).append("\n");
-				}
-				throw new ConstraintViolationException(msg.toString(), violations);
-			}
-		}
-	}
+    /**
+     * returns if this method allows for fluent API access or not. Returns null if the specified method isn't existent
+     * for this property
+     *
+     * @param type add or get method to check
+     */
+    public Boolean isFluent( MethodType type )
+    {
+        return typeReturnMap.get( type );
+    }
 
-	/**
-	 * Builder to create a new {@link ParameterProperty}
-	 *
-	 * @author philnate
-	 */
-	static class Builder {
-		private static final Logger LOG = LoggerFactory.getLogger(Builder.class);
+    /**
+     * returns the type of the property this instance represents. In case the property is of primitive nature its
+     * wrapper type will be returned
+     */
+    public Class<?> getType()
+    {
+        return type;
+    }
 
-		private String mongoName;
-		private String pojoName;
-		private Class<?> type;
-		private Class<?> genericType;
-		private boolean constraints = false;
-		private Validator validator;
-		private Class<? extends Entity> declaringClass;
-		private boolean tranzient;
-		private boolean finl;
-		private Computer computer;
-		private ReferenceLoadingTime referenceLoadingTime;
-		private ReferenceType referenceType = ReferenceType.NONE;
-		private Map<MethodType, Boolean> typeReturnMap = Maps.newHashMap();
+    /**
+     * returns if this ParameterProperty has Constraints, which need to be validated on set/save
+     */
+    public boolean hasConstraints()
+    {
+        return constraints;
+    }
 
-		Builder setTransient(boolean tranzient) {
-			this.tranzient = tranzient;
-			return this;
-		}
+    /**
+     * returns if this property isn't intended to be stored to MongoDB
+     *
+     * @return if this property is transient or not
+     */
+    public boolean isTransient()
+    {
+        return tranzient;
+    }
 
-		Builder setMongoName(String mongoName) {
-			this.mongoName = mongoName;
-			return this;
-		}
+    /**
+     * returns if this property is computed by a computer
+     *
+     * @return if this property is computed
+     */
+    public boolean isComputed()
+    {
+        return computer != null;
+    }
 
-		Builder setPojoName(String pojoName) {
-			this.pojoName = pojoName;
-			return this;
-		}
+    /**
+     * returns if this property is final or not. Meaning that after the value was peristed once it's not meant to be
+     * changed again
+     * 
+     * @return
+     */
+    public boolean isFinal()
+    {
+        return finl;
+    }
 
-		Builder setFluent(MethodType method, boolean fluent) {
-			typeReturnMap.put(method, fluent);
-			return this;
-		}
+    /**
+     * Returns if this property is only referenced and the actual property is stored in a separate collection. Only
+     * valid if the property is a entity subtype
+     *
+     * @return if this property is a reference to a different entity
+     */
+    public boolean isReference()
+    {
+        return ReferenceType.NONE != referenceType;
+    }
 
-		Builder setType(Class<?> type) {
-			this.type = type;
-			return this;
-		}
+    /**
+     * Returns if this property is supposed to be stored as Mongo style DBRef. Is true only when the property is a
+     * reference and value DBRef is true
+     * 
+     * @return
+     */
+    public boolean isDBRef()
+    {
+        return ReferenceType.DBREF == referenceType;
+    }
 
-		Builder setGenericType(Class<?> genericType) {
-			this.genericType = genericType;
-			return this;
-		}
+    /**
+     * Returns if the given property is representing an Entity reference, which is lazily loaded
+     *
+     * @return if this property is loaded on first access to it
+     */
+    public boolean isLazyLoaded()
+    {
+        return ReferenceLoadingTime.LAZY == referenceLoadingTime;
+    }
 
-		Builder hasConstraints(boolean constraints) {
-			this.constraints = constraints;
-			return this;
-		}
+    /**
+     * gets the computer for this property
+     *
+     * @return computer of this property if the property is computer, null otherwise
+     */
+    public Computer getComputer()
+    {
+        return computer;
+    }
 
-		Builder setValidator(Validator validator) {
-			this.validator = validator;
-			return this;
-		}
+    /**
+     * returns if the property is a collection, meaning the return type needs to be enriched with the actual class the
+     * return type contains.
+     *
+     * @return true if the type is a collection, false otherwise
+     */
+    public boolean isCollection()
+    {
+        return genericType != null;
+    }
 
-		Builder setDeclaringClass(Class<? extends Entity> declaringClass) {
-			this.declaringClass = declaringClass;
-			return this;
-		}
+    /**
+     * returns the contained type if {@link #isCollection()} is returning true. Otherwise null is returned
+     *
+     * @return
+     */
+    public Class<?> getGenericType()
+    {
+        return genericType;
+    }
 
-		Builder setComputer(Computer computer) {
-			this.computer = computer;
-			return this;
-		}
+    /**
+     * returns if the property is of primitive type or not.
+     * 
+     * @return true if the original type is primitive otherwise false
+     */
+    public boolean isPrimitiveType()
+    {
+        return isPrimitiveType;
+    }
 
-		Builder setReferenceLoadingTime(ReferenceLoadingTime reference) {
-			this.referenceLoadingTime = reference;
-			return this;
-		}
+    /**
+     * validates the given value if it matches the defined constraints for this property. Throws
+     * ConstraintViolationException if the value doesn't comply with the declared Constraints
+     *
+     * @param value property value to check for validity
+     */
+    public void validate( Object value )
+    {
+        if ( value != null )
+        {
+            if ( !type.isAssignableFrom( Primitives.wrap( value.getClass() ) ) )
+            {
+                throw new ClassCastException( format( "Can't cast from '%s' to '%s'",
+                    value.getClass().getCanonicalName(), type.getCanonicalName() ) );
+            }
+        }
+        if ( hasConstraints() )
+        {
+            Set<? extends ConstraintViolation<? extends Entity>> violations =
+                validator.validateValue( declaringClass, pojoName, value, Entity.Special.class );
+            if ( !violations.isEmpty() )
+            {
+                StringBuilder msg = new StringBuilder().append( "Found errors while validating property " )
+                    .append( declaringClass.getCanonicalName() ).append( "#" ).append( pojoName ).append( ":\n" );
+                for ( ConstraintViolation violation : violations )
+                {
+                    msg.append( "*" ).append( violation.getMessage() ).append( "\n" );
+                }
+                throw new ConstraintViolationException( msg.toString(), violations );
+            }
+        }
+    }
 
-		Builder setReferenceType(ReferenceType type) {
-			this.referenceType = type;
-			return this;
-		}
+    /**
+     * Builder to create a new {@link ParameterProperty}
+     *
+     * @author philnate
+     */
+    static class Builder
+    {
+        private static final Logger LOG = LoggerFactory.getLogger( Builder.class );
 
-		Builder setFinal(boolean finl) {
-			this.finl = finl;
-			return this;
-		}
+        private String mongoName;
 
-		ParameterProperty build() {
-			return new ParameterProperty(this);
-		}
+        private String pojoName;
 
-		/**
-		 * creates a new {@link ParameterProperty} based on the attributes from the given get Method
-		 *
-		 * @param m
-		 *            to create ParameterProperty from
-		 * @return ParameterProperty containing the information from the given method
-		 */
-		@SuppressWarnings("unchecked")
-		static ParameterProperty buildFrom(Method m, Validator validator) {
-			Class<? extends Entity> declaringClass = (Class<? extends Entity>) m.getDeclaringClass();
-			BeanDescriptor bdesc = validator.getConstraintsForClass(declaringClass);
-			Computer computer = null;
-			Computed c = m.getAnnotation(Computed.class);
-			Class<?> returnType = m.getReturnType();
-			Builder builder = new Builder();
-			if (c != null) {
-				try {
-					computer = c.value().newInstance();
-				} catch (Exception e) {
-					throw Throwables.propagate(e);
-				}
-			} else {
-				// only if this is not a computed property we have a setter for it
-				builder.setFluent(MethodType.SETTER, isAssignableFromClass(getSetterFromGetter(m)));
-			}
-			if (Collection.class.isAssignableFrom(m.getReturnType())) {
-				try {
-					// only if we have an adder enabled Property type check for this
-					builder.setFluent(MethodType.ADDER, isAssignableFromClass(getAdderFromGetter(m)));
-				} catch (IllegalArgumentException e) {
-					LOG.info("No Adder method declared for {} in Entity {}", m.getName(),
-							m.getDeclaringClass().getName());
-				}
-			}
-			// check if something marks this property as final (no modification after initial save
-			boolean finl = m.isAnnotationPresent(Final.class);
-			if (!finl) {
-				for (Annotation a : Lists.newArrayList(m.getAnnotations())) {
-					if (a.annotationType().isAnnotationPresent(Final.class)) {
-						finl = true;
-						break;
-					}
-				}
-			}
-			if (finl) {
-				// check that final is only on primitives
-				checkArgument(ClassUtils.isPrimitiveOrWrapper(returnType) || String.class.equals(returnType)
-						|| ObjectId.class.equals(returnType) || DateTime.class.equals(returnType),
-						"Final is only supported for primitive types, jodatime DateTime and bson ObjectId but was %s",
-						returnType);
-			}
+        private Class<?> type;
 
-			String mongoName = EntityUtils.getMongoNameFromMethod(m);
-			checkArgument(!mongoName.startsWith("_") || Entity.ID.equals(mongoName),
-					"Property can't start with '_' as this is reserved, but got '%s'", mongoName);
+        private Class<?> genericType;
 
-			builder.setType(/** dont wrap primitives */
-			returnType).setPojoName(EntityUtils.getPojoNameFromMethod(m)).setMongoName(mongoName).hasConstraints(
-					bdesc.getConstraintsForProperty(EntityUtils.getPojoNameFromMethod(m)) != null).setValidator(
-					validator).setDeclaringClass(declaringClass).setTransient(m.isAnnotationPresent(Transient.class)).setComputer(
-					computer).setFinal(finl);
-			if (Collection.class.isAssignableFrom(m.getReturnType())) {
-				checkArgument(m.getGenericReturnType().getClass() != Class.class, "Collections need to be generic");
-				Type type = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments()[0];
-				if (TypeVariable.class.isAssignableFrom(type.getClass())) {
-					// right now I dont know how to provide actual type at runtime...
-					builder.setGenericType(Entity.class);
-				} else {
-					builder.setGenericType((Class) type);
-				}
-			}
-			if (m.isAnnotationPresent(Reference.class)) {
-				checkArgument(EntityUtils.isValidReferenceClass(m),
-						"Reference annotation can only be used for Entity types but was {}", m.getReturnType());
-				builder.setReferenceLoadingTime(m.getAnnotation(Reference.class).lazy() ? ReferenceLoadingTime.LAZY
-						: ReferenceLoadingTime.IMMEDIATE);
-				builder.setReferenceType(m.getAnnotation(Reference.class).asDBRef() ? ReferenceType.DBREF
-						: ReferenceType.SIMPLE);
-			} else {
-				builder.setReferenceType(ReferenceType.NONE);
-			}
-			return builder.build();
-		}
-	}
+        private boolean constraints = false;
 
-	/**
-	 * Enumeration about Reference LoadingTimes. This is information is needed for Referenced Entities loading
-	 */
-	private static enum ReferenceLoadingTime {
-		IMMEDIATE, // value is reference but immediately loaded
-		LAZY// value is lazy loaded reference
-	}
+        private Validator validator;
 
-	/**
-	 * type of references the framework can handle
-	 */
-	public static enum ReferenceType {
-		NONE, // no reference
-		SIMPLE, // only the id is stored
-		DBREF, // Mongo DBRef style
-	}
+        private Class<? extends Entity> declaringClass;
 
-	/**
-	 * Information about the method being described
-	 */
-	static enum MethodType {
-		ADDER,
-		SETTER
-	}
+        private boolean tranzient;
+
+        private boolean finl;
+
+        private Computer computer;
+
+        private ReferenceLoadingTime referenceLoadingTime;
+
+        private ReferenceType referenceType = ReferenceType.NONE;
+
+        private Map<MethodType, Boolean> typeReturnMap = Maps.newHashMap();
+
+        Builder setTransient( boolean tranzient )
+        {
+            this.tranzient = tranzient;
+            return this;
+        }
+
+        Builder setMongoName( String mongoName )
+        {
+            this.mongoName = mongoName;
+            return this;
+        }
+
+        Builder setPojoName( String pojoName )
+        {
+            this.pojoName = pojoName;
+            return this;
+        }
+
+        Builder setFluent( MethodType method, boolean fluent )
+        {
+            typeReturnMap.put( method, fluent );
+            return this;
+        }
+
+        Builder setType( Class<?> type )
+        {
+            this.type = type;
+            return this;
+        }
+
+        Builder setGenericType( Class<?> genericType )
+        {
+            this.genericType = genericType;
+            return this;
+        }
+
+        Builder hasConstraints( boolean constraints )
+        {
+            this.constraints = constraints;
+            return this;
+        }
+
+        Builder setValidator( Validator validator )
+        {
+            this.validator = validator;
+            return this;
+        }
+
+        Builder setDeclaringClass( Class<? extends Entity> declaringClass )
+        {
+            this.declaringClass = declaringClass;
+            return this;
+        }
+
+        Builder setComputer( Computer computer )
+        {
+            this.computer = computer;
+            return this;
+        }
+
+        Builder setReferenceLoadingTime( ReferenceLoadingTime reference )
+        {
+            this.referenceLoadingTime = reference;
+            return this;
+        }
+
+        Builder setReferenceType( ReferenceType type )
+        {
+            this.referenceType = type;
+            return this;
+        }
+
+        Builder setFinal( boolean finl )
+        {
+            this.finl = finl;
+            return this;
+        }
+
+        ParameterProperty build()
+        {
+            return new ParameterProperty( this );
+        }
+
+        /**
+         * creates a new {@link ParameterProperty} based on the attributes from the given get Method
+         *
+         * @param m to create ParameterProperty from
+         * @return ParameterProperty containing the information from the given method
+         */
+        @SuppressWarnings( "unchecked" )
+        static ParameterProperty buildFrom( Method m, Validator validator )
+        {
+            Class<? extends Entity> declaringClass = (Class<? extends Entity>) m.getDeclaringClass();
+            BeanDescriptor bdesc = validator.getConstraintsForClass( declaringClass );
+            Computer computer = null;
+            Computed c = m.getAnnotation( Computed.class );
+            Class<?> returnType = m.getReturnType();
+            Builder builder = new Builder();
+            if ( c != null )
+            {
+                try
+                {
+                    computer = c.value().newInstance();
+                }
+                catch ( Exception e )
+                {
+                    throw Throwables.propagate( e );
+                }
+            }
+            else
+            {
+                // only if this is not a computed property we have a setter for it
+                builder.setFluent( MethodType.SETTER, isAssignableFromClass( getSetterFromGetter( m ) ) );
+            }
+            if ( Collection.class.isAssignableFrom( m.getReturnType() ) )
+            {
+                try
+                {
+                    // only if we have an adder enabled Property type check for this
+                    builder.setFluent( MethodType.ADDER, isAssignableFromClass( getAdderFromGetter( m ) ) );
+                }
+                catch ( IllegalArgumentException e )
+                {
+                    LOG.info( "No Adder method declared for {} in Entity {}", m.getName(),
+                        m.getDeclaringClass().getName() );
+                }
+            }
+            // check if something marks this property as final (no modification after initial save
+            boolean finl = m.isAnnotationPresent( Final.class );
+            if ( !finl )
+            {
+                for ( Annotation a : Lists.newArrayList( m.getAnnotations() ) )
+                {
+                    if ( a.annotationType().isAnnotationPresent( Final.class ) )
+                    {
+                        finl = true;
+                        break;
+                    }
+                }
+            }
+            if ( finl )
+            {
+                // check that final is only on primitives
+                checkArgument(
+                    ClassUtils.isPrimitiveOrWrapper( returnType ) || String.class.equals( returnType )
+                        || ObjectId.class.equals( returnType ) || DateTime.class.equals( returnType ),
+                    "Final is only supported for primitive types, jodatime DateTime and bson ObjectId but was %s",
+                    returnType );
+            }
+
+            String mongoName = EntityUtils.getMongoNameFromMethod( m );
+            checkArgument( !mongoName.startsWith( "_" ) || Entity.ID.equals( mongoName ),
+                "Property can't start with '_' as this is reserved, but got '%s'", mongoName );
+
+            builder
+                .setType( /** dont wrap primitives */
+                    returnType )
+                .setPojoName( EntityUtils.getPojoNameFromMethod( m ) ).setMongoName( mongoName )
+                .hasConstraints( bdesc.getConstraintsForProperty( EntityUtils.getPojoNameFromMethod( m ) ) != null )
+                .setValidator( validator ).setDeclaringClass( declaringClass )
+                .setTransient( m.isAnnotationPresent( Transient.class ) ).setComputer( computer ).setFinal( finl );
+            if ( Collection.class.isAssignableFrom( m.getReturnType() ) )
+            {
+                checkArgument( m.getGenericReturnType().getClass() != Class.class, "Collections need to be generic" );
+                Type type = ( (ParameterizedType) m.getGenericReturnType() ).getActualTypeArguments()[0];
+                if ( TypeVariable.class.isAssignableFrom( type.getClass() ) )
+                {
+                    // right now I dont know how to provide actual type at runtime...
+                    builder.setGenericType( Entity.class );
+                }
+                else
+                {
+                    builder.setGenericType( (Class) type );
+                }
+            }
+            if ( m.isAnnotationPresent( Reference.class ) )
+            {
+                checkArgument( EntityUtils.isValidReferenceClass( m ),
+                    "Reference annotation can only be used for Entity types but was {}", m.getReturnType() );
+                builder.setReferenceLoadingTime( m.getAnnotation( Reference.class ).lazy() ? ReferenceLoadingTime.LAZY
+                                : ReferenceLoadingTime.IMMEDIATE );
+                builder.setReferenceType(
+                    m.getAnnotation( Reference.class ).asDBRef() ? ReferenceType.DBREF : ReferenceType.SIMPLE );
+            }
+            else
+            {
+                builder.setReferenceType( ReferenceType.NONE );
+            }
+            return builder.build();
+        }
+    }
+
+    /**
+     * Enumeration about Reference LoadingTimes. This is information is needed for Referenced Entities loading
+     */
+    private static enum ReferenceLoadingTime
+    {
+        IMMEDIATE, // value is reference but immediately loaded
+        LAZY// value is lazy loaded reference
+    }
+
+    /**
+     * type of references the framework can handle
+     */
+    public static enum ReferenceType
+    {
+        NONE, // no reference
+        SIMPLE, // only the id is stored
+        DBREF, // Mongo DBRef style
+    }
+
+    /**
+     * Information about the method being described
+     */
+    static enum MethodType
+    {
+        ADDER, SETTER
+    }
 }

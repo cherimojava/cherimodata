@@ -1,17 +1,10 @@
 /**
- * Copyright (C) 2013 cherimojava (http://github.com/cherimojava/cherimodata)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2013 cherimojava (http://github.com/cherimojava/cherimodata) Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language governing permissions and limitations
+ * under the License.
  */
 package com.github.cherimojava.data.mongo.io;
 
@@ -55,83 +48,98 @@ import com.mongodb.client.MongoDatabase;
  * @author philnate
  * @since 1.0.0
  */
-public class EntityCodecProvider implements CodecProvider {
-	private BsonTypeClassMap mapping;
-	private final Map<Class<?>, Codec<?>> codecs = new HashMap<>();
-	private final MongoDatabase db;
+public class EntityCodecProvider
+    implements CodecProvider
+{
+    private BsonTypeClassMap mapping;
 
-	/**
-	 * Constructs a new instance with default {@link org.bson.codecs.BsonTypeClassMap}
-	 */
-	public EntityCodecProvider(MongoDatabase db, Class<? extends Entity> clazz) {
-		mapping = new EntityTypeMap(clazz);
-		this.db = db;
-		addCodecs();
-	}
+    private final Map<Class<?>, Codec<?>> codecs = new HashMap<>();
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> Codec<T> get(Class<T> clazz, final CodecRegistry registry) {
-		if (clazz.isPrimitive()) {
-			clazz = Primitives.wrap(clazz);
-		}
-		if (codecs.containsKey(clazz)) {
-			return (Codec<T>) codecs.get(clazz);
-		}
+    private final MongoDatabase db;
 
-		if (Entity.class.isAssignableFrom(clazz)) {
-			// there are two possible class types we can get. Some are the real interfaces and the other classes are
-			// proxy based
-			Class<?> eclass = Proxy.isProxyClass(clazz) ? clazz.getInterfaces()[0] : clazz;
-			return (Codec<T>) new EntityCodec(db, EntityFactory.getProperties((Class<? extends Entity>) eclass));
-		}
+    /**
+     * Constructs a new instance with default {@link org.bson.codecs.BsonTypeClassMap}
+     */
+    public EntityCodecProvider( MongoDatabase db, Class<? extends Entity> clazz )
+    {
+        mapping = new EntityTypeMap( clazz );
+        this.db = db;
+        addCodecs();
+    }
 
-		if (Document.class.isAssignableFrom(clazz)) {
-			return (Codec<T>) new DocumentCodec(registry, mapping);
-		}
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T> Codec<T> get( Class<T> clazz, final CodecRegistry registry )
+    {
+        if ( clazz.isPrimitive() )
+        {
+            clazz = Primitives.wrap( clazz );
+        }
+        if ( codecs.containsKey( clazz ) )
+        {
+            return (Codec<T>) codecs.get( clazz );
+        }
 
-		if (List.class.isAssignableFrom(clazz)) {
-			return (Codec<T>) new ListCodec(registry, mapping);
-		}
+        if ( Entity.class.isAssignableFrom( clazz ) )
+        {
+            // there are two possible class types we can get. Some are the real interfaces and the other classes are
+            // proxy based
+            Class<?> eclass = Proxy.isProxyClass( clazz ) ? clazz.getInterfaces()[0] : clazz;
+            return (Codec<T>) new EntityCodec( db, EntityFactory.getProperties( (Class<? extends Entity>) eclass ) );
+        }
 
-		if (clazz.isArray()) {
-			return (Codec<T>) new ArrayCodec(registry, mapping);
-		}
+        if ( Document.class.isAssignableFrom( clazz ) )
+        {
+            return (Codec<T>) new DocumentCodec( registry, mapping );
+        }
 
-		return null;
-	}
+        if ( List.class.isAssignableFrom( clazz ) )
+        {
+            return (Codec<T>) new ListCodec( registry, mapping );
+        }
 
-	private void addCodecs() {
-		addCodec(new BinaryCodec());
-		addCodec(new BooleanCodec());
-		addCodec(new DateCodec());
-		addCodec(new DoubleCodec());
-		addCodec(new IntegerCodec());
-		addCodec(new LongCodec());
-		addCodec(new MinKeyCodec());
-		addCodec(new MaxKeyCodec());
-		addCodec(new CodeCodec());
-		addCodec(new ObjectIdCodec());
-		addCodec(new StringCodec());
-		addCodec(new SymbolCodec());
-		addCodec(new DateTimeCodec());
-		addCodec(new AtomicIntegerCodec());
-		addCodec(new AtomicBooleanCodec());
-		addCodec(new AtomicLongCodec());
-	}
+        if ( clazz.isArray() )
+        {
+            return (Codec<T>) new ArrayCodec( registry, mapping );
+        }
 
-	private <T> void addCodec(final Codec<T> codec) {
-		codecs.put(codec.getEncoderClass(), codec);
-	}
+        return null;
+    }
 
-	/**
-	 * creates a RootCodecRegistry with our EntityCodecProvider as sole CodecProvider
-	 * 
-	 * @param db
-	 * @param clazz
-	 * @return
-	 */
-	public static CodecRegistry createCodecRegistry(MongoDatabase db, Class<? extends Entity> clazz) {
-		return CodecRegistries.fromProviders(new EntityCodecProvider(db, clazz));
-	}
+    private void addCodecs()
+    {
+        addCodec( new BinaryCodec() );
+        addCodec( new BooleanCodec() );
+        addCodec( new DateCodec() );
+        addCodec( new DoubleCodec() );
+        addCodec( new IntegerCodec() );
+        addCodec( new LongCodec() );
+        addCodec( new MinKeyCodec() );
+        addCodec( new MaxKeyCodec() );
+        addCodec( new CodeCodec() );
+        addCodec( new ObjectIdCodec() );
+        addCodec( new StringCodec() );
+        addCodec( new SymbolCodec() );
+        addCodec( new DateTimeCodec() );
+        addCodec( new AtomicIntegerCodec() );
+        addCodec( new AtomicBooleanCodec() );
+        addCodec( new AtomicLongCodec() );
+    }
+
+    private <T> void addCodec( final Codec<T> codec )
+    {
+        codecs.put( codec.getEncoderClass(), codec );
+    }
+
+    /**
+     * creates a RootCodecRegistry with our EntityCodecProvider as sole CodecProvider
+     * 
+     * @param db
+     * @param clazz
+     * @return
+     */
+    public static CodecRegistry createCodecRegistry( MongoDatabase db, Class<? extends Entity> clazz )
+    {
+        return CodecRegistries.fromProviders( new EntityCodecProvider( db, clazz ) );
+    }
 }

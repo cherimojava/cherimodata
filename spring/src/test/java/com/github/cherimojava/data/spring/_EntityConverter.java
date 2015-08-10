@@ -1,16 +1,9 @@
 /**
- * Copyright (C) 2013 cherimojava (http://github.com/cherimojava/cherimodata/spring)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * Copyright (C) 2013 cherimojava (http://github.com/cherimojava/cherimodata/spring) Licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in
+ * writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.github.cherimojava.data.spring;
@@ -55,122 +48,142 @@ import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-public class _EntityConverter extends TestBase {
-	@Mock
-	EntityFactory mock;
+public class _EntityConverter
+    extends TestBase
+{
+    @Mock
+    EntityFactory mock;
 
-	@Mock
-	MongoCollection coll;
+    @Mock
+    MongoCollection coll;
 
-	@Mock
-	MongoDatabase db;
+    @Mock
+    MongoDatabase db;
 
-	@Before
-	public void setupMock() {
-		MockitoAnnotations.initMocks(this);
-		when(db.getCollection(anyString())).thenReturn(coll);
-		when(coll.withDocumentClass(any(Class.class))).thenReturn(coll);
-		when(coll.withCodecRegistry(any(CodecRegistry.class))).thenReturn(coll);
-	}
+    @Before
+    public void setupMock()
+    {
+        MockitoAnnotations.initMocks( this );
+        when( db.getCollection( anyString() ) ).thenReturn( coll );
+        when( coll.withDocumentClass( any( Class.class ) ) ).thenReturn( coll );
+        when( coll.withCodecRegistry( any( CodecRegistry.class ) ) ).thenReturn( coll );
+    }
 
-	@Test
-	public void supportsTestClass() {
-		EntityConverter conv = new EntityConverter(mock);
-		assertTrue(conv.supports(Entity.class));
-		assertTrue(conv.supports(Level1.class));
-		assertTrue(conv.supports(Level2.class));
-	}
+    @Test
+    public void supportsTestClass()
+    {
+        EntityConverter conv = new EntityConverter( mock );
+        assertTrue( conv.supports( Entity.class ) );
+        assertTrue( conv.supports( Level1.class ) );
+        assertTrue( conv.supports( Level2.class ) );
+    }
 
-	@Test
-	public void supportsTestProxy() {
-		EntityConverter conv = new EntityConverter(mock);
-		assertTrue(conv.supports(EntityFactory.instantiate(Entity.class).getClass()));
-		assertTrue(conv.supports(EntityFactory.instantiate(Level1.class).getClass()));
-		assertTrue(conv.supports(EntityFactory.instantiate(Level2.class).getClass()));
-	}
+    @Test
+    public void supportsTestProxy()
+    {
+        EntityConverter conv = new EntityConverter( mock );
+        assertTrue( conv.supports( EntityFactory.instantiate( Entity.class ).getClass() ) );
+        assertTrue( conv.supports( EntityFactory.instantiate( Level1.class ).getClass() ) );
+        assertTrue( conv.supports( EntityFactory.instantiate( Level2.class ).getClass() ) );
+    }
 
-	@Test
-	public void writeInternal() throws IOException {
-		HttpOutputMessage hom = mock(HttpOutputMessage.class);
-		OutputStream os = new ByteArrayOutputStream();
-		when(hom.getBody()).thenReturn(os);
-		EntityConverter conv = new EntityConverter(mock);
-		SimpleEntity se = EntityFactory.instantiate(SimpleEntity.class);
-		se.setString("SomeString");
-		conv.writeInternal(se, hom);
-		assertEquals("{ \"string\" : \"SomeString\" }", os.toString());
-	}
+    @Test
+    public void writeInternal()
+        throws IOException
+    {
+        HttpOutputMessage hom = mock( HttpOutputMessage.class );
+        OutputStream os = new ByteArrayOutputStream();
+        when( hom.getBody() ).thenReturn( os );
+        EntityConverter conv = new EntityConverter( mock );
+        SimpleEntity se = EntityFactory.instantiate( SimpleEntity.class );
+        se.setString( "SomeString" );
+        conv.writeInternal( se, hom );
+        assertEquals( "{ \"string\" : \"SomeString\" }", os.toString() );
+    }
 
-	@Test
-	public void readInternal() throws IOException {
-		HttpInputMessage him = mock(HttpInputMessage.class);
-		EntityFactory factory = new EntityFactory(db);
-		InputStream is = new ByteArrayInputStream("{ \"string\" : \"SomeString\" }".getBytes());
-		when(him.getBody()).thenReturn(is);
-		EntityConverter conv = new EntityConverter(factory);
-		SimpleEntity se = (SimpleEntity) conv.readInternal(SimpleEntity.class, him);
-		assertEquals("SomeString", se.getString());
-	}
+    @Test
+    public void readInternal()
+        throws IOException
+    {
+        HttpInputMessage him = mock( HttpInputMessage.class );
+        EntityFactory factory = new EntityFactory( db );
+        InputStream is = new ByteArrayInputStream( "{ \"string\" : \"SomeString\" }".getBytes() );
+        when( him.getBody() ).thenReturn( is );
+        EntityConverter conv = new EntityConverter( factory );
+        SimpleEntity se = (SimpleEntity) conv.readInternal( SimpleEntity.class, him );
+        assertEquals( "SomeString", se.getString() );
+    }
 
-	@Test
-	public void integrationSingleEntity() throws Exception {
-		EntityFactory factory = new EntityFactory(db);
-		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
-				new EntityConverter(factory)).build();
-		assertEquals(
-				"{ \"string\" : \"PONG\" }",
-				mvc.perform(
-						post("/t").contentType(MediaType.APPLICATION_JSON).content("{\"string\":\"ping\"}").accept(
-								MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-	}
+    @Test
+    public void integrationSingleEntity()
+        throws Exception
+    {
+        EntityFactory factory = new EntityFactory( db );
+        MockMvc mvc = MockMvcBuilders.standaloneSetup( new EntityController() )
+            .setMessageConverters( new EntityConverter( factory ) ).build();
+        assertEquals( "{ \"string\" : \"PONG\" }",
+            mvc.perform( post( "/t" ).contentType( MediaType.APPLICATION_JSON ).content( "{\"string\":\"ping\"}" )
+                .accept( MediaType.APPLICATION_JSON ) ).andExpect( status().isOk() ).andReturn().getResponse()
+            .getContentAsString() );
+    }
 
-	@Test
-	public void integrationEntityList() throws Exception {
-		EntityFactory factory = new EntityFactory(db);
-		MockMvc mvc = MockMvcBuilders.standaloneSetup(new EntityController()).setMessageConverters(
-				new EntityConverter(factory)).build();
-		assertEquals(
-				"[{ \"string\" : \"PING\" }, { \"string\" : \"PONG\" }]",
-				mvc.perform(
-						post("/l").contentType(MediaType.APPLICATION_JSON).content(
-								"[{\"string\":\"ping\"},{\"string\":\"pong\"}]").accept(MediaType.APPLICATION_JSON)).andExpect(
-						status().isOk()).andReturn().getResponse().getContentAsString());
-	}
+    @Test
+    public void integrationEntityList()
+        throws Exception
+    {
+        EntityFactory factory = new EntityFactory( db );
+        MockMvc mvc = MockMvcBuilders.standaloneSetup( new EntityController() )
+            .setMessageConverters( new EntityConverter( factory ) ).build();
+        assertEquals( "[{ \"string\" : \"PING\" }, { \"string\" : \"PONG\" }]",
+            mvc.perform( post( "/l" ).contentType( MediaType.APPLICATION_JSON )
+                .content( "[{\"string\":\"ping\"},{\"string\":\"pong\"}]" ).accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isOk() ).andReturn().getResponse().getContentAsString() );
+    }
 
-	@Test
-	public void testOnlyJson() {
-		assertFalse(new EntityConverter(null).canRead(Type.class, Class.class, MediaType.APPLICATION_ATOM_XML));
-	}
+    @Test
+    public void testOnlyJson()
+    {
+        assertFalse( new EntityConverter( null ).canRead( Type.class, Class.class, MediaType.APPLICATION_ATOM_XML ) );
+    }
 
-	private static interface Level1 extends Entity {
+    private static interface Level1
+        extends Entity
+    {
 
-	}
+    }
 
-	private static interface Level2 extends Level1 {
-	}
+    private static interface Level2
+        extends Level1
+    {
+    }
 
-	private static interface SimpleEntity extends Entity {
-		public String getString();
+    private static interface SimpleEntity
+        extends Entity
+    {
+        public String getString();
 
-		public SimpleEntity setString(String s);
-	}
+        public SimpleEntity setString( String s );
+    }
 
-	@Controller
-	private class EntityController {
+    @Controller
+    private class EntityController
+    {
 
-		@RequestMapping(value = "/t", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-		public @ResponseBody SimpleEntity post(@RequestBody SimpleEntity setting) {
-			assertEquals("ping", setting.getString());
-			return EntityFactory.instantiate(SimpleEntity.class).setString("PONG");
-		}
+        @RequestMapping( value = "/t", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+        public @ResponseBody SimpleEntity post( @RequestBody SimpleEntity setting )
+        {
+            assertEquals( "ping", setting.getString() );
+            return EntityFactory.instantiate( SimpleEntity.class ).setString( "PONG" );
+        }
 
-		@RequestMapping(value = "l", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-		public @ResponseBody List<SimpleEntity> postList(@RequestBody List<SimpleEntity> settings) {
-			assertEquals(2, settings.size());
-			assertEquals("ping", settings.get(0).getString());
-			assertEquals("pong", settings.get(1).getString());
-			return Lists.newArrayList(EntityFactory.instantiate(SimpleEntity.class).setString("PING"),
-					EntityFactory.instantiate(SimpleEntity.class).setString("PONG"));
-		}
-	}
+        @RequestMapping( value = "l", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+        public @ResponseBody List<SimpleEntity> postList( @RequestBody List<SimpleEntity> settings )
+        {
+            assertEquals( 2, settings.size() );
+            assertEquals( "ping", settings.get( 0 ).getString() );
+            assertEquals( "pong", settings.get( 1 ).getString() );
+            return Lists.newArrayList( EntityFactory.instantiate( SimpleEntity.class ).setString( "PING" ),
+                EntityFactory.instantiate( SimpleEntity.class ).setString( "PONG" ) );
+        }
+    }
 }
