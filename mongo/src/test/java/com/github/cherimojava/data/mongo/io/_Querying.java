@@ -269,6 +269,21 @@ public class _Querying
         }
     }
 
+    @Test
+    public void enumSearching()
+    {
+        EnumEntity ee = factory.create( EnumEntity.class );
+        ee.setEnum( TestEnum.A );
+        ee.save();
+        factory.create( EnumEntity.class ).setEnum( TestEnum.C ).save();
+
+        QueryStart<EnumEntity> q = factory.query( EnumEntity.class );
+        assertEquals( 1, q.where( q.e().getEnum() ).is( TestEnum.A ).count() );
+
+        q = factory.query( EnumEntity.class );
+        assertEquals( 2, q.where( q.e().getEnum() ).in( TestEnum.A, TestEnum.C ).count() );
+    }
+
     private void fillSortingList()
     {
         factory.getCollection( CommonInterfaces.PrimitiveEntity.class ).drop();
@@ -305,6 +320,17 @@ public class _Querying
 
         public Inner setOther( String other );
     }
-    // q.and(query.e().getAccess()).is(Access.PUBLIC)
 
+    private static interface EnumEntity
+        extends Entity<EnumEntity>
+    {
+        public TestEnum getEnum();
+
+        public EnumEntity setEnum( TestEnum e );
+    }
+
+    private static enum TestEnum
+    {
+        A, B, C
+    }
 }

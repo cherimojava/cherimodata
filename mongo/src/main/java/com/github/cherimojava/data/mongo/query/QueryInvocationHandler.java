@@ -281,7 +281,7 @@ public class QueryInvocationHandler
             switch ( method.getName() )
             {
                 case "is":
-                    filters.add( Filters.eq( property, args[0] ) );
+                    filters.add( Filters.eq( property, enumToString( args[0] ) ) );
                     break;
                 case "between":
                     filters.add( Filters.gte( property, args[0] ) );
@@ -300,10 +300,53 @@ public class QueryInvocationHandler
                     filters.add( Filters.gte( property, args[0] ) );
                     break;
                 case "in":
-                    filters.add( Filters.in( property, (Object[]) args[0] ) );
+                    filters.add( Filters.in( property, enumsToString( (Object[]) args[0] ) ) );
                     break;
             }
             return parent.proxy;
+        }
+
+        /**
+         * converts an enum into its String representation and keeps all other objects as is.
+         * 
+         * @param obj pontential enum to convert into it's String representation
+         * @return unmodified obj if the obj is no enum, or the String representation of the enum otherwise
+         */
+        private Object enumToString( Object obj )
+        {
+            if ( obj != null && obj.getClass().isEnum() )
+            {
+                return obj.toString();
+            }
+            else
+            {
+                return obj;
+            }
+        }
+
+        /**
+         * converts an enum array into their String representation and keeps all other objects as is.
+         * 
+         * @param objs potential enum array to convert into it's String representation
+         * @return unmodified obj array if the array is no enum array, or the String representation of the enums
+         *         otherwise
+         */
+        private Object[] enumsToString( Object... objs )
+        {
+            if ( objs != null && objs.getClass().getComponentType().isEnum() )
+            {
+                String[] converted = new String[objs.length];
+                int i = 0;
+                for ( Object o : objs )
+                {
+                    converted[i++] = o.toString();
+                }
+                return converted;
+            }
+            else
+            {
+                return objs;
+            }
         }
     }
 }
