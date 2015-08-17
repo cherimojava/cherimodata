@@ -8,6 +8,7 @@
  */
 package com.github.cherimojava.data.mongo.query;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.lang.reflect.InvocationHandler;
@@ -18,6 +19,7 @@ import java.util.List;
 import org.bson.conversions.Bson;
 
 import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
 import com.github.cherimojava.data.mongo.entity.ParameterProperty;
 import com.google.common.base.Supplier;
@@ -204,11 +206,57 @@ public class QueryInvocationHandler
         public Object invoke( Object proxy, Method method, Object[] args )
             throws Throwable
         {
-            // remember which property was invoked so we can build the query condition based on it
-            parent.addCurQueriedProperty( parent.getProperty( method ) );
-            return null;
+            if ( Entity.class.isAssignableFrom( method.getReturnType() ) )
+            {
+                checkArgument( !getProperty( method ).isDBRef(),
+                    "nested search is currently not working on DBRef-References." );
+                // the remembering is done nested, first remember the parent element
+                parent.curQueriedProperty.add( getProperty( method ) );
+                return Proxy.newProxyInstance( this.getClass().getClassLoader(), new Class[] { method.getReturnType() },
+                    new InnerEntityQueryIdOnlyInvocationHandler(
+                        EntityFactory.getProperties( (Class<? extends Entity>) method.getReturnType() ) ) );
+            }
+            else
+            {
+                // remember which property was invoked so we can build the query condition based on it
+                parent.addCurQueriedProperty( parent.getProperty( method ) );
+                return null;
+            }
+        }
+
+        /**
+         * InvocationHandler ensuring that only on Id fields a query can be performed
+         */
+        private class InnerEntityQueryIdOnlyInvocationHandler
+            implements InvocationHandler
+        {
+
+            private final EntityProperties properties;
+
+            public InnerEntityQueryIdOnlyInvocationHandler( EntityProperties properties )
+            {
+                this.properties = properties;
+            }
+
+            @Override
+            public Object invoke( Object proxy, Method method, Object[] args )
+                throws Throwable
+            {
+                ParameterProperty curProperty = properties.getProperty( method );
+                if ( properties.getIdProperty() == curProperty )
+                {
+                    // We actually don't need to do anything special as we're not explicitly saving the id field
+                    return null;
+                }
+                else
+                {
+                    throw new IllegalArgumentException(
+                        "Only can perform nested query on id field, but was " + curProperty );
+                }
+            }
         }
     }
+
 
     /**
      * InvocationHandler creating the query condition

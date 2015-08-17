@@ -25,6 +25,9 @@ import org.junit.Test;
 
 import com.github.cherimojava.data.mongo.CommonInterfaces;
 import com.github.cherimojava.data.mongo.MongoBase;
+import com.github.cherimojava.data.mongo.entity.Entity;
+import com.github.cherimojava.data.mongo.entity.annotation.Id;
+import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.query.OngoingQuery;
 import com.github.cherimojava.data.mongo.query.QueryStart;
 import com.google.common.collect.Lists;
@@ -61,11 +64,11 @@ public class _Querying
     @Test
     public void eqInt()
     {
-        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
+        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query(CommonInterfaces.PrimitiveEntity.class);
         MongoCursor<CommonInterfaces.PrimitiveEntity> result = query.where( query.e().getInteger() ).is( 1 ).iterator();
         assertTrue( result.hasNext() );
         assertEquals( result.next(), entityList.get( 0 ) );
-        assertFalse( result.hasNext() );
+        assertFalse(result.hasNext());
     }
 
     @Test
@@ -73,8 +76,8 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getString() ).is( "two" ).iterator();
-        assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 1 ) ) );
+            query.where( query.e().getString() ).is("two").iterator();
+        assertThat(Lists.newArrayList(result), containsInAnyOrder(entityList.get(1)));
     }
 
     @Test
@@ -82,7 +85,7 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getInteger() ).between( 1, 2 ).iterator();
+            query.where( query.e().getInteger() ).between(1, 2).iterator();
         assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 0 ), entityList.get( 1 ) ) );
     }
 
@@ -91,7 +94,7 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getInteger() ).lessThan( 2 ).iterator();
+            query.where( query.e().getInteger() ).lessThan(2).iterator();
         assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 0 ) ) );
     }
 
@@ -100,7 +103,7 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getInteger() ).lessThanEqual( 2 ).iterator();
+            query.where( query.e().getInteger() ).lessThanEqual(2).iterator();
         assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 0 ), entityList.get( 1 ) ) );
     }
 
@@ -109,7 +112,7 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getInteger() ).greaterThan( 2 ).iterator();
+            query.where( query.e().getInteger() ).greaterThan(2).iterator();
         assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 2 ) ) );
     }
 
@@ -118,7 +121,7 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getInteger() ).greaterThanEqual( 2 ).iterator();
+            query.where( query.e().getInteger() ).greaterThanEqual(2).iterator();
         assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 1 ), entityList.get( 2 ) ) );
     }
 
@@ -127,7 +130,7 @@ public class _Querying
     {
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
-            query.where( query.e().getInteger() ).in( 1, 3 ).iterator();
+            query.where( query.e().getInteger() ).in(1, 3).iterator();
         assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 0 ), entityList.get( 2 ) ) );
     }
 
@@ -137,21 +140,21 @@ public class _Querying
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
         MongoCursor<CommonInterfaces.PrimitiveEntity> result =
             query.where( query.e().getString() ).in( "one", "two" ).iterator();
-        assertThat( Lists.newArrayList( result ), containsInAnyOrder( entityList.get( 0 ), entityList.get( 1 ) ) );
+        assertThat(Lists.newArrayList(result), containsInAnyOrder(entityList.get(0), entityList.get(1)));
     }
 
     @Test
     public void countString()
     {
-        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
-        assertEquals( 2, query.where( query.e().getString() ).in( "one", "two" ).count() );
+        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query(CommonInterfaces.PrimitiveEntity.class);
+        assertEquals(2, query.where(query.e().getString()).in("one", "two").count());
     }
 
     @Test
     public void countInt()
     {
-        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
-        assertEquals( 2, query.where( query.e().getInteger() ).lessThan( 3 ).count() );
+        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query(CommonInterfaces.PrimitiveEntity.class);
+        assertEquals(2, query.where(query.e().getInteger()).lessThan(3).count());
     }
 
     @Test
@@ -161,7 +164,7 @@ public class _Querying
         MongoCursor<CommonInterfaces.PrimitiveEntity> cursor =
             query.where( query.e().getInteger() ).lessThan( 3 ).limit( 1 ).iterator();
         assertThat( cursor.next(), isIn( Lists.newArrayList( entityList.get( 0 ), entityList.get( 1 ) ) ) );
-        assertFalse( cursor.hasNext() );
+        assertFalse(cursor.hasNext());
     }
 
     @Test
@@ -196,8 +199,8 @@ public class _Querying
     {
         fillSortingList();
         QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
-        MongoCursor<CommonInterfaces.PrimitiveEntity> cursor = query.where( query.e().getString() ).in( "a", "b" )
-            .skip( 1 ).sort().desc( query.e().getString() ).asc( query.e().getInteger() ).iterator();
+        MongoCursor<CommonInterfaces.PrimitiveEntity> cursor = query.where( query.e().getString() ).in("a", "b")
+            .skip(1).sort().desc(query.e().getString()).asc(query.e().getInteger()).iterator();
         assertThat( Lists.newArrayList( cursor ),
             equalTo( Lists.newArrayList( entityList.get( 2 ), entityList.get( 0 ) ) ) );
     }
@@ -205,7 +208,7 @@ public class _Querying
     @Test
     public void noRepeatedSorting()
     {
-        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
+        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query(CommonInterfaces.PrimitiveEntity.class);
         try
         {
             query.where( query.e().getString() ).in( "a", "b" ).skip( 1 ).sort().desc( query.e().getString() )
@@ -218,6 +221,54 @@ public class _Querying
         }
     }
 
+    @Test
+    public void nestedSearchForId()
+    {
+        Inner inner = factory.create( Inner.class ).setName("something");
+        inner.save();
+        Outer one = factory.create( Outer.class ).setInner( inner );
+        Outer two = factory.create( Outer.class );
+        two.save();
+        one.save();
+        QueryStart<Outer> query = factory.query( Outer.class );
+        MongoCursor<Outer> res = query.where( query.e().getInner().getName() ).is( "something" ).iterator();
+        assertTrue( res.hasNext() );
+        assertEquals( res.next(), one );
+        assertFalse( res.hasNext() );
+    }
+
+    @Test
+    public void nestedSearchForDBRefId() {
+        Inner inner = factory.create( Inner.class ).setName("something");
+        inner.save();
+        Outer one = factory.create( Outer.class ).setDBRefInner(inner);
+        Outer two = factory.create( Outer.class );
+        two.save();
+        one.save();
+        QueryStart<Outer> query = factory.query(Outer.class);
+        try {
+            MongoCursor<Outer> res = query.where(query.e().getDBRefInner().getName()).is("something").iterator();
+            fail("should throw an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(),containsString("nested search is currently not working on DBRef-References."));
+        }
+    }
+
+    @Test
+    public void nestedSearchExceptionOnNonId()
+    {
+        QueryStart<Outer> query = factory.query(Outer.class);
+        try
+        {
+            query.where( query.e().getInner().getOther() ).is( "something" ).iterator();
+            fail( "should throw an exception" );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            assertThat( e.getMessage(), containsString( "Only can perform nested query on id field" ) );
+        }
+    }
+
     private void fillSortingList()
     {
         factory.getCollection( CommonInterfaces.PrimitiveEntity.class ).drop();
@@ -227,7 +278,33 @@ public class _Querying
         entityList.add( createSaveEntity( 1, "a" ) );
     }
 
-    // query.where(query.e().getUser().getUsername())
+    private static interface Outer
+        extends Entity<Outer>
+    {
+        @Reference
+        public Inner getInner();
+
+        public Outer setInner( Inner inner );
+
+        @Reference(asDBRef = true)
+        public Inner getDBRefInner();
+
+        public Outer setDBRefInner( Inner inner );
+
+    }
+
+    private static interface Inner
+        extends Entity<Inner>
+    {
+        @Id
+        public String getName();
+
+        public Inner setName( String name );
+
+        public String getOther();
+
+        public Inner setOther( String other );
+    }
     // q.and(query.e().getAccess()).is(Access.PUBLIC)
 
 }
