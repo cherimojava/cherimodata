@@ -284,6 +284,12 @@ public class _Querying
         assertEquals( 2, q.where( q.e().getEnum() ).in( TestEnum.A, TestEnum.C ).count() );
     }
 
+    @Test
+    public void primitiveEntitiesWorking() {
+        QueryStart<Inner> i = factory.query(Inner.class);
+        i.where(i.e().getInt());
+    }
+
     private void fillSortingList()
     {
         factory.getCollection( CommonInterfaces.PrimitiveEntity.class ).drop();
@@ -319,6 +325,10 @@ public class _Querying
         public String getOther();
 
         public Inner setOther( String other );
+
+        public int getInt();
+
+        public Inner setInt(int i);
     }
 
     private static interface EnumEntity

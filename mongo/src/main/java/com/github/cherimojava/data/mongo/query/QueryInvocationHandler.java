@@ -22,9 +22,11 @@ import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.EntityFactory;
 import com.github.cherimojava.data.mongo.entity.EntityProperties;
 import com.github.cherimojava.data.mongo.entity.ParameterProperty;
+import com.google.common.base.Defaults;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Primitives;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
@@ -206,12 +208,13 @@ public class QueryInvocationHandler
         public Object invoke( Object proxy, Method method, Object[] args )
             throws Throwable
         {
+            ParameterProperty property = getProperty( method );
             if ( Entity.class.isAssignableFrom( method.getReturnType() ) )
             {
-                checkArgument( !getProperty( method ).isDBRef(),
+                checkArgument( !property.isDBRef(),
                     "nested search is currently not working on DBRef-References." );
                 // the remembering is done nested, first remember the parent element
-                parent.curQueriedProperty.add( getProperty( method ) );
+                parent.curQueriedProperty.add( property );
                 return Proxy.newProxyInstance( this.getClass().getClassLoader(), new Class[] { method.getReturnType() },
                     new InnerEntityQueryIdOnlyInvocationHandler(
                         EntityFactory.getProperties( (Class<? extends Entity>) method.getReturnType() ) ) );
@@ -220,7 +223,14 @@ public class QueryInvocationHandler
             {
                 // remember which property was invoked so we can build the query condition based on it
                 parent.addCurQueriedProperty( parent.getProperty( method ) );
-                return null;
+                if ( property.isPrimitiveType() )
+                {
+                    return Defaults.defaultValue( Primitives.unwrap( property.getType() ) );
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -245,8 +255,15 @@ public class QueryInvocationHandler
                 ParameterProperty curProperty = properties.getProperty( method );
                 if ( properties.getIdProperty() == curProperty )
                 {
-                    // We actually don't need to do anything special as we're not explicitly saving the id field
-                    return null;
+                    // for primitives we need to return something, so return default
+                    if ( curProperty.isPrimitiveType() )
+                    {
+                        return Defaults.defaultValue( Primitives.unwrap( curProperty.getType() ) );
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else
                 {
