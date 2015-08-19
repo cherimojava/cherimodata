@@ -34,4 +34,19 @@ public interface QuerySort<E extends Entity>
      * @return
      */
     public QuerySort<E> desc( Object... methodCall );
+
+    /**
+     * Adds the given fields to the soret criteria by the given sort order. Allows for programmatic usage without too
+     * much boiler plate
+     * 
+     * @param sortOrder
+     * @param methodCall
+     * @return
+     */
+    public QuerySort<E> by( Sort sortOrder, Object... methodCall );
+
+    public static enum Sort
+    {
+        DESC, ASC
+    }
 }

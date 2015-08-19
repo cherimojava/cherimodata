@@ -160,20 +160,27 @@ public class QueryInvocationHandler
                 return querySort.get();
             case "desc":/* fallthrough */
             case "asc":
-                curQueriedProperty.forEach( parameterProperty -> curSorts.add( parameterProperty.getMongoName() ) );
-                if ( "desc".equals( methodName ) )
-                {
-                    sorts.add( Sorts.descending( curSorts ) );
-                }
-                else
-                {
-                    sorts.add( Sorts.ascending( curSorts ) );
-                }
-                curSorts.clear();
-                curQueriedProperty.clear();
-                return proxy;
+                return addSortInformation( "asc".equals( methodName ) );
+            case "by":
+                return addSortInformation( args[0] == QuerySort.Sort.ASC );
         }
         throw new IllegalStateException( "Unknown method found: " + methodName );
+    }
+
+    private QuerySort addSortInformation( boolean asc )
+    {
+        curQueriedProperty.forEach( parameterProperty -> curSorts.add( parameterProperty.getMongoName() ) );
+        if ( asc )
+        {
+            sorts.add( Sorts.ascending( curSorts ) );
+        }
+        else
+        {
+            sorts.add( Sorts.descending( curSorts ) );
+        }
+        curSorts.clear();
+        curQueriedProperty.clear();
+        return querySort.get();
     }
 
     /**

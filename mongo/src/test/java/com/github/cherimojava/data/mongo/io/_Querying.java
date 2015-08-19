@@ -29,6 +29,7 @@ import com.github.cherimojava.data.mongo.entity.Entity;
 import com.github.cherimojava.data.mongo.entity.annotation.Id;
 import com.github.cherimojava.data.mongo.entity.annotation.Reference;
 import com.github.cherimojava.data.mongo.query.OngoingQuery;
+import com.github.cherimojava.data.mongo.query.QuerySort;
 import com.github.cherimojava.data.mongo.query.QueryStart;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
@@ -203,6 +204,18 @@ public class _Querying
             .skip(1).sort().desc(query.e().getString()).asc(query.e().getInteger()).iterator();
         assertThat( Lists.newArrayList( cursor ),
             equalTo( Lists.newArrayList( entityList.get( 2 ), entityList.get( 0 ) ) ) );
+    }
+
+    @Test
+    public void sortBy()
+    {
+        fillSortingList();
+        QueryStart<CommonInterfaces.PrimitiveEntity> query = factory.query( CommonInterfaces.PrimitiveEntity.class );
+        MongoCursor<CommonInterfaces.PrimitiveEntity> cursor =
+            query.where( query.e().getString() ).in( "a", "b" ).sort().by( QuerySort.Sort.ASC, query.e().getInteger() )
+                .by(QuerySort.Sort.DESC, query.e().getString()).iterator();
+        assertThat( Lists.newArrayList( cursor ),
+            equalTo( Lists.newArrayList( entityList.get( 1 ), entityList.get( 2 ), entityList.get( 0 ) ) ) );
     }
 
     @Test
