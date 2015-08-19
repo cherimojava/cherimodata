@@ -32,6 +32,9 @@ import com.github.cherimojava.data.mongo.entity.annotation.Collection;
 import com.github.cherimojava.data.mongo.entity.annotation.Index;
 import com.github.cherimojava.data.mongo.entity.annotation.IndexField;
 import com.github.cherimojava.data.mongo.io.EntityCodec;
+import com.github.cherimojava.data.mongo.query.OngoingQuery;
+import com.github.cherimojava.data.mongo.query.QueryInvocationHandler;
+import com.github.cherimojava.data.mongo.query.QueryStart;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -320,5 +323,22 @@ public class EntityFactory
     public void save( Entity e )
     {
         EntityInvocationHandler.save( EntityInvocationHandler.getHandler( e ), getCollection( e.entityClass() ) );
+    }
+
+    /**
+     * Starting point to create a fluent API for query building
+     * 
+     * @param clazz entity class to query
+     * @param <E> entity class being queried
+     * @return query start point
+     */
+    public <E extends Entity> QueryStart<E> query( Class<E> clazz )
+    {
+        QueryInvocationHandler handler =
+            new QueryInvocationHandler( clazz, getCollection( clazz ), getProperties( clazz ) );
+        QueryStart<E> query = (QueryStart<E>) Proxy.newProxyInstance( getClass().getClassLoader(),
+            new Class[] { QueryStart.class, OngoingQuery.class }, handler );
+        handler.setProxy( (OngoingQuery) query );
+        return query;
     }
 }

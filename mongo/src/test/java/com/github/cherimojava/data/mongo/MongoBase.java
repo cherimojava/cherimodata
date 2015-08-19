@@ -25,7 +25,7 @@ import com.mongodb.client.MongoDatabase;
  *
  * @author philnate
  */
-public class MongoBase
+public abstract class MongoBase
     extends TestBase
 {
 
@@ -35,16 +35,11 @@ public class MongoBase
 
     protected EntityFactory factory;
 
-    @Before
-    public void mongoDBSetup()
-    {
-        factory = new EntityFactory( db );
-    }
-
     @After
     public void mongoCleanUp()
     {
         db.drop();
+        client.close();
     }
 
     @BeforeClass
@@ -65,12 +60,6 @@ public class MongoBase
     {
         client = new MongoClient( new ServerAddress( "localhost", Suite.getPort() ) );
         db = client.getDatabase( this.getClass().getSimpleName() );
-    }
-
-    @After
-    public final void collectionCleanup()
-    {
-        db.drop();
-        client.close();
+        factory = new EntityFactory( db );
     }
 }
